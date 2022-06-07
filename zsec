@@ -1,0 +1,129 @@
+#!/bin/bash
+set -e
+
+usage()
+{
+    echo "Usage: $0 <up|destroy>"
+    exit 1
+}
+
+if [ $# -ne 1 ] ; then
+    usage
+else
+    case $1 in
+      up|destroy|do)
+          oper=$1
+      ;;
+      *)
+          usage
+      ;;
+    esac
+fi
+
+if [[ "$oper" == "up" || "destroy" ]]; then
+    # shellcheck disable=SC2153
+    if [ -z "$DTYPE" ]; then
+      read -rp "Deployment Type: ( base | base_1cc | base_1cc_zpa | base_2cc | base_2cc_zpa | base_cc_gwlb | base_cc_gwlb_zpa | cc_custom | cc_gwlb_custom): " dtype
+    else
+      dtype=$DTYPE
+    fi
+
+    case $dtype in
+      base|base_1cc|base_1cc_zpa|base_2cc|base_2cc_zpa|base_cc_gwlb|base_cc_gwlb_zpa|cc_custom|cc_gwlb_custom)
+          echo "Deployment Type: ${dtype}"
+      ;;
+      *)
+          echo "Invalid Deployment Type: ${dtype}"
+          exit 1
+      ;;
+    esac
+fi
+
+tversion=0.13.7
+echo "Detecting OS..."
+if [[ "$OSTYPE" == "linux"* ]]; then
+    os_str=linux
+    arch=amd64
+    ostype=Linux
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    os_str=darwin
+    arch=amd64
+    ostype=MacOS
+elif [[ "$OSTYPE" == "freebsd"* ]]; then
+    os_str=freebsd
+    arch=amd64
+    ostype=FreeBSD
+    echo "FreeBSD support coming soon..."
+    exit 1
+else
+    echo "Unsupported OS: $OSTYPE"
+    exit 1
+fi
+echo "OS is $ostype"
+
+dir=bin
+echo "Creating a local $dir directory if not present..."
+if [[ ! -e $dir ]]; then
+    mkdir $dir
+elif [[ ! -d $dir ]]; then
+    echo "$dir already exists but is not a directory" 1>&2
+    exit 1
+fi
+
+echo "Checking AWS Environment Variables..."
+# if .zsecrc is not present we'll assume that AWS env was never set
+if [[ ! -e ./.zsecrc ]]; then
+    read -rp "Enter AWS Access Key: " aws_key
+    read -rp "Enter AWS Secret Key: " aws_secret
+    read -rp "Enter AWS Region: " aws_region
+    echo "export AWS_ACCESS_KEY_ID=${aws_key}" > .zsecrc
+    echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsecrc
+    echo "export AWS_DEFAULT_REGION=${aws_region}" >> .zsecrc
+fi
+
+# add local bin directory to PATH
+if ! grep -Fxq "export PATH=\${PATH}:\${PWD}/bin" .zsecrc; then
+    echo 'export PATH=${PATH}:${PWD}/bin' >> .zsecrc
+fi
+. ./.zsecrc
+
+if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$AWS_DEFAULT_REGION" ]; then
+    echo "AWS Access info is missing. Remove .zsecrc file and rerun $0 $1"
+    exit 1
+fi
+
+echo "Download terraform binary for $ostype if not present..."
+if [[ ! -e ./$dir/terraform ]]; then
+    curl -o ./$dir/terraform_${tversion}_${arch}.zip https://releases.hashicorp.com/terraform/$tversion/terraform_${tversion}_${os_str}_${arch}.zip
+    unzip ./$dir/terraform_${tversion}_${arch}.zip -d ./$dir
+    rm -f ./$dir/terraform_${tversion}_${arch}.zip
+fi
+
+if [[ "$oper" == "do" ]]; then
+    exit 1
+fi
+
+if [[ "$oper" == "up" ]]; then
+    echo "Bringing up Cloud Connector cluster..."
+    ./$dir/terraform init deployment-examples/$dtype
+    if [[ "$AUTO_APPROVE" ]]; then
+        ./$dir/terraform apply -auto-approve -var aws_region="$AWS_DEFAULT_REGION" deployment-examples/$dtype
+    else
+        ./$dir/terraform apply -var aws_region="$AWS_DEFAULT_REGION" deployment-examples/$dtype
+    fi
+   
+
+elif [[ "$oper" == "destroy" ]]; then
+    echo "Destroying Edge Connector cluster..."
+    ./$dir/terraform init deployment-examples/$dtype
+    if [[ "$AUTO_APPROVE" ]]; then
+      ./$dir/terraform destroy -auto-approve
+    else
+      ./$dir/terraform destroy --compact-warnings
+    fi
+    rm -rf bin .terraform terraform.tfstate*
+    rm -f *.pem && rm -f *.pem.pub
+    rm -f name_prefix random_string
+    rm -rf user.key user.crt
+    rm -rf systems.json setup-*.tar
+fi
