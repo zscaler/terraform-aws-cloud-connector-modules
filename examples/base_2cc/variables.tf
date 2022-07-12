@@ -119,3 +119,15 @@ variable "cc_callhome_enabled" {
   default = "true"
   type  = bool
 }
+
+variable "reuse_security_group" {
+  description = "Specifies whether the SG module should create 1:1 security groups per instance or 1 security group for all instances"
+  default     = "false"
+  type        = bool
+}
+
+variable "reuse_iam" {
+  description = "Specifies whether the SG module should create 1:1 IAM per instance or 1 IAM for all instances"
+  default     = "false"
+  type        = bool
+}

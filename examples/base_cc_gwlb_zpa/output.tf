@@ -56,7 +56,7 @@ GWLB:
 ${module.gwlb.gwlb_arn}
 
 All CC IAM Role ARNs (Please provide this to Zscaler for callhome enablement):
-${join("\n", module.cc-vm.iam_arn)}
+${join("\n", module.cc-iam.iam_instance_profile_arn)}
 
 TB
 }

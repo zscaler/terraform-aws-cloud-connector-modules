@@ -2,6 +2,10 @@
 * github release refactor
 * zsec update for terraform support up to 1.1.9 and aws provider 4.7.x
 * zsec updated with mac m1 option for terraform arm64 version download
+* modules renamed for granularity and consistency
+* CC IAM and Security Group resources broken out to individual child modules
+* Support for reusing the same IAM and Security Group resources for all CC VMs.
+* Bring your own IAM Instance Profile and Security Groups available for brownfield/custom deployments
 
 ## 1.2.0 (May 5, 2022)
 NOTES:

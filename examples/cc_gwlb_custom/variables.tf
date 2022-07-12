@@ -186,3 +186,45 @@ variable "cc_callhome_enabled" {
   default = "true"
   type  = bool
 }
+
+variable "reuse_security_group" {
+  description = "Specifies whether the SG module should create 1:1 security groups per instance or 1 security group for all instances"
+  default     = "false"
+  type        = bool
+}
+
+variable "reuse_iam" {
+  description = "Specifies whether the SG module should create 1:1 IAM per instance or 1 IAM for all instances"
+  default     = "false"
+  type        = bool
+}
+
+variable "byo_iam_instance_profile" {
+  default     = false
+  type        = bool
+  description = "Bring your own IAM Instance Profile for Cloud Connector"
+}
+
+variable "byo_iam_instance_profile_id" {
+  type = list(string)
+  default = null
+  description = "IAM Instance Profile ID for Cloud Connector association"
+}
+
+variable "byo_security_group" {
+  default     = false
+  type        = bool
+  description = "Bring your own Security Group for Cloud Connector"
+}
+
+variable "byo_mgmt_security_group_id" {
+  type = list(string)
+  default = null
+  description = "Management Security Group ID for Cloud Connector association"
+}
+
+variable "byo_service_security_group_id" {
+  type = list(string)
+  default = null
+  description = "Service Security Group ID for Cloud Connector association"
+}
