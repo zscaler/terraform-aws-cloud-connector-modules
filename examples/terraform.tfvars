@@ -1,26 +1,29 @@
 ## This is only a sample terraform.tfvars file.
 ## Uncomment and change the below variables according to your specific environment
 
+
 #####################################################################################################################
-                                ##### Cloud Init Provisioning variables  #####
+            ##### Variables 1-5 are populated automically if terraform is ran via ZSEC bash script.   ##### 
+            ##### Modifying the variables in this file will override any inputs from ZSEC             #####
+#####################################################################################################################
+
+
+#####################################################################################################################
+                                ##### Cloud Init Userdata Provisioning variables  #####
 #####################################################################################################################
 
 ## 1. Zscaler Cloud Connector Provisioning URL E.g. connector.zscaler.net/api/v1/provUrl?name=aws_prov_url
 
-#cc_vm_prov_url                          = "connector.zscaler.net/api/v1/provUrl?name=aws_prov_url"
+#cc_vm_prov_url                           = "connector.zscaler.net/api/v1/provUrl?name=aws_prov_url"
 
 ## 2. AWS Secrets Manager Secret Name from Secrets Manager E.g ZS/CC/credentials
 
-#secret_name                             =  "ZS/CC/credentials/aws_cc_secret_name"
+#secret_name                              =  "ZS/CC/credentials/aws_cc_secret_name"
 
 ## 3. Cloud Connector cloud init provisioning listener port. This is required for GWLB and Health Probe deployments. 
 ## Uncomment and set custom probe port to a single value of 80 or any number between 1024-65535. Default is 0/null.
 
-#http_probe_port                         = 50000
-
-#####################################################################################################################
-                ##### Custom variables. Only change if required for your environment  #####
-#####################################################################################################################
+#http_probe_port                          = 50000
 
 ## 4. Cloud Connector AWS EC2 Instance size selection. Uncomment ccvm_instance_type line with desired vm size to change.
 ##    (Default: m5.large)
@@ -47,6 +50,10 @@
 #cc_instance_size                         = "medium"
 #cc_instance_size                         = "large" 
 
+
+#####################################################################################################################
+                ##### Custom variables. Only change if required for your environment  #####
+#####################################################################################################################
 
 ## 6. IPv4 CIDR configured with VPC creation. Workload, Public, and Cloud Connector Subnets will be created based off this prefix
 ##    /24 subnets are created assuming this cidr is a /16. You may need to edit cidr_block values for subnet creations if
