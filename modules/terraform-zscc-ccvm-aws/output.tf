@@ -41,7 +41,3 @@ output "cc_med_lrg_service_2_private_ip" {
 output "cc_lrg_service_3_private_ip" {
   value = data.aws_network_interface.cc-vm-nic-index-4-eni.*.private_ip
 }
-
-output "iam_arn" {
-  value = aws_iam_role.cc-node-iam-role.*.arn
-}

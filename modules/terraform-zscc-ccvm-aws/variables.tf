@@ -12,16 +12,6 @@ variable "vpc" {
   description = "Cloud Connector VPC"
 }
 
-variable "iam_role_policy_smrw" {
-  description = "Cloud Connector EC2 Instance IAM Role"
-  default     = "SecretsManagerReadWrite"
-}
-
-variable "iam_role_policy_ssmcore" {
-  description = "Cloud Connector EC2 Instance IAM Role"
-  default     = "AmazonSSMManagedInstanceCore"
-}
-
 variable "mgmt_subnet_id" {
   description = "Cloud Connector EC2 Instance management subnet id"
 }
@@ -90,8 +80,21 @@ variable "cc_instance_size" {
       }
 }
 
-variable "cc_callhome_enabled" {
-  description = "determine whether or not to create the cc-callhome-policy IAM Policy and attach it to the CC IAM Role"
-  default = "true"
-  type  = bool
+variable "mgmt_security_group_id" {
+  description = "Cloud Connector EC2 Instance management subnet id"
+  type        = list(string)
 }
+
+variable "service_security_group_id" {
+  description = "Cloud Connector EC2 Instance service subnet id"
+  type        = list(string)
+}
+
+variable "iam_instance_profile" {
+  description = "IAM instance profile ID assigned to Cloud Connector"
+  default     = null
+  type        = list(string)
+}
+
+
+ 

@@ -220,22 +220,57 @@ EOF
   }
 }
 
+
+locals {
+  iam_instance_profile  = var.byo_iam_instance_profile == true ? var.byo_iam_instance_profile_id : module.cc-iam.iam_instance_profile_id
+  mgmt_security_group_id     = var.byo_security_group == true ? var.byo_mgmt_security_group_id : module.cc-sg.mgmt_security_group_id
+  service_security_group_id     = var.byo_security_group == true ? var.byo_service_security_group_id : module.cc-sg.service_security_group_id
+}
+
 # Create X CC VMs per cc_count which will span equally across designated availability zones per az_count
 # E.g. cc_count set to 4 and az_count set to 2 or byo_subnet_ids configured for 2 will create 2x CCs in AZ subnet 1 and 2x CCs in AZ subnet 2
 module "cc-vm" {
-  source              = "../modules/terraform-zscc-aws"
-  cc_count            = var.cc_count
+  source                    = "../../modules/terraform-zscc-ccvm-aws"
+  cc_count                  = var.cc_count
+  name_prefix               = var.name_prefix
+  resource_tag              = random_string.suffix.result
+  global_tags               = local.global_tags
+  vpc                       = data.aws_vpc.selected.id
+  mgmt_subnet_id            = data.aws_subnet.cc-selected.*.id
+  service_subnet_id         = data.aws_subnet.cc-selected.*.id
+  instance_key              = aws_key_pair.deployer.key_name
+  user_data                 = local.userdata
+  ccvm_instance_type        = var.ccvm_instance_type
+  cc_instance_size          = var.cc_instance_size
+  iam_instance_profile      = local.iam_instance_profile
+  mgmt_security_group_id    = local.mgmt_security_group_id
+  service_security_group_id = local.service_security_group_id
+  
+}
+
+
+# Create IAM Policy, Roles, and Instance Profiles to be assigned to CC appliances. Default behavior will create 1 of each resource per CC VM. Set variable reuse_iam to true
+# if you would like a single IAM profile created and assigned to ALL Cloud Connectors
+module "cc-iam" {
+  source                    = "../../modules/terraform-zscc-iam-aws"
+  iam_count                 = var.reuse_iam == false ? var.cc_count : 1
+  name_prefix               = var.name_prefix
+  resource_tag              = random_string.suffix.result
+  global_tags               = local.global_tags
+  cc_callhome_enabled       = var.cc_callhome_enabled
+  byo_iam_instance_profile  = var.byo_iam_instance_profile
+}
+
+# Create Security Group and rules to be assigned to CC mgmt and and service interface(s). Default behavior will create 1 of each resource per CC VM. Set variable reuse_security_group
+# to true if you would like a single security group created and assigned to ALL Cloud Connectors
+module "cc-sg" {
+  source              = "../../modules/terraform-zscc-sg-aws"
+  sg_count            = var.reuse_security_group == false ? var.cc_count : 1
   name_prefix         = var.name_prefix
   resource_tag        = random_string.suffix.result
   global_tags         = local.global_tags
   vpc                 = data.aws_vpc.selected.id
-  mgmt_subnet_id      = data.aws_subnet.cc-selected.*.id
-  service_subnet_id   = data.aws_subnet.cc-selected.*.id
-  instance_key        = aws_key_pair.deployer.key_name
-  user_data           = local.userdata
-  ccvm_instance_type  = var.ccvm_instance_type
-  cc_instance_size    = var.cc_instance_size
-  cc_callhome_enabled = var.cc_callhome_enabled
+  byo_security_group  = var.byo_security_group
 }
 
 
@@ -251,7 +286,7 @@ module "cc-vm" {
 
 module "cc-lambda" {
   count            = var.lambda_enabled == true && var.byo_vpc == true ? 1 : 0
-  source           = "../modules/terraform-zslambda-aws"
+  source           = "../../modules/terraform-zscc-lambda-aws"
   name_prefix      = var.name_prefix
   resource_tag     = random_string.suffix.result
   global_tags      = local.global_tags
@@ -286,7 +321,7 @@ resource "aws_route_table" "rt-r53" {
   vpc_id = data.aws_vpc.selected.id
   route {
     cidr_block           = "0.0.0.0/0"
-    network_interface_id = element(module.cc-vm.eni, count.index)
+    network_interface_id = element(module.cc-vm.service_eni_1, count.index)
   }
 
   tags = merge(local.global_tags,
@@ -304,7 +339,7 @@ resource "aws_route_table_association" "r53-rt-asssociation" {
 
 module "route53" {
   count           = var.zpa_enabled == true ? 1 : 0
-  source          = "../modules/terraform-zsroute53-aws"
+  source          = "../../modules/terraform-zscc-route53-aws"
   name_prefix     = var.name_prefix
   resource_tag    = random_string.suffix.result
   global_tags     = local.global_tags
@@ -313,64 +348,3 @@ module "route53" {
   domain_names    = var.domain_names
   target_address  = var.target_address
 }
-
-
-############################################################################################################################################
-####### Legacy code for reference if customer desires to break cloud connector mgmt and service interfaces out into separate subnets #######
-############################################################################################################################################
-
-# create new subnet for CC mgmt n/w
-#resource "aws_subnet" "cc-mgmt-subnet" {
-#  count = 2
-#
-#  availability_zone = data.aws_availability_zones.available.names[count.index]
-#  cidr_block        = cidrsubnet(aws_vpc.vpc1.cidr_block, 12, (count.index * 16) + 3936)
-#  vpc_id            = aws_vpc.vpc1.id
-#
-#  tags = map(
-#    "Name", "${var.name_prefix}-vpc1-ec-mgmt-subnet-${count.index + 1}-${random_string.suffix.result}",
-#    "zs-edge-connector-cluster/${var.name_prefix}-cluster-${random_string.suffix.result}", "shared",
-#  )
-#}
-
-#CC Mgmt/Service NATGW Route Table
-#resource "aws_route_table" "routetable-cc-mgmt-and-service" {
-#  count  = 1
-#  vpc_id = aws_vpc.vpc1.id
-#  route {
-#    cidr_block     = "0.0.0.0/0"
-#    nat_gateway_id = aws_nat_gateway.ngw1.id
-#  }
-#
-#  tags = map(
-#    "Name", "${var.name_prefix}-natgw-cc-mgmt-svc-rt-${count.index + 1}-${random_string.suffix.result}",
-#    "zs-edge-connector-cluster/${var.name_prefix}-cluster-${random_string.suffix.result}", "shared",
-#  )
-#}
-
-#CC Mgmt subnet NATGW Route Table Association
-#resource "aws_route_table_association" "routetable-cc-mgmt" {
-#  count          = 2
-#  subnet_id      = aws_subnet.cc-mgmt-subnet.*.id[count.index]
-#  route_table_id = aws_route_table.routetable-cc-mgmt-and-service.*.id[0]
-#}
-
-# create new subnet for CC service n/w
-#resource "aws_subnet" "cc-service-subnet" {
-#  count             = 2
-#  availability_zone = data.aws_availability_zones.available.names[count.index]
-#  cidr_block        = cidrsubnet(aws_vpc.vpc1.cidr_block, 12, (count.index * 16) + 4000)
-#  vpc_id            = aws_vpc.vpc1.id
-#
-#  tags = map(
-#    "Name", "${var.name_prefix}-ec-service-subnet-${count.index + 1}-${random_string.suffix.result}",
-#    "zs-edge-connector-cluster/${var.name_prefix}-cluster-${random_string.suffix.result}", "shared",
-#  )
-#}
-
-#EC Service subnet NATGW Route Table Association
-#resource "aws_route_table_association" "routetable-cc-service" {
-#  count          = 2
-#  subnet_id      = aws_subnet.cc-service-subnet.*.id[count.index]
-#  route_table_id = aws_route_table.routetable-cc-mgmt-and-service.*.id[0]
-#}

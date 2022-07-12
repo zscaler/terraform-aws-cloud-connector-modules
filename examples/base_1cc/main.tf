@@ -163,7 +163,7 @@ resource "aws_nat_gateway" "ngw" {
 
 # 2. Create Bastion Host
 module "bastion" {
-  source        = "../../modules/terraform-zsbastion-aws"
+  source        = "../../modules/terraform-zscc-bastion-aws"
   name_prefix   = var.name_prefix
   resource_tag  = random_string.suffix.result
   global_tags   = local.global_tags
@@ -178,7 +178,7 @@ module "bastion" {
 # Create Workloads
 module "workload" {
   workload_count  = var.workload_count
-  source          = "../../modules/terraform-zsworkload-aws"
+  source          = "../../modules/terraform-zscc-workload-aws"
   name_prefix     = "${var.name_prefix}-workload"
   resource_tag    = random_string.suffix.result
   global_tags     = local.global_tags
@@ -241,19 +241,44 @@ EOF
 # Create X CC VMs per cc_count which will span equally across designated availability zones per az_count
 # E.g. cc_count set to 4 and az_count set to 2 will create 2x CCs in AZ1 and 2x CCs in AZ2
 module "cc-vm" {
-  source              = "../../modules/terraform-zscc-aws"
-  cc_count            = var.cc_count
+  source                    = "../../modules/terraform-zscc-ccvm-aws"
+  cc_count                  = var.cc_count
+  name_prefix               = var.name_prefix
+  resource_tag              = random_string.suffix.result
+  global_tags               = local.global_tags
+  vpc                       = aws_vpc.vpc1.id
+  mgmt_subnet_id            = aws_subnet.cc-subnet.*.id
+  service_subnet_id         = aws_subnet.cc-subnet.*.id
+  instance_key              = aws_key_pair.deployer.key_name
+  user_data                 = local.userdata
+  ccvm_instance_type        = var.ccvm_instance_type
+  cc_instance_size          = var.cc_instance_size
+  iam_instance_profile      = module.cc-iam.iam_instance_profile_id
+  mgmt_security_group_id    = module.cc-sg.mgmt_security_group_id
+  service_security_group_id = module.cc-sg.service_security_group_id
+}
+
+
+# Create IAM Policy, Roles, and Instance Profiles to be assigned to CC appliances. Default behavior will create 1 of each resource per CC VM. Set variable reuse_iam to true
+# if you would like a single IAM profile created and assigned to ALL Cloud Connectors
+module "cc-iam" {
+  source              = "../../modules/terraform-zscc-iam-aws"
+  iam_count           = var.reuse_iam == false ? var.cc_count : 1
   name_prefix         = var.name_prefix
   resource_tag        = random_string.suffix.result
   global_tags         = local.global_tags
-  vpc                 = aws_vpc.vpc1.id
-  mgmt_subnet_id      = aws_subnet.cc-subnet.*.id
-  service_subnet_id   = aws_subnet.cc-subnet.*.id
-  instance_key        = aws_key_pair.deployer.key_name
-  user_data           = local.userdata
-  ccvm_instance_type  = var.ccvm_instance_type
-  cc_instance_size    = var.cc_instance_size
   cc_callhome_enabled = var.cc_callhome_enabled
+}
+
+# Create Security Group and rules to be assigned to CC mgmt and and service interface(s). Default behavior will create 1 of each resource per CC VM. Set variable reuse_security_group
+# to true if you would like a single security group created and assigned to ALL Cloud Connectors
+module "cc-sg" {
+  source        = "../../modules/terraform-zscc-sg-aws"
+  sg_count      = var.reuse_security_group == false ? var.cc_count : 1
+  name_prefix   = var.name_prefix
+  resource_tag  = random_string.suffix.result
+  global_tags   = local.global_tags
+  vpc           = aws_vpc.vpc1.id
 }
 
 
@@ -281,68 +306,3 @@ resource "aws_route_table_association" "private-rt-asssociation" {
   subnet_id      = aws_subnet.privsubnet.*.id[count.index]
   route_table_id = aws_route_table.routetableprivate.*.id[count.index]
 }
-
-
-############################################################################################################################################
-####### Legacy code for reference if customer desires to break cloud connector mgmt and service interfaces out into separate subnets #######
-############################################################################################################################################
-
-
-# 4. 1 CC VM
-
-# create new subnet for CC mgmt n/w
-#resource "aws_subnet" "cc-mgmt-subnet" {
-#  count = 1
-#
-#  availability_zone = data.aws_availability_zones.available.names[count.index]
-#  cidr_block        = cidrsubnet(aws_vpc.vpc1.cidr_block, 12, (count.index * 16) + 3936)
-#  vpc_id            = aws_vpc.vpc1.id
-#
-#  tags = {
-#    Name = "${var.name_prefix}-vpc1-ec-mgmt-subnet-${count.index + 1}-${random_string.suffix.result}"
-#    "zs-edge-connector-cluster/${var.name_prefix}-cluster-${random_string.suffix.result}" = "shared"
-#  }
-#}
-
-#CC Mgmt/Service NATGW Route Table
-#resource "aws_route_table" "routetable-cc-mgmt-and-service" {
-#  count  = 1
-#  vpc_id = aws_vpc.vpc1.id
-#  route {
-#    cidr_block     = "0.0.0.0/0"
-#    nat_gateway_id = aws_nat_gateway.ngw1.id
-#  }
-#
-#  tags = {
-#    Name = "${var.name_prefix}-natgw-cc-mgmt-svc-rt-${count.index + 1}-${random_string.suffix.result}"
-#    "zs-edge-connector-cluster/${var.name_prefix}-cluster-${random_string.suffix.result}" = "shared"
-#  }
-#}
-
-# create new subnet for CC service n/w
-#resource "aws_subnet" "cc-service-subnet" {
-#  count = 1
-#  #availability_zone = data.aws_availability_zones.available.names[count.index]
-#  availability_zone = data.aws_availability_zones.available.names[count.index]
-#  cidr_block        = cidrsubnet(aws_vpc.vpc1.cidr_block, 12, (count.index * 16) + 4000)
-#  vpc_id            = aws_vpc.vpc1.id
-#
-#  tags = {
-#    Name = "${var.name_prefix}-ec-service-subnet-${count.index + 1}-${random_string.suffix.result}"
-#    "zs-edge-connector-cluster/${var.name_prefix}-cluster-${random_string.suffix.result}" = "shared"
-#  }
-#}
-#
-#CC Mgmt subnet NATGW Route Table Association
-#resource "aws_route_table_association" "routetable-cc-mgmt" {
-#  count          = 1
-#  subnet_id      = aws_subnet.cc-mgmt-subnet.*.id[count.index]
-#  route_table_id = aws_route_table.routetable-cc-mgmt-and-service.*.id[0]
-#}
-#
-#EC Service subnet NATGW Route Table Association
-#resource "aws_route_table_association" "routetable-cc-service" {
-#  count          = 1
-#  subnet_id      = aws_subnet.cc-service-subnet.*.id[count.index]
-#  route_table_id = aws_route_table.routetable-cc-mgmt-and-service.*.id[0]
-#}
