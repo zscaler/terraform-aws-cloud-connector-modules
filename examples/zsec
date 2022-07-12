@@ -77,9 +77,10 @@ elif [[ ! -d $dir ]]; then
     exit 1
 fi
 
+
 echo "Checking AWS Environment Variables..."
 # if .zsecrc is not present we'll assume that AWS env was never set
-if [[ ! -e ./.zsecrc ]]; then
+if [[ $dtype == base && ! -e ./.zsecrc ]]; then
     read -rp "Enter AWS Access Key: " aws_key
     read -rp "Enter AWS Secret Key: " aws_secret
     read -rp "Enter AWS Region: " aws_region
@@ -87,6 +88,66 @@ if [[ ! -e ./.zsecrc ]]; then
     echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsecrc
     echo "export AWS_DEFAULT_REGION=${aws_region}" >> .zsecrc
 fi
+
+echo "Checking AWS Environment Variables and Cloud Connector bootstrap requirements... For ZPA or custom/byo deployments, please stop and refer to the README and terraform.tfvars file instructions"
+# if .zsecrc is not present we'll assume that AWS env was never set
+if [[ "$oper" == "up" && $dtype != base && ! -e ./.zsecrc ]]; then
+    read -rp "Enter AWS Access Key: " aws_key
+    echo "export AWS_ACCESS_KEY_ID=${aws_key}" > .zsecrc
+    read -rp "Enter AWS Secret Key: " aws_secret
+    echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsecrc
+    read -rp "Enter AWS Region: " aws_region
+    echo "export AWS_DEFAULT_REGION=${aws_region}" >> .zsecrc
+    read -rp "Enter CC Provisioning URL (E.g. connector.zscaler.net/api/v1/provUrl?name=aws_prov_url): " cc_vm_prov_url
+    echo "Provisioning URL entered is: $cc_vm_prov_url"
+    echo "export TF_VAR_cc_vm_prov_url=${cc_vm_prov_url}" >> .zsecrc
+    read -rp "Enter AWS Secrets Manager Secret Name from Secrets Manager (E.g ZS/CC/credentials/aws_cc_secret_name): " secret_name
+    echo "Secret Manager name entered is: $secret_name"
+    echo "export TF_VAR_secret_name=${secret_name}" >> .zsecrc
+http_probe_port_default=50000
+    read -rp "Enter CC service health probe TCP port number. Valid input = 80 or any number between 1024-65535 [Default=$http_probe_port_default]: " http_probe_port_input
+http_probe_port=${http_probe_port_input:-$http_probe_port_default}
+    [[ $http_probe_port =~ ^[0-9]+$ ]] || { continue; }
+if ((http_probe_port == 80 || http_probe_port >= 1024 && http_probe_port <= 65535)); then
+    echo "valid HTTP probe port input of $http_probe_port"
+    echo "export TF_VAR_http_probe_port=${http_probe_port}" >> .zsecrc
+else
+    echo "Invalid HTTP probe port value"
+    exit 1
+fi
+
+cc_instance_size_default=small
+    read -rp "Enter CC Instance Size. Valid input = small, medium, or large. This needs to match the size chosen in the CC provisioning template [Default=$cc_instance_size_default]: " cc_instance_size_input
+cc_instance_size=${cc_instance_size_input:-$cc_instance_size_default}
+    case $cc_instance_size in
+      small|medium|large)
+          echo "CC size: ${cc_instance_size}"
+          echo "export TF_VAR_cc_instance_size=${cc_instance_size}" >> .zsecrc
+      ;;
+      *)
+          echo "Invalid CC size: ${cc_instance_size}"
+          exit 1
+      ;;
+    esac
+
+ccvm_instance_type_default=m5.large
+    read -rp "Enter desired AWS EC2 instance type for CC. Recommended types: Small CC (m5.large or c5.large); Medium (m5.2xlarge or c5.2xlarge); Large (m5.4xlarge or c5.4xlarge) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
+ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}    
+    case $ccvm_instance_type in
+      t3.medium|m5.large|c5.large|c5a.large|m5.2xlarge|c5.2xlarge|m5.4xlarge|c5.4xlarge)
+          echo "CC EC2 type: ${ccvm_instance_type}"
+          echo "export TF_VAR_ccvm_instance_type=${ccvm_instance_type}" >> .zsecrc
+      ;;
+      *)
+          echo "Invalid CC EC2 type: ${ccvm_instance_type}"
+          exit 1
+      ;;
+    esac
+fi
+
+small_cc_instance=("t3.medium" "m5.large" "c5.large" "c5a.large" "m5.2xlarge" "c5.2xlarge" "m5.4xlarge" "c5.4xlarge")
+medium_cc_instance=("m5.2xlarge" "c5.2xlarge" "m5.4xlarge" "c5.4xlarge")
+large_cc_instance=("m5.4xlarge" "c5.4xlarge")
 
 # add local bin directory to PATH
 if ! grep -Fxq "export PATH=\${PATH}:\${PWD}/bin" .zsecrc; then
@@ -98,6 +159,28 @@ if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$AWS_
     echo "AWS Access info is missing. Remove .zsecrc file and rerun $0 $1"
     exit 1
 fi
+
+if [[ $dtype != "base" ]]; then
+    echo "Checking Cloud Connector provisioning info"
+  if [ -z "$TF_VAR_cc_vm_prov_url" ] || [ -z "$TF_VAR_secret_name" ] || [ -z "$TF_VAR_http_probe_port" ] || [ -z "$TF_VAR_cc_instance_size" ] || [ -z "$TF_VAR_ccvm_instance_type" ]; then
+    echo "Cloud Connector provisioning info is missing. Remove .zsecrc file and rerun $0 $1"
+    exit 1
+  fi
+fi
+
+if [[ $oper == "up" && ${small_cc_instance[*]} =~ $TF_VAR_ccvm_instance_type && "$TF_VAR_cc_instance_size" == small ]]; then
+echo "Valid CC deployment"
+elif [[ $oper == "up" && ${medium_cc_instance[*]} =~ $ccvm_instance_type && "$cc_instance_size" == medium ]]; then
+echo "Valid CC deployment"
+elif [[ $oper == "up" && ${large_cc_instance[*]} =~ $ccvm_instance_type && "$cc_instance_size" == large ]]; then
+echo "Valid CC deployment"
+elif [[ $oper == "up" && $dtype == base ]]; then
+echo "proceeding with no CCs to deploy"
+else
+    echo "Invalid CC deployment"
+    exit 1
+fi
+
 
 echo "Download terraform binary for $ostype if not present..."
 if [[ ! -e ./$dir/terraform ]]; then
