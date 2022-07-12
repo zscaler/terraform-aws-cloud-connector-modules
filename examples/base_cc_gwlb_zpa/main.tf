@@ -43,7 +43,6 @@ EOF
   }
 }
 
-
 ## Create the user_data file
 locals {
   userdata = <<USERDATA
@@ -65,7 +64,6 @@ resource "local_file" "user-data-file" {
 data "aws_availability_zones" "available" {
   state = "available"
 }
-
 
 # Create a new VPC
 resource "aws_vpc" "vpc1" {
@@ -113,7 +111,7 @@ resource "aws_subnet" "privsubnet" {
 }
 
 
-# Create a public Route Table towards IGW
+# Create a public Route Table towards IGW.
 resource "aws_route_table" "routetablepublic1" {
   vpc_id = aws_vpc.vpc1.id
 
@@ -127,12 +125,11 @@ resource "aws_route_table" "routetablepublic1" {
   )
 }
 
-
 # Create equal number of Route Table associations to how many Public subnets exist. 
 resource "aws_route_table_association" "routetablepublic1" {
-  count           = length(aws_subnet.pubsubnet.*.id)
-  subnet_id       = aws_subnet.pubsubnet.*.id[count.index]
-  route_table_id  = aws_route_table.routetablepublic1.id
+  count = length(aws_subnet.pubsubnet.*.id)
+  subnet_id      = aws_subnet.pubsubnet.*.id[count.index]
+  route_table_id = aws_route_table.routetablepublic1.id
 }
 
 
@@ -161,9 +158,10 @@ resource "aws_nat_gateway" "ngw" {
 }
 
 
+
 # 2. Create Bastion Host
 module "bastion" {
-  source        = "../modules/terraform-zsbastion-aws"
+  source        = "../../modules/terraform-zsbastion-aws"
   name_prefix   = var.name_prefix
   resource_tag  = random_string.suffix.result
   global_tags   = local.global_tags
@@ -177,19 +175,20 @@ module "bastion" {
 # 3. Create Workload
 # Create Workloads
 module "workload" {
-  workload_count  = var.workload_count
-  source          = "../modules/terraform-zsworkload-aws"
-  name_prefix     = "${var.name_prefix}-workload"
-  resource_tag    = random_string.suffix.result
-  global_tags     = local.global_tags
-  vpc             = aws_vpc.vpc1.id
-  subnet          = aws_subnet.privsubnet.*.id
-  instance_key    = aws_key_pair.deployer.key_name
+  workload_count = var.workload_count
+  source       = "../../modules/terraform-zsworkload-aws"
+  name_prefix  = "${var.name_prefix}-workload"
+  resource_tag = random_string.suffix.result
+  global_tags  = local.global_tags
+  vpc          = aws_vpc.vpc1.id
+  subnet       = aws_subnet.privsubnet.*.id
+  instance_key = aws_key_pair.deployer.key_name
 }
 
 
+
 # 4. Create CC network, routing, and appliance
-# Create subnet for CC network
+# Create subnet for CC network in X availability zones per az_count variable
 resource "aws_subnet" "cc-subnet" {
   count = var.az_count
 
@@ -211,7 +210,7 @@ resource "aws_route_table" "cc-rt" {
     cidr_block     = "0.0.0.0/0"
     nat_gateway_id = element(aws_nat_gateway.ngw.*.id, count.index)
   }
-  
+
   tags = merge(local.global_tags,
         { Name = "${var.name_prefix}-cc-rt-ngw-${count.index + 1}-${random_string.suffix.result}" }
   )
@@ -236,12 +235,10 @@ EOF
   }
 }
 
-
-
 # Create X CC VMs per cc_count which will span equally across designated availability zones per az_count
 # E.g. cc_count set to 4 and az_count set to 2 will create 2x CCs in AZ1 and 2x CCs in AZ2
 module "cc-vm" {
-  source              = "../modules/terraform-zscc-aws"
+  source              = "../../modules/terraform-zscc-aws"
   cc_count            = var.cc_count
   name_prefix         = var.name_prefix
   resource_tag        = random_string.suffix.result
@@ -258,20 +255,55 @@ module "cc-vm" {
 
 
 
-# 5. Create Route Table for private subnets (workload servers) towards CC Service ENI or GWLB Endpoint
+# 5. Create GWLB in all CC subnets. Create 1x GWLB Endpoint per subnet with Endpoint Service. Create Target Group and attach primary service IP from all created Cloud
+#    Connectors as registered targets.
+module "gwlb" {
+  source                    = "../../modules/terraform-zsgwlb-aws"
+  name_prefix               = var.name_prefix
+  resource_tag              = random_string.suffix.result
+  global_tags               = local.global_tags
+  vpc                       = aws_vpc.vpc1.id
+  cc_subnet_ids             = aws_subnet.cc-subnet.*.id
+  cc_small_service_ips      = module.cc-vm.cc_service_private_ip
+  cc_med_lrg_service_1_ips  = module.cc-vm.cc_med_lrg_service_1_private_ip 
+  cc_med_lrg_service_2_ips  = module.cc-vm.cc_med_lrg_service_2_private_ip
+  cc_lrg_service_3_ips      = module.cc-vm.cc_lrg_service_3_private_ip
+  cc_instance_size          = var.cc_instance_size
+  http_probe_port           = var.http_probe_port
+  cross_zone_lb_enabled     = var.cross_zone_lb_enabled
+  interval                  = 10
+  healthy_threshold         = 3
+  unhealthy_threshold       = 3
+}
+
+
+
+# 6. Create Endpoint Service associated with GWLB and 1x GWLB Endpoint per CC subnet
+module "gwlb-endpoint" {
+  source                  = "../../modules/terraform-zsgwlbendpoint-aws"
+  name_prefix             = var.name_prefix
+  resource_tag            = random_string.suffix.result
+  global_tags             = local.global_tags
+  vpc                     = aws_vpc.vpc1.id
+  cc_subnet_ids           = aws_subnet.cc-subnet.*.id
+  gwlb_arn                = module.gwlb.gwlb_arn
+}
+
+
+# 7. Create Route Table for private subnets (workload servers) towards CC Service ENI or GWLB Endpoint
 # Create Workload Route Table
 
-# Create Route Table for private subnet pointing to the Cloud Connector ENI in the same AZ
+# Create Route Table for private subnet pointing to the GWLB Endpoint in the same AZ
 resource "aws_route_table" "routetableprivate" {
   count = length(aws_subnet.privsubnet.*.id)
   vpc_id = aws_vpc.vpc1.id
   route {
     cidr_block           = "0.0.0.0/0"
-    network_interface_id = element(module.cc-vm.service_eni_1, count.index)
+    vpc_endpoint_id = element(module.gwlb-endpoint.gwlbe, count.index)
   }
 
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-private-to-ccvm-${count.index + 1}-rt-${random_string.suffix.result}" }
+        { Name = "${var.name_prefix}-private-to-gwlbe-${count.index + 1}-rt-${random_string.suffix.result}" }
   )
 }
 
@@ -283,25 +315,71 @@ resource "aws_route_table_association" "private-rt-asssociation" {
 }
 
 
+
+# 8. Route53 for ZPA
+# Create Route53 Subnets. Defaults to 2 minimum. Modify the count here if you want to create more than 2.
+resource "aws_subnet" "r53-subnet" {
+  count             = length(aws_subnet.cc-subnet.*.id) > 1 ? length(aws_subnet.cc-subnet.*.id) : 2
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+  cidr_block        = cidrsubnet(aws_vpc.vpc1.cidr_block, 12, (64 + count.index * 16))
+  vpc_id            = aws_vpc.vpc1.id
+
+  tags = merge(local.global_tags,
+        { Name = "${var.name_prefix}-ec-r53-subnet-${count.index + 1}-${random_string.suffix.result}" }
+  )
+}
+
+# Create Route Table for Route53 routing to GWLB Endpoint in the same AZ for DNS redirection
+resource "aws_route_table" "rt-r53" {
+  count = length(aws_subnet.r53-subnet.*.id)
+  vpc_id = aws_vpc.vpc1.id
+  route {
+    cidr_block           = "0.0.0.0/0"
+    vpc_endpoint_id      = element(module.gwlb-endpoint.gwlbe, count.index)
+  }
+
+  tags = merge(local.global_tags,
+        { Name = "${var.name_prefix}-r53-to-gwlbe-${count.index + 1}-rt-${random_string.suffix.result}" }
+  )
+}
+
+# Route53 Subnets Route Table Assocation
+resource "aws_route_table_association" "r53-rt-asssociation" {
+  count          = length(aws_subnet.r53-subnet.*.id)
+  subnet_id      = aws_subnet.r53-subnet.*.id[count.index]
+  route_table_id = aws_route_table.rt-r53.*.id[count.index]
+}
+
+
+module "route53" {
+  source          = "../../modules/terraform-zsroute53-aws"
+  name_prefix     = var.name_prefix
+  resource_tag    = random_string.suffix.result
+  global_tags     = local.global_tags
+  vpc             = aws_vpc.vpc1.id
+  r53_subnet_ids  = aws_subnet.r53-subnet.*.id
+  domain_names    = var.domain_names
+  target_address  = var.target_address
+}
+
+
+
 ############################################################################################################################################
 ####### Legacy code for reference if customer desires to break cloud connector mgmt and service interfaces out into separate subnets #######
 ############################################################################################################################################
 
-
-# 4. 1 CC VM
-
 # create new subnet for CC mgmt n/w
 #resource "aws_subnet" "cc-mgmt-subnet" {
-#  count = 1
+#  count = 2
 #
 #  availability_zone = data.aws_availability_zones.available.names[count.index]
 #  cidr_block        = cidrsubnet(aws_vpc.vpc1.cidr_block, 12, (count.index * 16) + 3936)
 #  vpc_id            = aws_vpc.vpc1.id
 #
-#  tags = {
-#    Name = "${var.name_prefix}-vpc1-ec-mgmt-subnet-${count.index + 1}-${random_string.suffix.result}"
-#    "zs-edge-connector-cluster/${var.name_prefix}-cluster-${random_string.suffix.result}" = "shared"
-#  }
+#  tags = map(
+#    "Name", "${var.name_prefix}-vpc1-ec-mgmt-subnet-${count.index + 1}-${random_string.suffix.result}",
+#    "zs-edge-connector-cluster/${var.name_prefix}-cluster-${random_string.suffix.result}", "shared",
+#  )
 #}
 
 #CC Mgmt/Service NATGW Route Table
@@ -313,36 +391,35 @@ resource "aws_route_table_association" "private-rt-asssociation" {
 #    nat_gateway_id = aws_nat_gateway.ngw1.id
 #  }
 #
-#  tags = {
-#    Name = "${var.name_prefix}-natgw-cc-mgmt-svc-rt-${count.index + 1}-${random_string.suffix.result}"
-#    "zs-edge-connector-cluster/${var.name_prefix}-cluster-${random_string.suffix.result}" = "shared"
-#  }
+#  tags = map(
+#    "Name", "${var.name_prefix}-natgw-cc-mgmt-svc-rt-${count.index + 1}-${random_string.suffix.result}",
+#    "zs-edge-connector-cluster/${var.name_prefix}-cluster-${random_string.suffix.result}", "shared",
+#  )
+#}
+
+#CC Mgmt subnet NATGW Route Table Association
+#resource "aws_route_table_association" "routetable-cc-mgmt" {
+#  count          = 2
+#  subnet_id      = aws_subnet.cc-mgmt-subnet.*.id[count.index]
+#  route_table_id = aws_route_table.routetable-cc-mgmt-and-service.*.id[0]
 #}
 
 # create new subnet for CC service n/w
 #resource "aws_subnet" "cc-service-subnet" {
-#  count = 1
-#  #availability_zone = data.aws_availability_zones.available.names[count.index]
+#  count             = 2
 #  availability_zone = data.aws_availability_zones.available.names[count.index]
 #  cidr_block        = cidrsubnet(aws_vpc.vpc1.cidr_block, 12, (count.index * 16) + 4000)
 #  vpc_id            = aws_vpc.vpc1.id
 #
-#  tags = {
-#    Name = "${var.name_prefix}-ec-service-subnet-${count.index + 1}-${random_string.suffix.result}"
-#    "zs-edge-connector-cluster/${var.name_prefix}-cluster-${random_string.suffix.result}" = "shared"
-#  }
+#  tags = map(
+#    "Name", "${var.name_prefix}-ec-service-subnet-${count.index + 1}-${random_string.suffix.result}",
+#    "zs-edge-connector-cluster/${var.name_prefix}-cluster-${random_string.suffix.result}", "shared",
+#  )
 #}
-#
-#CC Mgmt subnet NATGW Route Table Association
-#resource "aws_route_table_association" "routetable-cc-mgmt" {
-#  count          = 1
-#  subnet_id      = aws_subnet.cc-mgmt-subnet.*.id[count.index]
-#  route_table_id = aws_route_table.routetable-cc-mgmt-and-service.*.id[0]
-#}
-#
+
 #EC Service subnet NATGW Route Table Association
 #resource "aws_route_table_association" "routetable-cc-service" {
-#  count          = 1
+#  count          = 2
 #  subnet_id      = aws_subnet.cc-service-subnet.*.id[count.index]
 #  route_table_id = aws_route_table.routetable-cc-mgmt-and-service.*.id[0]
 #}

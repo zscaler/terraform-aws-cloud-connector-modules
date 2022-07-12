@@ -1,3 +1,8 @@
+## x.y.z (July 11, 2022) 
+* github release refactor
+* zsec update for terraform support up to 1.1.9 and aws provider 4.7.x
+* zsec updated with mac m1 option for terraform arm64 version download
+
 ## 1.2.0 (May 5, 2022)
 NOTES:
 * Zscaler Cloud Connector ZPA/Route 53 improvements

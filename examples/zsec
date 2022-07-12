@@ -39,12 +39,19 @@ if [[ "$oper" == "up" || "destroy" ]]; then
     esac
 fi
 
-tversion=0.13.7
+echo "Discovering processor architecture..."
+archdetect=$(uname -m)
+
+tversion=1.1.9
 echo "Detecting OS..."
 if [[ "$OSTYPE" == "linux"* ]]; then
     os_str=linux
     arch=amd64
     ostype=Linux
+elif [[ "$OSTYPE" == "darwin"* && $archdetect == "arm64" ]]; then
+    os_str=darwin
+    arch=arm64
+    ostype=MacOS_arm64
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     os_str=darwin
     arch=amd64
@@ -105,23 +112,25 @@ fi
 
 if [[ "$oper" == "up" ]]; then
     echo "Bringing up Cloud Connector cluster..."
-    ./$dir/terraform init deployment-examples/$dtype
+    ./$dir/terraform -chdir=$dtype init
     if [[ "$AUTO_APPROVE" ]]; then
-        ./$dir/terraform apply -auto-approve -var aws_region="$AWS_DEFAULT_REGION" deployment-examples/$dtype
+        ./$dir/terraform -chdir=$dtype apply -auto-approve -var aws_region="$AWS_DEFAULT_REGION" -var-file="../terraform.tfvars"
     else
-        ./$dir/terraform apply -var aws_region="$AWS_DEFAULT_REGION" deployment-examples/$dtype
+        ./$dir/terraform -chdir=$dtype apply -var aws_region="$AWS_DEFAULT_REGION" -var-file="../terraform.tfvars"
     fi
    
 
 elif [[ "$oper" == "destroy" ]]; then
     echo "Destroying Edge Connector cluster..."
-    ./$dir/terraform init deployment-examples/$dtype
+    ./$dir/terraform -chdir=$dtype init
     if [[ "$AUTO_APPROVE" ]]; then
-      ./$dir/terraform destroy -auto-approve
+      ./$dir/terraform -chdir=$dtype destroy -auto-approve -var-file="../terraform.tfvars"
     else
-      ./$dir/terraform destroy --compact-warnings
+      ./$dir/terraform -chdir=$dtype destroy -compact-warnings -var-file="../terraform.tfvars"
     fi
-    rm -rf bin .terraform terraform.tfstate*
+    rm -rf bin
+    cd $dtype
+    rm -rf .terraform* && rm -f terraform.tfstate*
     rm -f *.pem && rm -f *.pem.pub
     rm -f name_prefix random_string
     rm -rf user.key user.crt

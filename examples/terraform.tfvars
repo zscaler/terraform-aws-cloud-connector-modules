@@ -9,7 +9,6 @@
 
 #cc_vm_prov_url                          = "connector.zscaler.net/api/v1/provUrl?name=aws_prov_url"
 
-
 ## 2. AWS Secrets Manager Secret Name from Secrets Manager E.g ZS/CC/credentials
 
 #secret_name                             =  "ZS/CC/credentials/aws_cc_secret_name"
@@ -18,7 +17,6 @@
 ## Uncomment and set custom probe port to a single value of 80 or any number between 1024-65535. Default is 0/null.
 
 #http_probe_port                         = 50000
-
 
 #####################################################################################################################
                 ##### Custom variables. Only change if required for your environment  #####
@@ -79,10 +77,10 @@
 ##     mapping structure and syntax. ZPA Module will read through each to create a resolver rule per domain_name entry. Ucomment domain_names variable and
 ##     add any additional appsegXX mappings as needed.
 
-#domain_names = {
-#  appseg01 = { domain_name = "example1.com" }
-#  appseg02 = { domain_name = "example2.com" }
-#}
+domain_names = {
+  appseg01 = { domain_name = "yahoo.com" }
+  appseg02 = { domain_name = "badssl.com" }
+}
 
 ## 11. By default, GWLB deployments are configured as zonal. Uncomment if you want to enable cross-zone load balancing
 ##     functionality. Only applicable for gwlb deployment types. (Default: false)

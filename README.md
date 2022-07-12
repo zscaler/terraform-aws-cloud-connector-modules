@@ -1,8 +1,19 @@
-# Zscaler Cloud Connector Cluster Infrastructure Setup
+# Zscaler Cloud Connector AWS Terraform Modules
 
-**Terraform configurations and modules for deploying Zscaler Cloud Connector Cluster in AWS.**
+Description:
+This repository contains various modules and deployment configurations that can be used to deploy Zscaler Cloud Connector appliances to securely connect Workload to Internet and Workload to Workload communication within Amazon Web Services (AWS). The examples directory contains complete automation scripts for both greenfield/POV and brownfield/production use.
+
 
 ## Prerequisites (You will be prompted for AWS keys and region during deployment)
+
+These 
+
+Terraform v0.14.0
+
+provider registry.terraform.io/hashicorp/aws v4.2.x
+provider registry.terraform.io/hashicorp/random v2.2.x
+provider registry.terraform.io/hashicorp/local v2.2.x
+provider registry.terraform.io/hashicorp/null v3.1.x
 
 1. A valid AWS account
 2. AWS ACCESS KEY ID
