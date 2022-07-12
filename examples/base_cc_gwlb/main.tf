@@ -161,7 +161,7 @@ resource "aws_nat_gateway" "ngw" {
 
 # 2. Create Bastion Host
 module "bastion" {
-  source        = "../modules/terraform-zsbastion-aws"
+  source        = "../../modules/terraform-zsbastion-aws"
   name_prefix   = var.name_prefix
   resource_tag  = random_string.suffix.result
   global_tags   = local.global_tags
@@ -176,7 +176,7 @@ module "bastion" {
 # Create Workloads
 module "workload" {
   workload_count = var.workload_count
-  source       = "../modules/terraform-zsworkload-aws"
+  source       = "../../modules/terraform-zsworkload-aws"
   name_prefix  = "${var.name_prefix}-workload"
   resource_tag = random_string.suffix.result
   global_tags  = local.global_tags
@@ -238,7 +238,7 @@ EOF
 # Create X CC VMs per cc_count which will span equally across designated availability zones per az_count
 # E.g. cc_count set to 4 and az_count set to 2 will create 2x CCs in AZ1 and 2x CCs in AZ2
 module "cc-vm" {
-  source              = "../modules/terraform-zscc-aws"
+  source              = "../../modules/terraform-zscc-aws"
   cc_count            = var.cc_count
   name_prefix         = var.name_prefix
   resource_tag        = random_string.suffix.result
@@ -258,7 +258,7 @@ module "cc-vm" {
 # 5. Create GWLB in all CC subnets. Create Target Group and attach primary service IP from all created Cloud
 #    Connectors as registered targets.
 module "gwlb" {
-  source                    = "../modules/terraform-zsgwlb-aws"
+  source                    = "../../modules/terraform-zsgwlb-aws"
   name_prefix               = var.name_prefix
   resource_tag              = random_string.suffix.result
   global_tags               = local.global_tags
@@ -278,7 +278,7 @@ module "gwlb" {
 
 # 6. Create Endpoint Service associated with GWLB and 1x GWLB Endpoint per CC subnet
 module "gwlb-endpoint" {
-  source                  = "../modules/terraform-zsgwlbendpoint-aws"
+  source                  = "../../modules/terraform-zsgwlbendpoint-aws"
   name_prefix             = var.name_prefix
   resource_tag            = random_string.suffix.result
   global_tags             = local.global_tags
