@@ -25,7 +25,7 @@ All NAT GW IPs:
 ${join("\n", data.aws_nat_gateway.selected.*.public_ip)}
 
 All CC IAM Role ARNs (Please provide this to Zscaler for callhome enablement):
-${join("\n", module.cc-vm.iam_arn)}
+${join("\n", module.cc-iam.iam_instance_profile_arn)}
 
 
 TB
