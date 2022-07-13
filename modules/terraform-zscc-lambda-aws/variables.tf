@@ -20,12 +20,9 @@ variable "cc_vm2_id" {
   description = "Cloud Connector 2 instance id"
 }
 
-variable "cc_vm1_snid" {
-  description = "Cloud Connector 1's service subnet id"
-}
-
-variable "cc_vm2_snid" {
-  description = "Cloud Connector 2's service subnet id"
+variable "cc_subnet_ids" {
+  type = list(string)
+  description = "Cloud Connector service subnet ids"
 }
 
 variable "cc_vm1_rte_list" {
