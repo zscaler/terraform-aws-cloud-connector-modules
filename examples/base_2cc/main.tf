@@ -317,8 +317,7 @@ module "cc-lambda" {
   vpc              = aws_vpc.vpc1.id
   cc_vm1_id        = module.cc-vm.id[0]
   cc_vm2_id        = module.cc-vm.id[1]
-  cc_vm1_snid      = aws_subnet.cc-subnet.*.id[0]
-  cc_vm2_snid      = aws_subnet.cc-subnet.*.id[1]
+  cc_subnet_ids    = aws_subnet.cc-subnet.*.id
   cc_vm1_rte_list  = [aws_route_table_association.private-rt-asssociation.*.route_table_id[0]]
   cc_vm2_rte_list  = [aws_route_table_association.private-rt-asssociation.*.route_table_id[1]]
   http_probe_port  = var.http_probe_port

@@ -6,6 +6,7 @@
 * CC IAM and Security Group resources broken out to individual child modules
 * Support for reusing the same IAM and Security Group resources for all CC VMs.
 * Bring your own IAM Instance Profile and Security Groups available for brownfield/custom deployments
+* BUG-120983 fix for lambda deployments with only 1 CC subnet
 
 ## 1.2.0 (May 5, 2022)
 NOTES:

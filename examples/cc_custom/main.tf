@@ -293,8 +293,7 @@ module "cc-lambda" {
   vpc              = data.aws_vpc.selected.id
   cc_vm1_id        = module.cc-vm.id[0]
   cc_vm2_id        = module.cc-vm.id[1]
-  cc_vm1_snid      = data.aws_subnet.cc-selected.*.id[0]
-  cc_vm2_snid      = data.aws_subnet.cc-selected.*.id[1]
+  cc_subnet_ids    = data.aws_subnet.cc-selected.*.id
   cc_vm1_rte_list  = var.workload_route_table_ids_to_cc_1
   cc_vm2_rte_list  = var.workload_route_table_ids_to_cc_2
   http_probe_port  = var.http_probe_port
