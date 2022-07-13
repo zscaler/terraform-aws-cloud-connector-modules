@@ -84,10 +84,10 @@
 ##     mapping structure and syntax. ZPA Module will read through each to create a resolver rule per domain_name entry. Ucomment domain_names variable and
 ##     add any additional appsegXX mappings as needed.
 
-domain_names = {
-  appseg01 = { domain_name = "yahoo.com" }
-  appseg02 = { domain_name = "badssl.com" }
-}
+#domain_names = {
+#  appseg01 = { domain_name = "app1.com" }
+#  appseg02 = { domain_name = "app2.com" }
+#}
 
 ## 11. By default, GWLB deployments are configured as zonal. Uncomment if you want to enable cross-zone load balancing
 ##     functionality. Only applicable for gwlb deployment types. (Default: false)
