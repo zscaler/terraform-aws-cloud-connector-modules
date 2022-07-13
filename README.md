@@ -10,7 +10,7 @@ These
 
 Terraform v0.14.0
 
-provider registry.terraform.io/hashicorp/aws v4.2.x
+provider registry.terraform.io/hashicorp/aws v4.7.x
 provider registry.terraform.io/hashicorp/random v2.2.x
 provider registry.terraform.io/hashicorp/local v2.2.x
 provider registry.terraform.io/hashicorp/null v3.1.x
