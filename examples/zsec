@@ -23,11 +23,18 @@ fi
 if [[ "$oper" == "up" || "destroy" ]]; then
     # shellcheck disable=SC2153
     if [ -z "$DTYPE" ]; then
-      read -rp "Deployment Type: ( base | base_1cc | base_1cc_zpa | base_2cc | base_2cc_zpa | base_cc_gwlb | base_cc_gwlb_zpa | cc_custom | cc_gwlb_custom): " dtype
-    else
-      dtype=$DTYPE
+      read -rp "Deployment: ( greenfield | brownfield ): " deploy
+        if [[ "$deploy" == "greenfield" ]]; then
+          read -rp "Deployment Type: ( base | base_1cc | base_1cc_zpa | base_2cc | base_2cc_zpa | base_cc_gwlb | base_cc_gwlb_zpa ): " dtype
+        elif [[ "$deploy" == "brownfield" ]]; then
+          read -rp "Deployment Type: ( cc_custom | cc_gwlb_custom ): " dtype
+        else
+          echo "Unsupported Deployment selection"
+          exit 1
     fi
+fi  
 
+    
     case $dtype in
       base|base_1cc|base_1cc_zpa|base_2cc|base_2cc_zpa|base_cc_gwlb|base_cc_gwlb_zpa|cc_custom|cc_gwlb_custom)
           echo "Deployment Type: ${dtype}"
@@ -38,6 +45,7 @@ if [[ "$oper" == "up" || "destroy" ]]; then
       ;;
     esac
 fi
+
 
 echo "Discovering processor architecture..."
 archdetect=$(uname -m)
