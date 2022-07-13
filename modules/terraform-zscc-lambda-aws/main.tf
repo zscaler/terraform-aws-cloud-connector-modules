@@ -91,16 +91,13 @@ data "aws_instance" "cc-vm1" {
   instance_id = var.cc_vm1_id
 }
 
-data "aws_subnet" "cc-vm1" {
-  id = var.cc_vm1_snid
-}
-
 data "aws_instance" "cc-vm2" {
   instance_id = var.cc_vm2_id
 }
 
-data "aws_subnet" "cc-vm2" {
-  id = var.cc_vm2_snid
+data "aws_subnet" "cc-subnets" {
+  count = length(var.cc_subnet_ids)
+  id    = element(var.cc_subnet_ids, count.index)
 }
 
 resource "aws_security_group" "lambda-sg" {
@@ -112,7 +109,7 @@ resource "aws_security_group" "lambda-sg" {
     from_port   = var.http_probe_port
     to_port     = var.http_probe_port
     protocol    = "tcp"
-    cidr_blocks = [data.aws_subnet.cc-vm1.cidr_block, data.aws_subnet.cc-vm2.cidr_block]
+    cidr_blocks = data.aws_subnet.cc-subnets.*.cidr_block
   }
 
   egress {
@@ -152,7 +149,7 @@ resource "aws_lambda_function" "cc_route_updater_lambda" {
 
   vpc_config {
     # Every CC subnet that must be reachable
-    subnet_ids         = [var.cc_vm1_snid, var.cc_vm2_snid]
+    subnet_ids = [data.aws_subnet.cc-subnets[0].id, try(data.aws_subnet.cc-subnets[1].id, data.aws_subnet.cc-subnets[0].id)]  ## try is a catch-all in case only a single CC subnet ID is inputted to failback to the first
     #security_group_ids = [data.aws_security_group.selected.id]
     security_group_ids = [aws_security_group.lambda-sg.id]
   }

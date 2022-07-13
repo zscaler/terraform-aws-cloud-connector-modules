@@ -15,6 +15,7 @@ examples/**/*.tfstate.*
 **/bin/*
 user_data
 system-*.tar
+**/testbed*
 
 # Crash log files
 crash.log

@@ -175,7 +175,9 @@ echo "Valid CC deployment"
 elif [[ $oper == "up" && ${large_cc_instance[*]} =~ $ccvm_instance_type && "$cc_instance_size" == large ]]; then
 echo "Valid CC deployment"
 elif [[ $oper == "up" && $dtype == base ]]; then
-echo "proceeding with no CCs to deploy"
+echo "Proceeding with no CCs to deploy"
+elif [[ $oper == "destroy" ]]; then
+echo "Variable validation complete"
 else
     echo "Invalid CC deployment"
     exit 1
