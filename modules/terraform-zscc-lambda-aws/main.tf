@@ -66,8 +66,8 @@ resource "aws_iam_role_policy_attachment" "cc_lambda_execution_role_attachment" 
 }
 
 locals {
-  rte1            = join(",", var.cc_vm1_rte_list)
-  rte2            = join(",", var.cc_vm2_rte_list)
+  rte1     = join(",", var.cc_vm1_rte_list)
+  rte2     = join(",", var.cc_vm2_rte_list)
   environs = <<ENVIRONS
 {
 	"INSTANCES": "${var.cc_vm1_id},${var.cc_vm2_id}",
@@ -82,7 +82,7 @@ locals {
 }
 ENVIRONS
 }
-data "aws_security_group" selected {
+data "aws_security_group" "selected" {
   vpc_id = var.vpc
   name   = "default"
 }
@@ -119,13 +119,13 @@ resource "aws_security_group" "lambda-sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  
+
   lifecycle {
     create_before_destroy = true
   }
-  
+
   tags = merge(var.global_tags,
-        { Name = "${var.name_prefix}-lambda-sg-${var.resource_tag}" }
+    { Name = "${var.name_prefix}-lambda-sg-${var.resource_tag}" }
   )
 
   depends_on = [aws_iam_role_policy_attachment.cc_lambda_execution_role_attachment]
@@ -142,14 +142,14 @@ resource "aws_lambda_function" "cc_route_updater_lambda" {
 
   environment {
     variables = {
-      ENVIRONS = local.environs
+      ENVIRONS              = local.environs
       ROUTE_CHANGE_STRATEGY = "distribute_routes_equally"
     }
   }
 
   vpc_config {
     # Every CC subnet that must be reachable
-    subnet_ids = [data.aws_subnet.cc-subnets[0].id, try(data.aws_subnet.cc-subnets[1].id, data.aws_subnet.cc-subnets[0].id)]  ## try is a catch-all in case only a single CC subnet ID is inputted to failback to the first
+    subnet_ids = [data.aws_subnet.cc-subnets[0].id, try(data.aws_subnet.cc-subnets[1].id, data.aws_subnet.cc-subnets[0].id)] ## try is a catch-all in case only a single CC subnet ID is inputted to failback to the first
     #security_group_ids = [data.aws_security_group.selected.id]
     security_group_ids = [aws_security_group.lambda-sg.id]
   }

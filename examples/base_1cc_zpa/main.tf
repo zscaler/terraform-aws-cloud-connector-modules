@@ -1,8 +1,3 @@
-# Configure the AWS Provider
-provider "aws" {
-  region = var.aws_region
-}
-
 # Generate a unique random string for resource name assignment and key pair
 resource "random_string" "suffix" {
   length  = 8
@@ -13,10 +8,10 @@ resource "random_string" "suffix" {
 # Map default tags with values to be assigned to all tagged resources
 locals {
   global_tags = {
-  Owner       = var.owner_tag
-  ManagedBy   = "terraform"
-  Vendor      = "Zscaler"
-  "zs-edge-connector-cluster/${var.name_prefix}-cluster-${random_string.suffix.result}" = "shared"
+    Owner                                                                                 = var.owner_tag
+    ManagedBy                                                                             = "terraform"
+    Vendor                                                                                = "Zscaler"
+    "zs-edge-connector-cluster/${var.name_prefix}-cluster-${random_string.suffix.result}" = "shared"
   }
 }
 
@@ -28,7 +23,7 @@ locals {
 ############################################################################################################################
 # private key for login
 resource "tls_private_key" "key" {
-  algorithm   = var.tls_key_algorithm
+  algorithm = var.tls_key_algorithm
 }
 
 resource "aws_key_pair" "deployer" {
@@ -37,8 +32,8 @@ resource "aws_key_pair" "deployer" {
 
   provisioner "local-exec" {
     command = <<EOF
-      echo "${tls_private_key.key.private_key_pem}" > ${var.name_prefix}-key-${random_string.suffix.result}.pem
-      chmod 0600 ${var.name_prefix}-key-${random_string.suffix.result}.pem
+      echo "${tls_private_key.key.private_key_pem}" > ../${var.name_prefix}-key-${random_string.suffix.result}.pem
+      chmod 0600 ../${var.name_prefix}-key-${random_string.suffix.result}.pem
 EOF
   }
 }
@@ -56,7 +51,7 @@ USERDATA
 
 resource "local_file" "user-data-file" {
   content  = local.userdata
-  filename = "user_data"
+  filename = "../user_data"
 }
 
 
@@ -73,7 +68,7 @@ resource "aws_vpc" "vpc1" {
   enable_dns_hostnames = true
 
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-vpc1-${random_string.suffix.result}" }
+    { Name = "${var.name_prefix}-vpc1-${random_string.suffix.result}" }
   )
 }
 
@@ -83,32 +78,32 @@ resource "aws_internet_gateway" "igw1" {
   vpc_id = aws_vpc.vpc1.id
 
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-vpc1-igw-${random_string.suffix.result}" }
+    { Name = "${var.name_prefix}-vpc1-igw-${random_string.suffix.result}" }
   )
 }
 
 
 # Create equal number of Public/NAT Subnets and Private/Workload Subnets to how many Cloud Connector subnets exist. 
 resource "aws_subnet" "pubsubnet" {
-  count = length(aws_subnet.cc-subnet.*.id)
+  count             = length(aws_subnet.cc-subnet.*.id)
   availability_zone = data.aws_availability_zones.available.names[count.index]
   cidr_block        = cidrsubnet(aws_vpc.vpc1.cidr_block, 8, count.index + 101)
   vpc_id            = aws_vpc.vpc1.id
 
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-vpc1-public-subnet-${count.index + 1}-${random_string.suffix.result}" }
+    { Name = "${var.name_prefix}-vpc1-public-subnet-${count.index + 1}-${random_string.suffix.result}" }
   )
 }
 
 
 resource "aws_subnet" "privsubnet" {
-  count = length(aws_subnet.cc-subnet.*.id)
+  count             = length(aws_subnet.cc-subnet.*.id)
   availability_zone = data.aws_availability_zones.available.names[count.index]
   cidr_block        = cidrsubnet(aws_vpc.vpc1.cidr_block, 8, count.index + 1)
   vpc_id            = aws_vpc.vpc1.id
 
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-vpc1-workload-subnet-${count.index + 1}-${random_string.suffix.result}" }
+    { Name = "${var.name_prefix}-vpc1-workload-subnet-${count.index + 1}-${random_string.suffix.result}" }
   )
 }
 
@@ -123,16 +118,16 @@ resource "aws_route_table" "routetablepublic1" {
   }
 
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-igw-rt-${random_string.suffix.result}" }
+    { Name = "${var.name_prefix}-igw-rt-${random_string.suffix.result}" }
   )
 }
 
 
 # Create equal number of Route Table associations to how many Public subnets exist. 
 resource "aws_route_table_association" "routetablepublic1" {
-  count           = length(aws_subnet.pubsubnet.*.id)
-  subnet_id       = aws_subnet.pubsubnet.*.id[count.index]
-  route_table_id  = aws_route_table.routetablepublic1.id
+  count          = length(aws_subnet.pubsubnet.*.id)
+  subnet_id      = aws_subnet.pubsubnet.*.id[count.index]
+  route_table_id = aws_route_table.routetablepublic1.id
 }
 
 
@@ -143,20 +138,20 @@ resource "aws_eip" "eip" {
   depends_on = [aws_internet_gateway.igw1]
 
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-eip-az${count.index + 1}-${random_string.suffix.result}" }
+    { Name = "${var.name_prefix}-eip-az${count.index + 1}-${random_string.suffix.result}" }
   )
 }
 
 
 # Create 1 NAT Gateway per Public Subnet.
 resource "aws_nat_gateway" "ngw" {
-  count = length(aws_subnet.pubsubnet.*.id)
+  count         = length(aws_subnet.pubsubnet.*.id)
   allocation_id = aws_eip.eip.*.id[count.index]
   subnet_id     = aws_subnet.pubsubnet.*.id[count.index]
   depends_on    = [aws_internet_gateway.igw1]
-  
+
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-vpc1-natgw-az${count.index + 1}-${random_string.suffix.result}" }
+    { Name = "${var.name_prefix}-vpc1-natgw-az${count.index + 1}-${random_string.suffix.result}" }
   )
 }
 
@@ -177,14 +172,14 @@ module "bastion" {
 # 3. Create Workload
 # Create Workloads
 module "workload" {
-  workload_count  = var.workload_count
-  source          = "../../modules/terraform-zscc-workload-aws"
-  name_prefix     = "${var.name_prefix}-workload"
-  resource_tag    = random_string.suffix.result
-  global_tags     = local.global_tags
-  vpc             = aws_vpc.vpc1.id
-  subnet          = aws_subnet.privsubnet.*.id
-  instance_key    = aws_key_pair.deployer.key_name
+  workload_count = var.workload_count
+  source         = "../../modules/terraform-zscc-workload-aws"
+  name_prefix    = "${var.name_prefix}-workload"
+  resource_tag   = random_string.suffix.result
+  global_tags    = local.global_tags
+  vpc            = aws_vpc.vpc1.id
+  subnet         = aws_subnet.privsubnet.*.id
+  instance_key   = aws_key_pair.deployer.key_name
 }
 
 
@@ -198,22 +193,22 @@ resource "aws_subnet" "cc-subnet" {
   vpc_id            = aws_vpc.vpc1.id
 
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-vpc1-cc-subnet-${count.index + 1}-${random_string.suffix.result}" }
+    { Name = "${var.name_prefix}-vpc1-cc-subnet-${count.index + 1}-${random_string.suffix.result}" }
   )
 }
 
 
 # Create Route Tables for CC subnets pointing to NAT Gateway resource in each AZ
 resource "aws_route_table" "cc-rt" {
-  count = length(aws_subnet.cc-subnet.*.id)
+  count  = length(aws_subnet.cc-subnet.*.id)
   vpc_id = aws_vpc.vpc1.id
   route {
     cidr_block     = "0.0.0.0/0"
     nat_gateway_id = element(aws_nat_gateway.ngw.*.id, count.index)
   }
-  
+
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-cc-rt-ngw-${count.index + 1}-${random_string.suffix.result}" }
+    { Name = "${var.name_prefix}-cc-rt-ngw-${count.index + 1}-${random_string.suffix.result}" }
   )
 }
 
@@ -231,7 +226,7 @@ resource "null_resource" "cc-error-checker" {
   count = local.valid_cc_create ? 0 : 1 # 0 means no error is thrown, else throw error
   provisioner "local-exec" {
     command = <<EOF
-      echo "Cloud Connector parameters were invalid. No appliances were created. Please check the documentation and cc_instance_size / ccvm_instance_type values that were chosen" >> errorlog.txt
+      echo "Cloud Connector parameters were invalid. No appliances were created. Please check the documentation and cc_instance_size / ccvm_instance_type values that were chosen" >> ../errorlog.txt
 EOF
   }
 }
@@ -273,12 +268,12 @@ module "cc-iam" {
 # Create Security Group and rules to be assigned to CC mgmt and and service interface(s). Default behavior will create 1 of each resource per CC VM. Set variable reuse_security_group
 # to true if you would like a single security group created and assigned to ALL Cloud Connectors
 module "cc-sg" {
-  source        = "../../modules/terraform-zscc-sg-aws"
-  sg_count      = var.reuse_security_group == false ? var.cc_count : 1
-  name_prefix   = var.name_prefix
-  resource_tag  = random_string.suffix.result
-  global_tags   = local.global_tags
-  vpc           = aws_vpc.vpc1.id
+  source       = "../../modules/terraform-zscc-sg-aws"
+  sg_count     = var.reuse_security_group == false ? var.cc_count : 1
+  name_prefix  = var.name_prefix
+  resource_tag = random_string.suffix.result
+  global_tags  = local.global_tags
+  vpc          = aws_vpc.vpc1.id
 }
 
 
@@ -287,7 +282,7 @@ module "cc-sg" {
 
 # Create Route Table for private subnet pointing to the Cloud Connector ENI in the same AZ
 resource "aws_route_table" "routetableprivate" {
-  count = length(aws_subnet.privsubnet.*.id)
+  count  = length(aws_subnet.privsubnet.*.id)
   vpc_id = aws_vpc.vpc1.id
   route {
     cidr_block           = "0.0.0.0/0"
@@ -295,7 +290,7 @@ resource "aws_route_table" "routetableprivate" {
   }
 
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-private-to-ccvm-${count.index + 1}-rt-${random_string.suffix.result}" }
+    { Name = "${var.name_prefix}-private-to-ccvm-${count.index + 1}-rt-${random_string.suffix.result}" }
   )
 }
 
@@ -317,22 +312,22 @@ resource "aws_subnet" "r53-subnet" {
   vpc_id            = aws_vpc.vpc1.id
 
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-ec-r53-subnet-${count.index + 1}-${random_string.suffix.result}" }
+    { Name = "${var.name_prefix}-ec-r53-subnet-${count.index + 1}-${random_string.suffix.result}" }
   )
 }
 
 
 # Create Route Table for Route53 routing to CC in the same AZ for DNS redirection
 resource "aws_route_table" "rt-r53" {
-  count = length(aws_subnet.r53-subnet.*.id)
+  count  = length(aws_subnet.r53-subnet.*.id)
   vpc_id = aws_vpc.vpc1.id
   route {
-    cidr_block                = "0.0.0.0/0"
-    network_interface_id      = element(module.cc-vm.service_eni_1, count.index)
+    cidr_block           = "0.0.0.0/0"
+    network_interface_id = element(module.cc-vm.service_eni_1, count.index)
   }
 
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-r53-to-ccvm-${count.index + 1}-rt-${random_string.suffix.result}" }
+    { Name = "${var.name_prefix}-r53-to-ccvm-${count.index + 1}-rt-${random_string.suffix.result}" }
   )
 }
 
@@ -345,12 +340,12 @@ resource "aws_route_table_association" "r53-rt-asssociation" {
 
 
 module "route53" {
-  source          = "../../modules/terraform-zscc-route53-aws"
-  name_prefix     = var.name_prefix
-  resource_tag    = random_string.suffix.result
-  global_tags     = local.global_tags
-  vpc             = aws_vpc.vpc1.id
-  r53_subnet_ids  = aws_subnet.r53-subnet.*.id
-  domain_names    = var.domain_names
-  target_address  = var.target_address
+  source         = "../../modules/terraform-zscc-route53-aws"
+  name_prefix    = var.name_prefix
+  resource_tag   = random_string.suffix.result
+  global_tags    = local.global_tags
+  vpc            = aws_vpc.vpc1.id
+  r53_subnet_ids = aws_subnet.r53-subnet.*.id
+  domain_names   = var.domain_names
+  target_address = var.target_address
 }

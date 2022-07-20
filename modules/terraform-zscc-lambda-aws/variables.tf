@@ -21,31 +21,31 @@ variable "cc_vm2_id" {
 }
 
 variable "cc_subnet_ids" {
-  type = list(string)
+  type        = list(string)
   description = "Cloud Connector service subnet ids"
 }
 
 variable "cc_vm1_rte_list" {
-  type = list(string)
+  type        = list(string)
   description = "List of route tables using Cloud Connector 1 instance id"
 }
 
 variable "cc_vm2_rte_list" {
-  type = list(string)
+  type        = list(string)
   description = "List of route tables using Cloud Connector 2 instance id"
 }
 
 variable "http_probe_port" {
   description = "HTTP port to send the health probes on Cloud Connector cloud"
-  default = 0
+  default     = 0
   validation {
-          condition     = (
-            var.http_probe_port == 0 ||
-            var.http_probe_port == 80 ||
-          ( var.http_probe_port >= 1024 && var.http_probe_port <= 65535 )
-        )
-          error_message = "Input http_probe_port must be set to a single value of 80 or any number between 1024-65535."
-      }
+    condition = (
+      var.http_probe_port == 0 ||
+      var.http_probe_port == 80 ||
+      (var.http_probe_port >= 1024 && var.http_probe_port <= 65535)
+    )
+    error_message = "Input http_probe_port must be set to a single value of 80 or any number between 1024-65535."
+  }
 }
 
 variable "route_updater_filename" {

@@ -126,8 +126,8 @@ TBP
 }
 
 resource "local_file" "testbed_yml" {
-content = local.testbedconfigpyats
-filename = "testbed.yml"
+  content  = local.testbedconfigpyats
+  filename = "testbed.yml"
 }
 
 output "testbedconfig" {
@@ -135,6 +135,6 @@ output "testbedconfig" {
 }
 
 resource "local_file" "testbed" {
-  content = local.testbedconfig
+  content  = local.testbedconfig
   filename = "testbed.txt"
 }

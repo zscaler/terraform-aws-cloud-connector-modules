@@ -1,5 +1,6 @@
 #!/bin/bash
-set -e
+
+set -eo pipefail
 
 usage()
 {
@@ -23,27 +24,52 @@ fi
 if [[ "$oper" == "up" || "destroy" ]]; then
     # shellcheck disable=SC2153
     if [ -z "$DTYPE" ]; then
-      read -rp "Deployment: ( greenfield | brownfield ): " deploy
-        if [[ "$deploy" == "greenfield" ]]; then
-          read -rp "Deployment Type: ( base | base_1cc | base_1cc_zpa | base_2cc | base_2cc_zpa | base_cc_gwlb | base_cc_gwlb_zpa ): " dtype
-        elif [[ "$deploy" == "brownfield" ]]; then
-          read -rp "Deployment Type: ( cc_custom | cc_gwlb_custom ): " dtype
-        else
-          echo "Unsupported Deployment selection"
-          exit 1
-    fi
-fi  
+    while true; do
+     read -r -p "Deployment: ( greenfield | brownfield ): " deploy
 
-    
+    case $deploy in
+      greenfield)
+          break
+      ;;
+      brownfield)
+          break
+      ;;    
+      *)
+          echo "Invalid Deployment Type: ${dtype}"
+      ;;
+    esac
+  done
+
+    while [ "$deploy" == "greenfield" ]; do
+     read -r -p "Deployment Type: ( base | base_1cc | base_1cc_zpa | base_2cc | base_2cc_zpa | base_cc_gwlb | base_cc_gwlb_zpa ): " dtype
+
     case $dtype in
-      base|base_1cc|base_1cc_zpa|base_2cc|base_2cc_zpa|base_cc_gwlb|base_cc_gwlb_zpa|cc_custom|cc_gwlb_custom)
+      base|base_1cc|base_1cc_zpa|base_2cc|base_2cc_zpa|base_cc_gwlb|base_cc_gwlb_zpa)
           echo "Deployment Type: ${dtype}"
+          break
       ;;
       *)
           echo "Invalid Deployment Type: ${dtype}"
-          exit 1
       ;;
     esac
+  done
+
+  while [ "$deploy" == "brownfield" ]; do
+     read -r -p "Deployment Type: ( cc_ha | cc_gwlb ) : " dtype
+
+    case $dtype in
+      cc_ha|cc_gwlb)
+          echo "Deployment Type: ${dtype}"
+          break
+      ;;
+      *)
+          echo "Invalid Deployment Type: ${dtype}"
+      ;;
+    esac
+  done
+    else
+      dtype=$DTYPE
+    fi
 fi
 
 
@@ -87,82 +113,209 @@ fi
 
 
 echo "Checking AWS Environment Variables..."
+    # Checking for AWS MFA required
+    while true; do
+    read -p "Is an AWS MFA session token generation required? (yes/no): " mfa_response
+case $mfa_response in 
+	yes|y ) 
+    echo "MFA enabled"
+    mfa_enabled=true
+    break
+    ;;
+	no|n )
+    echo "MFA not enabled. Proceeding..."
+    mfa_enabled=false
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done 
+
 # if .zsecrc is not present we'll assume that AWS env was never set
-if [[ $dtype == base && ! -e ./.zsecrc ]]; then
-    read -rp "Enter AWS Access Key: " aws_key
-    read -rp "Enter AWS Secret Key: " aws_secret
-    read -rp "Enter AWS Region: " aws_region
+if [[ $dtype == "base" && ! -e ./.zsecrc ]]; then
+    # Get MFA session token
+    if [[ $mfa_enabled == true ]]; then
+    echo "Gathering information to get AWS Session Token. We need the following details:"
+    echo "example - arn:aws:iam::1234567890:mfa/user@company.com where Account ID = 1234567890 and User Account = user@company.com"
+    read -p "Enter AWS Account ID: " aws_account_id
+    read -p "Enter AWS MFA User account: " aws_user_account
+    echo "unsetting existing AWS Environment variables (unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)"
+    unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
+    read -p "Enter token code from MFA device: " mfa_token
+    echo "getting session token (aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
+    aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}  
+
+    read -r -p "Enter AWS Session Token: " aws_session_token
+    fi
+    read -r -p "Enter AWS Access Key ID: " aws_key
+    read -r -p "Enter AWS Secret Access Key: " aws_secret
+    read -r -p "Enter AWS Region: " aws_region
     echo "export AWS_ACCESS_KEY_ID=${aws_key}" > .zsecrc
     echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsecrc
     echo "export AWS_DEFAULT_REGION=${aws_region}" >> .zsecrc
+    echo "export TF_VAR_aws_region=${aws_region}" >> .zsecrc
 fi
 
-echo "Checking AWS Environment Variables and Cloud Connector bootstrap requirements... For ZPA or custom/byo deployments, please stop and refer to the README and terraform.tfvars file instructions"
+
+
+echo "Checking AWS Environment Variables and Cloud Connector bootstrap requirements... For ZPA or brownfield/byo deployments, please stop and refer to the README and terraform.tfvars file instructions"
 # if .zsecrc is not present we'll assume that AWS env was never set
 if [[ "$oper" == "up" && $dtype != base && ! -e ./.zsecrc ]]; then
-    read -rp "Enter AWS Access Key: " aws_key
+    # Get MFA session token
+    if [[ $mfa_enabled == true ]]; then
+    echo "Gathering information to get AWS Session Token. We need the following details:"
+    echo "example - arn:aws:iam::1234567890:mfa/user@company.com where Account ID = 1234567890 and User Account = user@company.com"
+    read -p "Enter AWS Account ID: " aws_account_id
+    read -p "Enter AWS MFA User account: " aws_user_account
+    echo "unsetting existing AWS Environment variables (unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)"
+    unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
+    read -p "Enter token code from MFA device: " mfa_token
+    echo "getting session token (aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
+    aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}
+ 
+    read -r -p "Enter AWS Session Token: " aws_session_token
+    fi
+    read -r -p "Enter AWS Access Key ID: " aws_key
+    read -r -p "Enter AWS Secret Access Key: " aws_secret
+    read -r -p "Enter AWS Region: " aws_region
     echo "export AWS_ACCESS_KEY_ID=${aws_key}" > .zsecrc
-    read -rp "Enter AWS Secret Key: " aws_secret
     echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsecrc
-    read -rp "Enter AWS Region: " aws_region
     echo "export AWS_DEFAULT_REGION=${aws_region}" >> .zsecrc
-    read -rp "Enter CC Provisioning URL (E.g. connector.zscaler.net/api/v1/provUrl?name=aws_prov_url): " cc_vm_prov_url
-    echo "Provisioning URL entered is: $cc_vm_prov_url"
-    echo "export TF_VAR_cc_vm_prov_url=${cc_vm_prov_url}" >> .zsecrc
-    read -rp "Enter AWS Secrets Manager Secret Name from Secrets Manager (E.g ZS/CC/credentials/aws_cc_secret_name): " secret_name
-    echo "Secret Manager name entered is: $secret_name"
-    echo "export TF_VAR_secret_name=${secret_name}" >> .zsecrc
-http_probe_port_default=50000
-    read -rp "Enter CC service health probe TCP port number. Valid input = 80 or any number between 1024-65535 [Default=$http_probe_port_default]: " http_probe_port_input
-http_probe_port=${http_probe_port_input:-$http_probe_port_default}
-    [[ $http_probe_port =~ ^[0-9]+$ ]] || { continue; }
-if ((http_probe_port == 80 || http_probe_port >= 1024 && http_probe_port <= 65535)); then
-    echo "valid HTTP probe port input of $http_probe_port"
-    echo "export TF_VAR_http_probe_port=${http_probe_port}" >> .zsecrc
-else
-    echo "Invalid HTTP probe port value"
-    exit 1
-fi
-
-cc_instance_size_default=small
-    read -rp "Enter CC Instance Size. Valid input = small, medium, or large. This needs to match the size chosen in the CC provisioning template [Default=$cc_instance_size_default]: " cc_instance_size_input
+    echo "export TF_VAR_aws_region=${aws_region}" >> .zsecrc
+    
+    cc_instance_size_default=small
+    read -r -p "Enter CC Instance Size. Valid input = small, medium, or large. This needs to match the size chosen in the CC provisioning template [Default=$cc_instance_size_default]: " cc_instance_size_input
 cc_instance_size=${cc_instance_size_input:-$cc_instance_size_default}
     case $cc_instance_size in
       small|medium|large)
-          echo "CC size: ${cc_instance_size}"
+          echo "Cloud Connector size: ${cc_instance_size}"
           echo "export TF_VAR_cc_instance_size=${cc_instance_size}" >> .zsecrc
       ;;
       *)
-          echo "Invalid CC size: ${cc_instance_size}"
+          echo "Invalid Cloud Connector size: ${cc_instance_size}."
+          echo "Delete .zsecrc file and re-run zsecup ..."
           exit 1
       ;;
     esac
-
 ccvm_instance_type_default=m5.large
-    read -rp "Enter desired AWS EC2 instance type for CC. Recommended types: Small CC (m5.large or c5.large); Medium (m5.2xlarge or c5.2xlarge); Large (m5.4xlarge or c5.4xlarge) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
+while true; do
+    read -r -p "Enter desired AWS EC2 instance type for CC. Recommended types: Small CC (m5.large or c5.large); Medium (m5.2xlarge or c5.2xlarge); Large (m5.4xlarge or c5.4xlarge) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
 ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}    
     case $ccvm_instance_type in
       t3.medium|m5.large|c5.large|c5a.large|m5.2xlarge|c5.2xlarge|m5.4xlarge|c5.4xlarge)
           echo "CC EC2 type: ${ccvm_instance_type}"
           echo "export TF_VAR_ccvm_instance_type=${ccvm_instance_type}" >> .zsecrc
+          break
       ;;
       *)
-          echo "Invalid CC EC2 type: ${ccvm_instance_type}"
-          exit 1
+          echo "Invalid Cloud Connector VM type: ${ccvm_instance_type}. Please enter an approved VM type"
       ;;
     esac
-fi
+done
 
 small_cc_instance=("t3.medium" "m5.large" "c5.large" "c5a.large" "m5.2xlarge" "c5.2xlarge" "m5.4xlarge" "c5.4xlarge")
 medium_cc_instance=("m5.2xlarge" "c5.2xlarge" "m5.4xlarge" "c5.4xlarge")
 large_cc_instance=("m5.4xlarge" "c5.4xlarge")
 
+if [[ ${small_cc_instance[*]} =~ $ccvm_instance_type && "$cc_instance_size" == small ]]; then
+echo "Proceeding. ${ccvm_instance_type} compatible with ${cc_instance_size} Cloud Connector size"
+elif [[ ${medium_cc_instance[*]} =~ $ccvm_instance_type && "$cc_instance_size" == medium ]]; then
+echo "Proceeding. ${ccvm_instance_type} compatible with ${cc_instance_size} Cloud Connector size"
+elif [[ ${large_cc_instance[*]} =~ $ccvm_instance_type && "$cc_instance_size" == large ]]; then
+echo "Proceeding. ${ccvm_instance_type} compatible with ${cc_instance_size} Cloud Connector size"
+elif [[ $dtype == base ]]; then
+echo "Proceeding with no CCs to deploy"
+else
+    echo "Invalid CC deployment. ${ccvm_instance_type} not compatible with ${cc_instance_size} Cloud Connector size"
+    echo "Delete .zsecrc file and re-run zsec up..."
+    exit 1
+fi
+    read -r -p "Enter CC Provisioning URL (E.g. connector.zscaler.net/api/v1/provUrl?name=aws_prov_url): " cc_vm_prov_url
+    echo "Provisioning URL entered is: $cc_vm_prov_url. Make sure this matches the CC Instance Size $cc_instance_size chosen."
+    echo "export TF_VAR_cc_vm_prov_url=${cc_vm_prov_url}" >> .zsecrc
+    read -r -p "Enter AWS Secrets Manager Secret Name from Secrets Manager (E.g ZS/CC/credentials/aws_cc_secret_name): " secret_name
+    echo "Secret Manager name entered is: $secret_name"
+    echo "export TF_VAR_secret_name=${secret_name}" >> .zsecrc
+http_probe_port_default=50000
+    read -r -p "Enter CC service health probe TCP port number. Valid input = 80 or any number between 1024-65535 [Default=$http_probe_port_default]: " http_probe_port_input
+http_probe_port=${http_probe_port_input:-$http_probe_port_default}
+if ((http_probe_port == 80 || http_probe_port >= 1024 && http_probe_port <= 65535)); then
+    echo "Valid HTTP probe port input of $http_probe_port"
+    echo "export TF_VAR_http_probe_port=${http_probe_port}" >> .zsecrc
+else
+    echo "Invalid HTTP probe port value"
+    echo "Delete .zsecrc file and re-run zsec up..."
+    exit 1
+fi
+
+cc_count_default=2
+if [[ "$dtype" == "base_1"* ]]; then
+    echo "${dtype} will deploy one Cloud Connector in ${aws_region}"  
+elif [[ "$dtype" == "base_2"* || "$dtype" == "cc_ha" ]]; then  
+    echo "${dtype} will deploy two Cloud Connectors in ${aws_region}"  
+elif [[ "$dtype" != *"gwlb"* ]]; then
+    read -p "Enter how many Cloud Connectors to deploy? [Default=$cc_count_default]: " cc_count_input
+cc_count=${cc_count_input:-$cc_count_default}
+if ((cc_count >= 1 && cc_count <= 20)); then
+    echo "${dtype} will deploy ${cc_count} Cloud Connectors in ${aws_region}"
+    echo "export TF_VAR_cc_count=${cc_count}" >> .zsecrc
+else
+    echo "invalid cc_count value. Must be a number between 1 and 20"
+    echo "Delete .zsecrc file and re-run zsec up..."
+    exit 1
+fi  
+fi
+
+az_count_default=2
+if [[ "$dtype" == "base_1"* || "$dtype" == "base" ]]; then
+    echo "${dtype} will deploy resources in one Availability Zone subnet in ${aws_region}"  
+else
+    read -p "Enter how many Availability Zone subnets [1-3] to deploy across? [Default=$az_count_default]: " az_count_input
+az_count=${az_count_input:-$az_count_default}
+if ((az_count >= 1 && az_count <= 3)); then
+    echo "${dtype} will deploy ${cc_count} Cloud Connectors across ${az_count} Availabiliy Zone subnets in ${aws_region}"
+    echo "export TF_VAR_az_count=${az_count}" >> .zsecrc
+else
+    echo "invalid az_count value. Must be a number between 1 and 3"
+    echo "Delete .zsecrc file and re-run zsec up..."
+    exit 1
+fi  
+fi
+
+if [[ "$dtype" == *"gwlb"* ]]; then
+    echo "GWLB deployment detected"
+    read -p "Enable GWLB cross-zone loadbalancing? (yes/no): " cross_zone_lb_enabled
+
+    while true; do
+case $cross_zone_lb_enabled in 
+	yes|y ) 
+    echo "Cross-zone loadbalancing enabled"
+    cross_zone_lb_enabled=true
+    break
+    ;;
+	no|n )
+    echo "Cross-zone loadbalancing disabled"
+    cross_zone_lb_enabled=false
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done 
+
+fi
+fi
+
+
 # add local bin directory to PATH
 if ! grep -Fxq "export PATH=\${PATH}:\${PWD}/bin" .zsecrc; then
     echo 'export PATH=${PATH}:${PWD}/bin' >> .zsecrc
 fi
+
+
+# initialize environment variables
 . ./.zsecrc
 
+# check for valid environment variables in .zsecrc
 if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$AWS_DEFAULT_REGION" ]; then
     echo "AWS Access info is missing. Remove .zsecrc file and rerun $0 $1"
     exit 1
@@ -176,19 +329,37 @@ if [[ $dtype != "base" ]]; then
   fi
 fi
 
-if [[ $oper == "up" && ${small_cc_instance[*]} =~ $TF_VAR_ccvm_instance_type && "$TF_VAR_cc_instance_size" == small ]]; then
-echo "Valid CC deployment"
-elif [[ $oper == "up" && ${medium_cc_instance[*]} =~ $ccvm_instance_type && "$cc_instance_size" == medium ]]; then
-echo "Valid CC deployment"
-elif [[ $oper == "up" && ${large_cc_instance[*]} =~ $ccvm_instance_type && "$cc_instance_size" == large ]]; then
-echo "Valid CC deployment"
-elif [[ $oper == "up" && $dtype == base ]]; then
-echo "Proceeding with no CCs to deploy"
-elif [[ $oper == "destroy" ]]; then
-echo "Variable validation complete"
+# Get new MFA session token
+if [[ $mfa_enabled == true ]]; then
+    if [ -z "$AWS_SESSION_TOKEN" ]; then
+    echo "export AWS_SESSION_TOKEN=${aws_session_token}" >> .zsecrc 
+    echo "export AWS_SESSION_TOKEN=${aws_session_token}"
+    echo "AWS Access info exists"
 else
-    echo "Invalid CC deployment"
-    exit 1
+    echo "zsecrc file has existing session token. Resetting to ensure credentials are refreshed"
+    echo "unsetting existing AWS Environment variables (unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)"
+    unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
+    echo "backup .zsecrc to .zsecrc.bak"
+    cp .zsecrc .zsecrc.bak
+    echo "Updating .zsecrc"
+    sed '/AWS_SESSION_TOKEN\|AWS_ACCESS_KEY_ID\|AWS_SECRET_ACCESS_KEY/d' .zsecrc > .zsecrcnew && mv .zsecrcnew .zsecrc
+    echo "example - arn:aws:iam::1234567890:mfa/user@company.com where Account ID = 1234567890 and User Account = user@company.com"
+    read -p "Enter AWS Account ID: " aws_account_id
+    read -p "Enter AWS MFA User account: " aws_user_account
+    read -p "Enter token code from MFA device: " mfa_token
+    echo "getting session token (aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
+    aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}
+ 
+    read -r -p "Enter AWS Session Token: " aws_session_token
+    echo "export AWS_SESSION_TOKEN=${aws_session_token}" >> .zsecrc
+    echo "export AWS_SESSION_TOKEN=${aws_session_token}"
+    read -r -p "Enter AWS Access Key ID: " aws_key
+    read -r -p "Enter AWS Secret Access Key: " aws_secret
+    echo "export AWS_ACCESS_KEY_ID=${aws_key}" >> .zsecrc
+    echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsecrc
+fi    
+    # Reinitialize environment variables
+. ./.zsecrc
 fi
 
 
@@ -205,27 +376,28 @@ fi
 
 if [[ "$oper" == "up" ]]; then
     echo "Bringing up Cloud Connector cluster..."
-    ./$dir/terraform -chdir=$dtype init
+    TF_DATA_DIR=../.terraform ./$dir/terraform -chdir=$dtype init
     if [[ "$AUTO_APPROVE" ]]; then
-        ./$dir/terraform -chdir=$dtype apply -auto-approve -var aws_region="$AWS_DEFAULT_REGION" -var-file="../terraform.tfvars"
+        TF_DATA_DIR=../.terraform ./$dir/terraform -chdir=$dtype apply -auto-approve
     else
-        ./$dir/terraform -chdir=$dtype apply -var aws_region="$AWS_DEFAULT_REGION" -var-file="../terraform.tfvars"
+        TF_DATA_DIR=../.terraform ./$dir/terraform -chdir=$dtype apply
     fi
    
 
 elif [[ "$oper" == "destroy" ]]; then
     echo "Destroying Edge Connector cluster..."
-    ./$dir/terraform -chdir=$dtype init
+    TF_DATA_DIR=../.terraform ./$dir/terraform -chdir=$dtype init
     if [[ "$AUTO_APPROVE" ]]; then
-      ./$dir/terraform -chdir=$dtype destroy -auto-approve -var-file="../terraform.tfvars"
+      TF_DATA_DIR=../.terraform ./$dir/terraform -chdir=$dtype destroy -auto-approve
     else
-      ./$dir/terraform -chdir=$dtype destroy -compact-warnings -var-file="../terraform.tfvars"
+      TF_DATA_DIR=../.terraform ./$dir/terraform -chdir=$dtype destroy -compact-warnings
     fi
-    rm -rf bin
-    cd $dtype
+    rm -rf bin 
+    rm -rf **/.terraform/* && rm -rf **/.terraform*
     rm -rf .terraform* && rm -f terraform.tfstate*
     rm -f *.pem && rm -f *.pem.pub
     rm -f name_prefix random_string
     rm -rf user.key user.crt
     rm -rf systems.json setup-*.tar
+    rm -rf **/errorlog.txt
 fi
