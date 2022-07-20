@@ -3,7 +3,7 @@ data "aws_region" "current" {}
 data "aws_vpc" "selected" {
   id = var.vpc
 }
-data "aws_security_group" selected {
+data "aws_security_group" "selected" {
   vpc_id = var.vpc
   name   = "default"
 }
@@ -27,7 +27,7 @@ resource "aws_route53_resolver_endpoint" "zpa-r53-ep" {
   }
 
   tags = merge(var.global_tags,
-        { Name = "${var.name_prefix}-r53-resolver-ep-${var.resource_tag}" }
+    { Name = "${var.name_prefix}-r53-resolver-ep-${var.resource_tag}" }
   )
 }
 
@@ -48,7 +48,7 @@ resource "aws_route53_resolver_rule" "fwd" {
   }
 
   tags = merge(var.global_tags,
-        { Name = "${var.name_prefix}-r53-rules-${each.key}-${var.resource_tag}" }
+    { Name = "${var.name_prefix}-r53-rules-${each.key}-${var.resource_tag}" }
   )
 }
 
@@ -62,13 +62,13 @@ resource "aws_route53_resolver_rule_association" "r53-rule-association_fwd" {
 
 # Create Route 53 resolver rules to have AWS recursively resolve Zscaler domains directly rather than send to Cloud Connector
 resource "aws_route53_resolver_rule" "system" {
-  for_each             = var.zscaler_domains
-  domain_name          = each.value.domain_name
-  name                 = "${var.name_prefix}-r53-system-rule-${each.key}-${var.resource_tag}"
-  rule_type            = "SYSTEM"
+  for_each    = var.zscaler_domains
+  domain_name = each.value.domain_name
+  name        = "${var.name_prefix}-r53-system-rule-${each.key}-${var.resource_tag}"
+  rule_type   = "SYSTEM"
 
   tags = merge(var.global_tags,
-        { Name = "${var.name_prefix}-r53-rules-${each.key}-${var.resource_tag}" }
+    { Name = "${var.name_prefix}-r53-rules-${each.key}-${var.resource_tag}" }
   )
 }
 

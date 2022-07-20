@@ -27,7 +27,7 @@ data "aws_ami" "cloudconnector" {
 
 # Create Cloud Connector VM
 resource "aws_instance" "cc-vm" {
-  count = local.valid_cc_create ? var.cc_count : 0
+  count                       = local.valid_cc_create ? var.cc_count : 0
   ami                         = data.aws_ami.cloudconnector.id
   instance_type               = var.ccvm_instance_type
   iam_instance_profile        = element(var.iam_instance_profile, count.index)
@@ -36,34 +36,34 @@ resource "aws_instance" "cc-vm" {
   key_name                    = var.instance_key
   associate_public_ip_address = false
   user_data                   = base64encode(var.user_data)
-  
+
   tags = merge(var.global_tags,
-        { Name = "${var.name_prefix}-cc-vm-${count.index + 1}-${var.resource_tag}" }
+    { Name = "${var.name_prefix}-cc-vm-${count.index + 1}-${var.resource_tag}" }
   )
 }
 
 # Create Cloud Connector Service Interface for Small CC. This interface becomes LB0 interface for Medium/Large CC
 resource "aws_network_interface" "cc-vm-nic-index-1" {
-  count = local.valid_cc_create ? var.cc_count : 0
+  count             = local.valid_cc_create ? var.cc_count : 0
   description       = var.cc_instance_size == "small" ? "Primary Interface for service traffic" : "CC Med/Lrg LB interface"
   subnet_id         = element(var.service_subnet_id, count.index)
   security_groups   = [element(var.service_security_group_id, count.index)]
   source_dest_check = false
   private_ips_count = 1
   attachment {
-    instance        = aws_instance.cc-vm[count.index].id
-    device_index    = 1
+    instance     = aws_instance.cc-vm[count.index].id
+    device_index = 1
   }
 
   tags = merge(var.global_tags,
-        { Name = "${var.name_prefix}-cc-vm-${count.index + 1}-${var.resource_tag}-SrvcIF1" }
+    { Name = "${var.name_prefix}-cc-vm-${count.index + 1}-${var.resource_tag}-SrvcIF1" }
   )
 }
 
 # Get Data info of NIC to be able to output private IP values
 data "aws_network_interface" "cc-vm-nic-index-1-eni" {
   count = local.valid_cc_create ? var.cc_count : 0
-  id = element(aws_network_interface.cc-vm-nic-index-1.*.id, count.index)
+  id    = element(aws_network_interface.cc-vm-nic-index-1.*.id, count.index)
 }
 
 
@@ -75,12 +75,12 @@ resource "aws_network_interface" "cc-vm-nic-index-2" {
   security_groups   = [element(var.service_security_group_id, count.index)]
   source_dest_check = false
   attachment {
-    instance        = aws_instance.cc-vm[count.index].id
-    device_index    = 2
+    instance     = aws_instance.cc-vm[count.index].id
+    device_index = 2
   }
 
   tags = merge(var.global_tags,
-        { Name = "${var.name_prefix}-cc-vm-${count.index + 1}-${var.resource_tag}-SrvcIF-2" }
+    { Name = "${var.name_prefix}-cc-vm-${count.index + 1}-${var.resource_tag}-SrvcIF-2" }
   )
 }
 
@@ -99,12 +99,12 @@ resource "aws_network_interface" "cc-vm-nic-index-3" {
   security_groups   = [element(var.service_security_group_id, count.index)]
   source_dest_check = false
   attachment {
-    instance        = aws_instance.cc-vm[count.index].id
-    device_index    = 3
+    instance     = aws_instance.cc-vm[count.index].id
+    device_index = 3
   }
 
   tags = merge(var.global_tags,
-        { Name = "${var.name_prefix}-cc-vm-${count.index + 1}-${var.resource_tag}-SrvcIF-3" }
+    { Name = "${var.name_prefix}-cc-vm-${count.index + 1}-${var.resource_tag}-SrvcIF-3" }
   )
 }
 
@@ -123,17 +123,17 @@ resource "aws_network_interface" "cc-vm-nic-index-4" {
   security_groups   = [element(var.service_security_group_id, count.index)]
   source_dest_check = false
   attachment {
-    instance        = aws_instance.cc-vm[count.index].id
-    device_index    = 4
+    instance     = aws_instance.cc-vm[count.index].id
+    device_index = 4
   }
 
   tags = merge(var.global_tags,
-        { Name = "${var.name_prefix}-cc-vm-${count.index + 1}-${var.resource_tag}-SrvcIF-4" }
+    { Name = "${var.name_prefix}-cc-vm-${count.index + 1}-${var.resource_tag}-SrvcIF-4" }
   )
 }
 
 # Get Data info of NIC to be able to output private IP values
 data "aws_network_interface" "cc-vm-nic-index-4-eni" {
   count = local.valid_cc_create && var.cc_instance_size == "large" ? var.cc_count : 0
-  id = element(aws_network_interface.cc-vm-nic-index-4.*.id, count.index)
+  id    = element(aws_network_interface.cc-vm-nic-index-4.*.id, count.index)
 }

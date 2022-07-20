@@ -27,8 +27,8 @@ variable "instance_key" {
 
 variable "workload_count" {
   description = "number of workloads to deploy"
-  type = number
-  default = 2
+  type        = number
+  default     = 2
 }
 
 variable "global_tags" {

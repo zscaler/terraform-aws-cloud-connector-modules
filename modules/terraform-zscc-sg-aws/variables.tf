@@ -13,7 +13,7 @@ variable "vpc" {
 }
 
 variable "global_tags" {
-  type        = map
+  type        = map(any)
   description = "populate custom user provided tags"
 }
 
@@ -25,5 +25,17 @@ variable "sg_count" {
 variable "byo_security_group" {
   default     = false
   type        = bool
-  description = "Bring your own Security Group for App Connector"
+  description = "Bring your own Security Group for Cloud Connector"
+}
+
+variable "byo_mgmt_security_group_id" {
+  type        = list(string)
+  default     = null
+  description = "Management Security Group ID for Cloud Connector association"
+}
+
+variable "byo_service_security_group_id" {
+  type        = list(string)
+  default     = null
+  description = "Service Security Group ID for Cloud Connector association"
 }
