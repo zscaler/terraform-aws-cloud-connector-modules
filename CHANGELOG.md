@@ -1,12 +1,16 @@
 ## x.y.z (July 11, 2022) 
 * github release refactor
 * zsec update for terraform support up to 1.1.9 and aws provider 4.7.x
-* zsec updated with mac m1 option for terraform arm64 version download
+* zsec updated with mac m1 option for terraform arm64 version download (BUG-123132, BUG-122815)
 * modules renamed for granularity and consistency
 * CC IAM and Security Group resources broken out to individual child modules
 * Support for reusing the same IAM and Security Group resources for all CC VMs.
 * Bring your own IAM Instance Profile and Security Groups available for brownfield/custom deployments
 * BUG-120983 fix for lambda deployments with only 1 CC subnet
+* move provider to versions.tf
+* added TF_DATA_DIR to zsec and backend.tf to each deployment type to maintain root path as "examples/" directory for all deployments
+* renamed cc_custom to cc_ha
+* renamed cc_gwlb_custom to cc_gwlb
 
 ## 1.2.0 (May 5, 2022)
 NOTES:

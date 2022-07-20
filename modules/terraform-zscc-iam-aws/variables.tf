@@ -9,7 +9,7 @@ variable "resource_tag" {
 }
 
 variable "global_tags" {
-  type        = map
+  type        = map(any)
   description = "populate custom user provided tags"
 }
 
@@ -25,7 +25,13 @@ variable "iam_role_policy_ssmcore" {
 
 variable "iam_count" {
   description = "Default number IAM roles/policies/profiles to create"
-  default = 1
+  default     = 1
+}
+
+variable "cc_callhome_enabled" {
+  description = "determine whether or not to create the cc-callhome-policy IAM Policy and attach it to the CC IAM Role"
+  default     = "true"
+  type        = bool
 }
 
 variable "byo_iam_instance_profile" {
@@ -34,8 +40,8 @@ variable "byo_iam_instance_profile" {
   description = "Bring your own IAM Instance Profile for Cloud Connector"
 }
 
-variable "cc_callhome_enabled" {
-  description = "determine whether or not to create the cc-callhome-policy IAM Policy and attach it to the CC IAM Role"
-  default = "true"
-  type  = bool
+variable "byo_iam_instance_profile_id" {
+  type        = list(string)
+  default     = null
+  description = "IAM Instance Profile ID for Cloud Connector association"
 }

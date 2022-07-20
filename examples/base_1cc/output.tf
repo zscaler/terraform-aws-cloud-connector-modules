@@ -42,6 +42,7 @@ ${join("\n", aws_nat_gateway.ngw.*.public_ip)}
 All CC IAM Role ARNs (Please provide this to Zscaler for callhome enablement):
 ${join("\n", module.cc-iam.iam_instance_profile_arn)}
 
+change2
 
 TB
 
@@ -89,8 +90,8 @@ TBP
 }
 
 resource "local_file" "testbed_yml" {
-content = local.testbedconfigpyats
-filename = "testbed.yml"
+  content  = local.testbedconfigpyats
+  filename = "../testbed.yml"
 }
 
 output "testbedconfig" {
@@ -98,6 +99,6 @@ output "testbedconfig" {
 }
 
 resource "local_file" "testbed" {
-  content = local.testbedconfig
-  filename = "testbed.txt"
+  content  = local.testbedconfig
+  filename = "../testbed.txt"
 }

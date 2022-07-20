@@ -17,3 +17,9 @@ terraform {
   }
   required_version = ">= 0.13"
 }
+
+# Configure the AWS Provider
+provider "aws" {
+  region = var.aws_region
+}
+

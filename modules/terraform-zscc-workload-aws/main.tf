@@ -52,7 +52,7 @@ resource "aws_security_group" "node-sg" {
   }
 
   tags = merge(var.global_tags,
-        { Name = "${var.name_prefix}-server-sg-${var.resource_tag}" }
+    { Name = "${var.name_prefix}-server-sg-${var.resource_tag}" }
   )
 }
 
@@ -86,11 +86,11 @@ resource "aws_instance" "server_host" {
   ami                    = data.aws_ami.centos.id
   instance_type          = var.instance_type
   key_name               = var.instance_key
-  subnet_id               = element(var.subnet, count.index)
+  subnet_id              = element(var.subnet, count.index)
   iam_instance_profile   = aws_iam_instance_profile.server_host_profile.name
   vpc_security_group_ids = [aws_security_group.node-sg.id]
 
   tags = merge(var.global_tags,
-        { Name = "${var.name_prefix}-server-node${count.index + 1}-${var.resource_tag}" }
+    { Name = "${var.name_prefix}-server-node${count.index + 1}-${var.resource_tag}" }
   )
 }

@@ -17,8 +17,14 @@ resource "aws_security_group" "cc-mgmt-sg" {
   }
 
   tags = merge(var.global_tags,
-        { Name = "${var.name_prefix}-cc-mgmt-sg-${var.resource_tag}" }
+    { Name = "${var.name_prefix}-cc-mgmt-sg-${var.resource_tag}" }
   )
+}
+
+# Or use existing Management Security Group ID
+data "aws_security_group" "cc-mgmt-sg-selected" {
+  count = var.byo_security_group == false ? length(aws_security_group.cc-mgmt-sg.*.id) : length(var.byo_mgmt_security_group_id)
+  id    = var.byo_security_group == false ? element(aws_security_group.cc-mgmt-sg.*.id, count.index) : element(var.byo_mgmt_security_group_id, count.index)
 }
 
 resource "aws_security_group_rule" "cc-mgmt-ingress-ssh" {
@@ -47,8 +53,14 @@ resource "aws_security_group" "cc-service-sg" {
   }
 
   tags = merge(var.global_tags,
-        { Name = "${var.name_prefix}-cc-svc-sg-${var.resource_tag}" }
+    { Name = "${var.name_prefix}-cc-svc-sg-${var.resource_tag}" }
   )
+}
+
+# Or use existing Service Security Group ID
+data "aws_security_group" "cc-service-sg-selected" {
+  count = var.byo_security_group == false ? length(aws_security_group.cc-service-sg.*.id) : length(var.byo_service_security_group_id)
+  id    = var.byo_security_group == false ? element(aws_security_group.cc-service-sg.*.id, count.index) : element(var.byo_service_security_group_id, count.index)
 }
 
 resource "aws_security_group_rule" "all-vpc-ingress-cc" {

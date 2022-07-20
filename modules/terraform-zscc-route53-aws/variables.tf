@@ -24,7 +24,7 @@ variable "domain_names" {
 variable "target_address" {
   type        = list(string)
   description = "Route 53 DNS queries will be forwarded to these Zscaler Global VIP addresses"
-  default     = ["185.46.212.88" , "185.46.212.89"]
+  default     = ["185.46.212.88", "185.46.212.89"]
 }
 
 variable "global_tags" {
@@ -32,22 +32,22 @@ variable "global_tags" {
 }
 
 variable "zscaler_domains" {
-  type            = map(map(string))
-  description     = "Domains that Route 53 should not forward to Cloud Connector"
-  
+  type        = map(map(string))
+  description = "Domains that Route 53 should not forward to Cloud Connector"
+
   default = {
-  ZS-FreeBSD      = { domain_name = "freebsd.org" }
-  ZS-NTP          = { domain_name = "ntp.org" }
-  ZS-Zscaler      = { domain_name = "zscaler.com" }
-  ZS-Zpath        = { domain_name = "zpath.net" }
-  ZS-ZPAGov       = { domain_name = "zpagov.net" }
-  ZS-ZPABeta      = { domain_name = "zpabeta.net" }
-  ZS-ZscalerBeta  = { domain_name = "zscalerbeta.net" }
-  ZS-ZsNet        = { domain_name = "zscaler.net" }
-  ZS-ZscalerOne   = { domain_name = "zscalerone.net" }
-  ZS-ZscalerTwo   = { domain_name = "zscalertwo.net" }
-  ZS-ZscalerThree = { domain_name = "zscalerthree.net" }
-  ZS-ZsCloud      = { domain_name = "zscloud.net" }
-  ZS-ZscalerGov   = { domain_name = "zscalergov.net" }
+    ZS-FreeBSD      = { domain_name = "freebsd.org" }
+    ZS-NTP          = { domain_name = "ntp.org" }
+    ZS-Zscaler      = { domain_name = "zscaler.com" }
+    ZS-Zpath        = { domain_name = "zpath.net" }
+    ZS-ZPAGov       = { domain_name = "zpagov.net" }
+    ZS-ZPABeta      = { domain_name = "zpabeta.net" }
+    ZS-ZscalerBeta  = { domain_name = "zscalerbeta.net" }
+    ZS-ZsNet        = { domain_name = "zscaler.net" }
+    ZS-ZscalerOne   = { domain_name = "zscalerone.net" }
+    ZS-ZscalerTwo   = { domain_name = "zscalertwo.net" }
+    ZS-ZscalerThree = { domain_name = "zscalerthree.net" }
+    ZS-ZsCloud      = { domain_name = "zscloud.net" }
+    ZS-ZscalerGov   = { domain_name = "zscalergov.net" }
   }
 }

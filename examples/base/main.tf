@@ -1,8 +1,3 @@
-# Configure the AWS Provider
-provider "aws" {
-  region = var.aws_region
-}
-
 # Generate a unique random string for resource name assignment and key pair
 resource "random_string" "suffix" {
   length  = 8
@@ -13,10 +8,10 @@ resource "random_string" "suffix" {
 # Map default tags with values to be assigned to all tagged resources
 locals {
   global_tags = {
-  Owner       = var.owner_tag
-  ManagedBy   = "terraform"
-  Vendor      = "Zscaler"
-  "zs-edge-connector-cluster/${var.name_prefix}-cluster-${random_string.suffix.result}" = "shared"
+    Owner                                                                                 = var.owner_tag
+    ManagedBy                                                                             = "terraform"
+    Vendor                                                                                = "Zscaler"
+    "zs-edge-connector-cluster/${var.name_prefix}-cluster-${random_string.suffix.result}" = "shared"
   }
 }
 
@@ -28,7 +23,7 @@ locals {
 ############################################################################################################################
 # private key for login
 resource "tls_private_key" "key" {
-  algorithm   = var.tls_key_algorithm
+  algorithm = var.tls_key_algorithm
 }
 
 resource "aws_key_pair" "deployer" {
@@ -37,8 +32,8 @@ resource "aws_key_pair" "deployer" {
 
   provisioner "local-exec" {
     command = <<EOF
-      echo "${tls_private_key.key.private_key_pem}" > ${var.name_prefix}-key-${random_string.suffix.result}.pem
-      chmod 0600 ${var.name_prefix}-key-${random_string.suffix.result}.pem
+      echo "${tls_private_key.key.private_key_pem}" > ../${var.name_prefix}-key-${random_string.suffix.result}.pem
+      chmod 0600 ../${var.name_prefix}-key-${random_string.suffix.result}.pem
 EOF
   }
 }
@@ -57,7 +52,7 @@ resource "aws_vpc" "vpc1" {
   enable_dns_hostnames = true
 
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-vpc1-${random_string.suffix.result}" }
+    { Name = "${var.name_prefix}-vpc1-${random_string.suffix.result}" }
   )
 }
 
@@ -67,7 +62,7 @@ resource "aws_internet_gateway" "igw1" {
   vpc_id = aws_vpc.vpc1.id
 
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-vpc1-igw-${random_string.suffix.result}" }
+    { Name = "${var.name_prefix}-vpc1-igw-${random_string.suffix.result}" }
   )
 }
 
@@ -80,7 +75,7 @@ resource "aws_subnet" "pubsubnet" {
   vpc_id            = aws_vpc.vpc1.id
 
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-vpc1-public-subnet-${count.index + 1}-${random_string.suffix.result}" }
+    { Name = "${var.name_prefix}-vpc1-public-subnet-${count.index + 1}-${random_string.suffix.result}" }
   )
 }
 
@@ -92,7 +87,7 @@ resource "aws_subnet" "privsubnet" {
   vpc_id            = aws_vpc.vpc1.id
 
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-vpc1-workload-subnet-${count.index + 1}-${random_string.suffix.result}" }
+    { Name = "${var.name_prefix}-vpc1-workload-subnet-${count.index + 1}-${random_string.suffix.result}" }
   )
 }
 
@@ -107,16 +102,16 @@ resource "aws_route_table" "routetablepublic1" {
   }
 
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-igw-rt-${random_string.suffix.result}" }
+    { Name = "${var.name_prefix}-igw-rt-${random_string.suffix.result}" }
   )
 }
 
 
 # Create equal number of Route Table associations to how many Public subnets exist. 
 resource "aws_route_table_association" "routetablepublic1" {
-  count           = length(aws_subnet.pubsubnet.*.id)
-  subnet_id       = aws_subnet.pubsubnet.*.id[count.index]
-  route_table_id  = aws_route_table.routetablepublic1.id
+  count          = length(aws_subnet.pubsubnet.*.id)
+  subnet_id      = aws_subnet.pubsubnet.*.id[count.index]
+  route_table_id = aws_route_table.routetablepublic1.id
 }
 
 
@@ -127,20 +122,20 @@ resource "aws_eip" "eip" {
   depends_on = [aws_internet_gateway.igw1]
 
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-eip-az${count.index + 1}-${random_string.suffix.result}" }
+    { Name = "${var.name_prefix}-eip-az${count.index + 1}-${random_string.suffix.result}" }
   )
 }
 
 
 # Create 1 NAT Gateway per Public Subnet.
 resource "aws_nat_gateway" "ngw" {
-  count = length(aws_subnet.pubsubnet.*.id)
+  count         = length(aws_subnet.pubsubnet.*.id)
   allocation_id = aws_eip.eip.*.id[count.index]
   subnet_id     = aws_subnet.pubsubnet.*.id[count.index]
   depends_on    = [aws_internet_gateway.igw1]
-  
+
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-vpc1-natgw-az${count.index + 1}-${random_string.suffix.result}" }
+    { Name = "${var.name_prefix}-vpc1-natgw-az${count.index + 1}-${random_string.suffix.result}" }
   )
 }
 
@@ -161,14 +156,14 @@ module "bastion" {
 # 3. Create Workload
 # Create Workloads
 module "workload" {
-  workload_count  = var.workload_count
-  source          = "../../modules/terraform-zscc-workload-aws"
-  name_prefix     = "${var.name_prefix}-workload"
-  resource_tag    = random_string.suffix.result
-  global_tags     = local.global_tags
-  vpc             = aws_vpc.vpc1.id
-  subnet          = aws_subnet.privsubnet.*.id
-  instance_key    = aws_key_pair.deployer.key_name
+  workload_count = var.workload_count
+  source         = "../../modules/terraform-zscc-workload-aws"
+  name_prefix    = "${var.name_prefix}-workload"
+  resource_tag   = random_string.suffix.result
+  global_tags    = local.global_tags
+  vpc            = aws_vpc.vpc1.id
+  subnet         = aws_subnet.privsubnet.*.id
+  instance_key   = aws_key_pair.deployer.key_name
 }
 
 
@@ -178,7 +173,7 @@ module "workload" {
 
 # Create Route Table for private subnet pointing to NAT Gateway resource in each availability zone
 resource "aws_route_table" "routetableprivate" {
-  count = length(aws_subnet.privsubnet.*.id)
+  count  = length(aws_subnet.privsubnet.*.id)
   vpc_id = aws_vpc.vpc1.id
   route {
     cidr_block     = "0.0.0.0/0"
@@ -186,7 +181,7 @@ resource "aws_route_table" "routetableprivate" {
   }
 
   tags = merge(local.global_tags,
-        { Name = "${var.name_prefix}-private-to-natgw-${count.index + 1}-rt-${random_string.suffix.result}" }
+    { Name = "${var.name_prefix}-private-to-natgw-${count.index + 1}-rt-${random_string.suffix.result}" }
   )
 }
 

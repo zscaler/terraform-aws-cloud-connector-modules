@@ -24,7 +24,7 @@ resource "aws_security_group" "bastion" {
   }
 
   tags = merge(var.global_tags,
-        { Name = "${var.name_prefix}-bastion-sg-${var.resource_tag}" }
+    { Name = "${var.name_prefix}-bastion-sg-${var.resource_tag}" }
   )
 }
 
@@ -47,10 +47,10 @@ resource "aws_security_group_rule" "internet" {
 }
 
 resource "aws_security_group_rule" "intranet" {
-  protocol  = "-1"
-  from_port = 0
-  to_port   = 0
-  type      = "egress"
+  protocol          = "-1"
+  from_port         = 0
+  to_port           = 0
+  type              = "egress"
   cidr_blocks       = [data.aws_vpc.selected.cidr_block]
   security_group_id = aws_security_group.bastion.id
 }
@@ -73,6 +73,6 @@ resource "aws_instance" "bastion" {
   }
 
   tags = merge(var.global_tags,
-        { Name = "${var.name_prefix}-bastion-host-${var.resource_tag}" }
+    { Name = "${var.name_prefix}-bastion-host-${var.resource_tag}" }
   )
 }
