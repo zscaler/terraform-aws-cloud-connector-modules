@@ -158,13 +158,13 @@ resource "aws_nat_gateway" "ngw" {
 
 # 2. Create Bastion Host
 module "bastion" {
-  source        = "../../modules/terraform-zscc-bastion-aws"
-  name_prefix   = var.name_prefix
-  resource_tag  = random_string.suffix.result
-  global_tags   = local.global_tags
-  vpc           = aws_vpc.vpc1.id
-  public_subnet = aws_subnet.pubsubnet.0.id
-  instance_key  = aws_key_pair.deployer.key_name
+  source                    = "../../modules/terraform-zscc-bastion-aws"
+  name_prefix               = var.name_prefix
+  resource_tag              = random_string.suffix.result
+  global_tags               = local.global_tags
+  vpc                       = aws_vpc.vpc1.id
+  public_subnet             = aws_subnet.pubsubnet.0.id
+  instance_key              = aws_key_pair.deployer.key_name
   bastion_nsg_source_prefix = var.bastion_nsg_source_prefix
 }
 
