@@ -17,7 +17,7 @@
 
 
 #####################################################################################################################
-##### Variables 1-10 are populated automically if terraform is ran via ZSEC bash script.   ##### 
+##### Variables 1-12 are populated automically if terraform is ran via ZSEC bash script.   ##### 
 ##### Modifying the variables in this file will override any inputs from ZSEC             #####
 #####################################################################################################################
 
@@ -101,6 +101,15 @@
 #cc_callhome_enabled                       = false
 
 
+## 11. By default, this script will apply 1 Security Group per Cloud Connector instance. 
+##     Uncomment if you want to use the same Security Group for ALL Cloud Connectors (true or false. Default: false)
 
+#reuse_security_group                               = true
+
+
+## 12. By default, this script will apply 1 IAM Role/Instance Profile per Cloud Connector instance. 
+##     Uncomment if you want to use the same IAM Role/Instance Profile for ALL Cloud Connectors (true or false. Default: false)
+
+#reuse_iam                                          = true
 
 

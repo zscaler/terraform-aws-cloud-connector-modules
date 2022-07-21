@@ -34,7 +34,7 @@ variable "cc_callhome_enabled" {
   type        = bool
 }
 
-variable "byo_iam_instance_profile" {
+variable "byo_iam" {
   default     = false
   type        = bool
   description = "Bring your own IAM Instance Profile for Cloud Connector"

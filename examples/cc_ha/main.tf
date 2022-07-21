@@ -247,8 +247,11 @@ module "cc-iam" {
   resource_tag                = random_string.suffix.result
   global_tags                 = local.global_tags
   cc_callhome_enabled         = var.cc_callhome_enabled
-  byo_iam_instance_profile    = var.byo_iam_instance_profile
+  
+  byo_iam             = var.byo_iam
+  # optional inputs. only required if byo_iam set to true
   byo_iam_instance_profile_id = var.byo_iam_instance_profile_id
+  # optional inputs. only required if byo_iam set to true
 }
 
 # Create Security Group and rules to be assigned to CC mgmt and and service interface(s). Default behavior will create 1 of each resource per CC VM. Set variable reuse_security_group
