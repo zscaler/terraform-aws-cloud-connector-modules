@@ -241,14 +241,14 @@ module "cc-vm" {
 # Create IAM Policy, Roles, and Instance Profiles to be assigned to CC appliances. Default behavior will create 1 of each resource per CC VM. Set variable reuse_iam to true
 # if you would like a single IAM profile created and assigned to ALL Cloud Connectors
 module "cc-iam" {
-  source                      = "../../modules/terraform-zscc-iam-aws"
-  iam_count                   = var.reuse_iam == false ? var.cc_count : 1
-  name_prefix                 = var.name_prefix
-  resource_tag                = random_string.suffix.result
-  global_tags                 = local.global_tags
-  cc_callhome_enabled         = var.cc_callhome_enabled
-  
-  byo_iam             = var.byo_iam
+  source              = "../../modules/terraform-zscc-iam-aws"
+  iam_count           = var.reuse_iam == false ? var.cc_count : 1
+  name_prefix         = var.name_prefix
+  resource_tag        = random_string.suffix.result
+  global_tags         = local.global_tags
+  cc_callhome_enabled = var.cc_callhome_enabled
+
+  byo_iam = var.byo_iam
   # optional inputs. only required if byo_iam set to true
   byo_iam_instance_profile_id = var.byo_iam_instance_profile_id
   # optional inputs. only required if byo_iam set to true
