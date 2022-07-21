@@ -33,7 +33,7 @@ resource "aws_security_group_rule" "ssh" {
   from_port         = 22
   to_port           = 22
   type              = "ingress"
-  cidr_blocks       = var.allowed_hosts_from_bastion
+  cidr_blocks       = var.bastion_nsg_source_prefix
   security_group_id = aws_security_group.bastion.id
 }
 
