@@ -43,3 +43,9 @@ variable "tls_key_algorithm" {
   default = "RSA"
   type    = string
 }
+
+variable "bastion_nsg_source_prefix" {
+  description = "CIDR blocks of trusted networks"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}

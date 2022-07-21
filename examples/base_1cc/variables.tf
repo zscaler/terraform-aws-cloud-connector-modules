@@ -131,3 +131,9 @@ variable "reuse_iam" {
   default     = "false"
   type        = bool
 }
+
+variable "bastion_nsg_source_prefix" {
+  description = "CIDR blocks of trusted networks"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
