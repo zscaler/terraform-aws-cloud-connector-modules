@@ -165,6 +165,7 @@ module "bastion" {
   vpc           = aws_vpc.vpc1.id
   public_subnet = aws_subnet.pubsubnet.0.id
   instance_key  = aws_key_pair.deployer.key_name
+  bastion_nsg_source_prefix = var.bastion_nsg_source_prefix
 }
 
 

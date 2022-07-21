@@ -162,6 +162,58 @@ if [[ $dtype == "base" && ! -e ./.zsecrc ]]; then
     echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsecrc
     echo "export AWS_DEFAULT_REGION=${aws_region}" >> .zsecrc
     echo "export TF_VAR_aws_region=${aws_region}" >> .zsecrc
+
+    while [[ "$dtype" == "base" && "$oper" == "up" ]]; do
+clientpublicip=$(curl -s ifconfig.me)
+    echo "greenfield deployments include a publicly accessible ssh bastion host.."
+    read -r -p "Your current public IP is ${clientpublicip}. Lock SSH access to this IP? [yes/no] " bastion_response
+case $bastion_response in 
+	yes|y ) 
+    echo "Updating Bastion NSG to permit SSH only from ${clientpublicip}: "
+    echo "export TF_VAR_bastion_nsg_source_prefix='[\"${clientpublicip}/32\"]'" >> .zsecrc
+    useclientip=true
+    break
+    ;;
+	no|n )
+    read -r -p "Lock SSH access to a different IP address or range? Default is open any [yes/no]: " changebastionip
+    useclientip=false
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done
+
+if [[ "$useclientip" == "false" ]]; then
+while true; do
+case $changebastionip in 
+	yes|y ) 
+    read -r -p "Enter new IP Address/range w/ CIDR (e.g. 2.2.2.2/32): " bastionipinput
+    echo "export TF_VAR_bastion_nsg_source_prefix='[\"${bastionipinput}\"]'" >> .zsecrc
+
+   
+if [[ $bastionipinput =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3} ]]
+then
+if [[ $bastionipinput =~ /[0-9]{1,2}$ ]]; then
+echo "$bastionipinput - IP/Netmask valid"
+else
+echo "netmask not present or invalid"
+exit
+fi
+else
+echo "$bastionipinput is not valid"
+exit 1
+fi
+    break
+    ;;
+	no|n )
+    echo "SSH access permitted for all IP addresses..." 
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done
+fi
+
 fi
 
 
@@ -198,6 +250,57 @@ if [[ "$oper" == "up" && $dtype != base && ! -e ./.zsecrc ]]; then
     echo "export AWS_DEFAULT_REGION=${aws_region}" >> .zsecrc
     echo "export TF_VAR_aws_region=${aws_region}" >> .zsecrc
     
+    while [[ "$dtype" == "base"* && "$oper" == "up" ]]; do
+clientpublicip=$(curl -s ifconfig.me)
+    echo "greenfield deployments include a publicly accessible ssh bastion host.."
+    read -r -p "Your current public IP is ${clientpublicip}. Lock SSH access to this IP? [yes/no] " bastion_response
+case $bastion_response in 
+	yes|y ) 
+    echo "Updating Bastion NSG to permit SSH only from ${clientpublicip}: "
+    echo "export TF_VAR_bastion_nsg_source_prefix='[\"${clientpublicip}/32\"]'" >> .zsecrc
+    useclientip=true
+    break
+    ;;
+	no|n )
+    read -r -p "Lock SSH access to a different IP address or range? Default is open any [yes/no]: " changebastionip
+    useclientip=false
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done
+
+if [[ "$useclientip" == "false" ]]; then
+while true; do
+case $changebastionip in 
+	yes|y ) 
+    read -r -p "Enter new IP Address/range w/ CIDR (e.g. 2.2.2.2/32): " bastionipinput
+    echo "export TF_VAR_bastion_nsg_source_prefix='[\"${bastionipinput}\"]'" >> .zsecrc
+
+   
+if [[ $bastionipinput =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3} ]]
+then
+if [[ $bastionipinput =~ /[0-9]{1,2}$ ]]; then
+echo "$bastionipinput - IP/Netmask valid"
+else
+echo "netmask not present or invalid"
+exit
+fi
+else
+echo "$bastionipinput is not valid"
+exit 1
+fi
+    break
+    ;;
+	no|n )
+    echo "SSH access permitted for all IP addresses..." 
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done
+fi
+
     cc_instance_size_default=small
     read -r -p "Enter CC Instance Size. Valid input = small, medium, or large. This needs to match the size chosen in the CC provisioning template [Default=$cc_instance_size_default]: " cc_instance_size_input
 cc_instance_size=${cc_instance_size_input:-$cc_instance_size_default}
@@ -349,7 +452,6 @@ if [[ $mfa_enabled == true ]]; then
     if [ -z "$AWS_SESSION_TOKEN" ]; then
     echo "export AWS_SESSION_TOKEN=${aws_session_token}" >> .zsecrc 
     echo "export AWS_SESSION_TOKEN=${aws_session_token}"
-    echo "AWS Access info exists"
 else
     echo "zsecrc file has existing session token. Resetting to ensure credentials are refreshed"
     echo "unsetting existing AWS Environment variables (unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)"
