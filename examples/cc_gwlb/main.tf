@@ -248,7 +248,7 @@ module "cc-iam" {
   global_tags         = local.global_tags
   cc_callhome_enabled = var.cc_callhome_enabled
 
-  byo_iam             = var.byo_iam
+  byo_iam = var.byo_iam
   # optional inputs. only required if byo_iam set to true
   byo_iam_instance_profile_id = var.byo_iam_instance_profile_id
   # optional inputs. only required if byo_iam set to true
