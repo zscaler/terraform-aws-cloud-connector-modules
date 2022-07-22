@@ -11,6 +11,7 @@
 * added TF_DATA_DIR to zsec and backend.tf to each deployment type to maintain root path as "examples/" directory for all deployments
 * renamed cc_custom to cc_ha
 * renamed cc_gwlb_custom to cc_gwlb
+* added bastion source ssh security group option
 
 ## 1.2.0 (May 5, 2022)
 NOTES:
