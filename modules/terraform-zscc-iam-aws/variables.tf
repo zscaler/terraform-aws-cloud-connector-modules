@@ -1,47 +1,53 @@
 variable "name_prefix" {
+  type        = string
   description = "A prefix to associate to all the Cloud Connector module resources"
-  default     = "zscaler-cc"
+  default     = null
 }
 
 variable "resource_tag" {
+  type        = string
   description = "A tag to associate to all the Cloud Connector module resources"
-  default     = "cloud-connector"
+  default     = null
 }
 
 variable "global_tags" {
-  type        = map(any)
-  description = "populate custom user provided tags"
+  type        = map(string)
+  description = "Populate any custom user defined tags from a map"
+  default     = []
 }
 
 variable "iam_role_policy_smrw" {
-  description = "Cloud Connector EC2 Instance IAM Role"
+  type        = string
+  description = "Cloud Connector EC2 Instance predefined IAM Role to access Secrets Manager resources"
   default     = "SecretsManagerReadWrite"
 }
 
 variable "iam_role_policy_ssmcore" {
-  description = "Cloud Connector EC2 Instance IAM Role"
+  type        = string
+  description = "Cloud Connector EC2 Instance predefined IAM Role to access AWS SSM"
   default     = "AmazonSSMManagedInstanceCore"
 }
 
 variable "iam_count" {
+  type        = number
   description = "Default number IAM roles/policies/profiles to create"
   default     = 1
 }
 
 variable "cc_callhome_enabled" {
-  description = "determine whether or not to create the cc-callhome-policy IAM Policy and attach it to the CC IAM Role"
-  default     = "true"
   type        = bool
+  description = "Determine whether or not to create the cc-callhome-policy IAM Policy and attach it to the CC IAM Role"
+  default     = "true"
 }
 
 variable "byo_iam" {
-  default     = false
   type        = bool
-  description = "Bring your own IAM Instance Profile for Cloud Connector"
+  default     = false
+  description = "Bring your own IAM Instance Profile for Cloud Connector. Setting this variable to true will effectively instruct this module to not create any resources and only reference data resources from values provided in byo_iam_instance_profile_id"
 }
 
 variable "byo_iam_instance_profile_id" {
   type        = list(string)
   default     = null
-  description = "IAM Instance Profile ID for Cloud Connector association"
+  description = "Existing IAM Instance Profile IDs for Cloud Connector association"
 }
