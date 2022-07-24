@@ -279,7 +279,7 @@ module "gwlb" {
   name_prefix              = var.name_prefix
   resource_tag             = random_string.suffix.result
   global_tags              = local.global_tags
-  vpc                      = data.aws_vpc.selected.id
+  vpc_id                   = data.aws_vpc.selected.id
   cc_subnet_ids            = data.aws_subnet.cc-selected.*.id
   cc_small_service_ips     = module.cc-vm.cc_service_private_ip
   cc_med_lrg_service_1_ips = module.cc-vm.cc_med_lrg_service_1_private_ip
@@ -287,10 +287,10 @@ module "gwlb" {
   cc_lrg_service_3_ips     = module.cc-vm.cc_lrg_service_3_private_ip
   cc_instance_size         = var.cc_instance_size
   http_probe_port          = var.http_probe_port
+  health_check_interval    = var.health_check_interval
+  healthy_threshold        = var.healthy_threshold
+  unhealthy_threshold      = var.unhealthy_threshold
   cross_zone_lb_enabled    = var.cross_zone_lb_enabled
-  interval                 = 10
-  healthy_threshold        = 3
-  unhealthy_threshold      = 3
 }
 
 
