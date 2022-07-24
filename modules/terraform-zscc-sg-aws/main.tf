@@ -1,5 +1,5 @@
 data "aws_vpc" "selected" {
-  id = var.vpc
+  id = var.vpc_id
 }
 
 # Create Security Group for CC Management Interface
@@ -7,7 +7,7 @@ resource "aws_security_group" "cc-mgmt-sg" {
   count       = var.byo_security_group == false ? var.sg_count : 0
   name        = var.sg_count > 1 ? "${var.name_prefix}-cc-${count.index + 1}-mgmt-sg-${var.resource_tag}" : "${var.name_prefix}-cc-mgmt-sg-${var.resource_tag}"
   description = "Security group for Cloud Connector management interface"
-  vpc_id      = var.vpc
+  vpc_id      = var.vpc_id
 
   egress {
     from_port   = 0
@@ -43,7 +43,7 @@ resource "aws_security_group" "cc-service-sg" {
   count       = var.byo_security_group == false ? var.sg_count : 0
   name        = var.sg_count > 1 ? "${var.name_prefix}-cc-${count.index + 1}-svc-sg-${var.resource_tag}" : "${var.name_prefix}-cc-svc-sg-${var.resource_tag}"
   description = "Security group for Cloud Connector service interfaces"
-  vpc_id      = var.vpc
+  vpc_id      = var.vpc_id
 
   egress {
     from_port   = 0
