@@ -3,14 +3,14 @@ resource "aws_lb_target_group" "gwlb-target-group" {
   name        = "${var.name_prefix}-cc-target-${var.resource_tag}"
   port        = 6081
   protocol    = "GENEVE"
-  vpc_id      = var.vpc
+  vpc_id      = var.vpc_id
   target_type = "ip"
 
   health_check {
     port                = var.http_probe_port
     protocol            = "HTTP"
     path                = "/?cchealth"
-    interval            = var.interval
+    interval            = var.health_check_interval
     healthy_threshold   = var.healthy_threshold
     unhealthy_threshold = var.unhealthy_threshold
   }

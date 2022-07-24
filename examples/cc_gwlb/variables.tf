@@ -228,3 +228,21 @@ variable "byo_service_security_group_id" {
   default     = null
   description = "Service Security Group ID for Cloud Connector association"
 }
+
+variable "health_check_interval" {
+  type        = number
+  description = "Interval for GWLB target group health check probing, in seconds, of Cloud Connector targets. Minimum 5 and maximum 300 seconds"
+  default     = 10
+}
+
+variable "healthy_threshold" {
+  type        = number
+  description = "The number of successful health checks required before an unhealthy target becomes healthy. Minimum 2 and maximum 10"
+  default     = 3
+}
+
+variable "unhealthy_threshold" {
+  type        = number
+  description = "The number of unsuccessful health checks required before an healthy target becomes unhealthy. Minimum 2 and maximum 10"
+  default     = 3
+}
