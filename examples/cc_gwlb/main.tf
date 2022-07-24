@@ -301,7 +301,7 @@ module "gwlb-endpoint" {
   name_prefix   = var.name_prefix
   resource_tag  = random_string.suffix.result
   global_tags   = local.global_tags
-  vpc           = data.aws_vpc.selected.id
+  vpc_id           = data.aws_vpc.selected.id
   cc_subnet_ids = data.aws_subnet.cc-selected.*.id
   gwlb_arn      = module.gwlb.gwlb_arn
 }
