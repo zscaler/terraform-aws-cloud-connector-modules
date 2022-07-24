@@ -49,10 +49,10 @@ No modules.
 | <a name="cross_zone_lb_enabled"></a> [cross\_zone\_lb\_enabled](#cross\_zone\_lb\_enabled) | Determines whether GWLB cross zone load balancing should be enabled or not. | `bool` | `false` | no |
 | <a name="cc_subnet_ids"></a> [cc\_subnet\_ids](#cc\_subnet\_ids) | List of Subnet IDs to create GWLB in. | `list(string)` | `[]` | yes |
 | <a name="global_tags"></a> [global\_tags](#global\_tags) | Populate any custom user defined tags from a map.<br>Example for defining tag Keys and Values:<pre>locals { <br>global_tags = {<br>  Owner = var.owner_tag <br>  ManagedBy = "terraform"<br>}</pre> | `map(string)` | `[]` | no |
-<a name="cc_instance_size"></a> [cc\_instance\_size](#cc\_instance\_size) | Cloud Connector instance size as defined in the Connector portal provisioning template. | `string` | `null` | yes |
+| <a name="cc_instance_size"></a> [cc\_instance\_size](#cc\_instance\_size) | Cloud Connector instance size as defined in the Connector portal provisioning template. | `string` | `null` | yes |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="gwlb_arn"></a> [gwlb\_arn](#gwlb\_arn) | ARN of the aws_lb (GLWB) resource|
+| <a name="gwlb_arn"></a> [gwlb\_arn](#gwlb\_arn) | ARN of the aws_lb (GLWB) resource |
