@@ -310,7 +310,7 @@ module "cc-lambda" {
   name_prefix     = var.name_prefix
   resource_tag    = random_string.suffix.result
   global_tags     = local.global_tags
-  vpc             = aws_vpc.vpc1.id
+  vpc_id          = aws_vpc.vpc1.id
   cc_vm1_id       = module.cc-vm.id[0]
   cc_vm2_id       = module.cc-vm.id[1]
   cc_subnet_ids   = aws_subnet.cc-subnet.*.id

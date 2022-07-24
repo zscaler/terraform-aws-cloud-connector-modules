@@ -8,7 +8,7 @@ Cloud watch end points
 */
 
 resource "aws_iam_role" "iam_for_cc_lambda" {
-  name = "${var.vpc}_cc_lambda_iam"
+  name = "${var.vpc_id}_cc_lambda_iam"
 
   assume_role_policy = <<EOF
 {
@@ -28,8 +28,8 @@ EOF
 }
 
 resource "aws_iam_policy" "iam_policy_for_cc_lambda" {
-  name        = "${var.vpc}_cc_lambda_iam_policy"
-  description = "IAM policy created for Checker lambda in ${var.vpc}"
+  name        = "${var.vpc_id}_cc_lambda_iam_policy"
+  description = "IAM policy created for Checker lambda in ${var.vpc_id}"
 
   policy = <<EOF
 {
@@ -83,7 +83,7 @@ locals {
 ENVIRONS
 }
 data "aws_security_group" "selected" {
-  vpc_id = var.vpc
+  vpc_id = var.vpc_id
   name   = "default"
 }
 
@@ -103,7 +103,7 @@ data "aws_subnet" "cc-subnets" {
 resource "aws_security_group" "lambda-sg" {
   name        = "${var.name_prefix}-port-probe-lambda-sg-${var.resource_tag}"
   description = "Allow HTTP GET access to the specified port on CC"
-  vpc_id      = var.vpc
+  vpc_id      = var.vpc_id
 
   egress {
     from_port   = var.http_probe_port
@@ -134,7 +134,7 @@ resource "aws_security_group" "lambda-sg" {
 # Checker Lambda
 resource "aws_lambda_function" "cc_route_updater_lambda" {
   filename         = "${path.module}/${var.route_updater_filename}"
-  function_name    = "${var.vpc}_cc_route_updater_fn"
+  function_name    = "${var.vpc_id}_cc_route_updater_fn"
   role             = aws_iam_role.iam_for_cc_lambda.arn
   handler          = var.route_updater_handler
   source_code_hash = filebase64sha256("${path.module}/${var.route_updater_filename}")
@@ -158,7 +158,7 @@ resource "aws_lambda_function" "cc_route_updater_lambda" {
 }
 
 resource "aws_cloudwatch_event_rule" "cc_checker_timer" {
-  name                = "${var.vpc}_cc_lambda_timer"
+  name                = "${var.vpc_id}_cc_lambda_timer"
   description         = "Fire every 1 min"
   schedule_expression = "rate(1 minute)"
 }
@@ -178,7 +178,7 @@ resource "aws_lambda_permission" "allow_timer_to_call_cc_checker_lambda" {
 }
 
 resource "aws_cloudwatch_event_rule" "cc_state_change" {
-  name          = "${var.vpc}_cc_state_change"
+  name          = "${var.vpc_id}_cc_state_change"
   description   = "Subscribes to CC VM state changes"
   event_pattern = <<EOF
 {
@@ -219,7 +219,7 @@ resource "aws_lambda_permission" "allow_state_checker_to_call_cc_checker_lambda"
 }
 
 resource "aws_cloudwatch_log_group" "checker_log_group" {
-  name = "/aws/lambda/${var.vpc}_cc_route_updater_fn"
+  name = "/aws/lambda/${var.vpc_id}_cc_route_updater_fn"
 }
 
 

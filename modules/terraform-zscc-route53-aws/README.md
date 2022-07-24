@@ -1,4 +1,4 @@
-# Zscaler Cloud Connector / AWS Gateway Load Balancer Endpoint and Endpoint Service Module
+# Zscaler Cloud Connector / AWS Route 53 DNS Module
 
 This module creates Route 53 Resolver Rules and Endpoints for utilization with DNS redirection to facilitate Cloud Connector ZPA service.
 
@@ -7,7 +7,7 @@ This module creates Route 53 Resolver Rules and Endpoints for utilization with D
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 4.7.0 |
 
 ## Providers
