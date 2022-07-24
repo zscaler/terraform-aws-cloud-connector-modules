@@ -13,7 +13,7 @@ variable "resource_tag" {
 variable "global_tags" {
   type        = map(string)
   description = "Populate any custom user defined tags from a map"
-  default     = []
+  default     = {}
 }
 
 variable "iam_role_policy_smrw" {
