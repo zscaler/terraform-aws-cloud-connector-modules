@@ -86,7 +86,7 @@ resource "aws_instance" "server_host" {
   ami                    = data.aws_ami.centos.id
   instance_type          = var.instance_type
   key_name               = var.instance_key
-  subnet_id              = element(var.subnet, count.index)
+  subnet_id              = element(var.subnet_id, count.index)
   iam_instance_profile   = aws_iam_instance_profile.server_host_profile.name
   vpc_security_group_ids = [aws_security_group.node-sg.id]
 

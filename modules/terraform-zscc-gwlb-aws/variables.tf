@@ -84,9 +84,8 @@ variable "cc_subnet_ids" {
 variable "global_tags" {
   type        = map(string)
   description = "Populate any custom user defined tags from a map"
-  default     = []
+  default     = {}
 }
-
 variable "cc_instance_size" {
   type        = string
   description = "Cloud Connector instance size as defined in the Connector portal provisioning template"
