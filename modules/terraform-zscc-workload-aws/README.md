@@ -1,4 +1,4 @@
-# Zscaler Cloud Connector / AWS Gateway Load Balancer Module
+# Zscaler Cloud Connector / AWS EC2 Instance (Workload) Module
 
 This module creates a Gateway Load Balancer (GWLB) and Listener resource. It also creates a target group associated with that listener service + target group attachments based on the size of the Cloud Connector instance being deployed.
 
