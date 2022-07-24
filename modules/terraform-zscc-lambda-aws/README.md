@@ -52,7 +52,7 @@ No modules.
 | <a name="input_cc_vm1_rte_list"></a> [cc\_vm1\_rte\_list](#input\_cc\_vm1\_rte\_list) | List of route tables using Cloud Connector 1 instance id | `list(string)` | n/a | yes |
 | <a name="input_cc_vm2_id"></a> [cc\_vm2\_id](#input\_cc\_vm2\_id) | Cloud Connector 2 instance id | `string` | n/a | yes |
 | <a name="input_cc_vm2_rte_list"></a> [cc\_vm2\_rte\_list](#input\_cc\_vm2\_rte\_list) | List of route tables using Cloud Connector 2 instance id | `list(string)` | n/a | yes |
-| <a name="input_global_tags"></a> [global\_tags](#input\_global\_tags) | Populate any custom user defined tags from a map | `map(string)` | `[]` | no |
+| <a name="input_global_tags"></a> [global\_tags](#input\_global\_tags) | Populate any custom user defined tags from a map | `map(string)` | `{}` | no |
 | <a name="input_http_probe_port"></a> [http\_probe\_port](#input\_http\_probe\_port) | HTTP port to send the health probes on Cloud Connector cloud | `number` | `50000` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | A prefix to associate to all the Route 53 module resources | `string` | `null` | no |
 | <a name="input_resource_tag"></a> [resource\_tag](#input\_resource\_tag) | A tag to associate to all the Route 53 module resources | `string` | `null` | no |

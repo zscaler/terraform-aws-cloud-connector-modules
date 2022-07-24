@@ -23,7 +23,7 @@ variable "subnet_ids" {
 variable "global_tags" {
   type        = map(string)
   description = "Populate any custom user defined tags from a map"
-  default     = []
+  default     = {}
 }
 
 variable "gwlb_arn" {

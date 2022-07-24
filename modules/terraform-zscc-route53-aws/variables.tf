@@ -13,7 +13,7 @@ variable "resource_tag" {
 variable "global_tags" {
   type        = map(string)
   description = "Populate any custom user defined tags from a map"
-  default     = []
+  default     = {}
 }
 
 variable "vpc_id" {
@@ -29,6 +29,9 @@ variable "r53_subnet_ids" {
 variable "domain_names" {
   type        = map(map(string))
   description = "Domain names fqdn/wildcard to have Route 53 redirect DNS requests to Cloud Connector for ZPA. Refer to terraform.tfvars step 10"
+  default = {
+    appseg01 = { domain_name = "example.com" }
+  }
 }
 
 variable "target_address" {
