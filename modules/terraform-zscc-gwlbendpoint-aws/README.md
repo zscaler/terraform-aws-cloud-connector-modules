@@ -33,7 +33,7 @@ No modules.
 | <a name="name_prefix"></a> [name\_prefix](#name\_prefix) | A prefix to associate to all the Cloud Connector module resources. | `string` | `null` | no |
 | <a name="resource_tag"></a> [resource\_tag](#resource\_tag) | A tag to associate to all the Cloud Connector module resources. | `string` | `null` | no |
 | <a name="vpc_id"></a> [vpc\_id](#vpc\_id) | Cloud Connector VPC ID. | `string` | `null` | yes |
-| <a name="cc_subnet_ids"></a> [cc\_subnet\_ids](#cc\_subnet\_ids) | List of Subnet IDs to create GWLB in. | `list(string)` | `[]` | yes |
+| <a name="cc_subnet_ids"></a> [cc\_subnet\_ids](#cc\_subnet\_ids) | List of Subnet IDs to create GWLB Endpoints in. | `list(string)` | `[]` | yes |
 | <a name="global_tags"></a> [global\_tags](#global\_tags) | Populate any custom user defined tags from a map.<br>Example for defining tag Keys and Values:<pre>locals { <br>global_tags = {<br>  Owner = var.owner_tag <br>  ManagedBy = "terraform"<br>}</pre> | `map(string)` | `[]` | no |
 | <a name="gwlb_arn"></a> [gwlb\_arn](#gwlb\_arn) | ARN of GWLB for Endpoint Service to be assigned. | `string` | `[]` | yes |
 
