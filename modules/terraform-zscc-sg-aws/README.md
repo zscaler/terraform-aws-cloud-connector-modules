@@ -1,4 +1,4 @@
-# Zscaler Cloud Connector / AWS Gateway Load Balancer Endpoint and Endpoint Service Module
+# Zscaler Cloud Connector / AWS Security Groups Module
 
 This module creates Security Rules and Groups resources required for successful Cloud Connector deployments. As part of Zscaler provided deployment templates most resources have conditional create options leveraged "byo" variables should a customer want to leverage the module outputs with data reference to resources that may already exist in their AWS environment.
 
