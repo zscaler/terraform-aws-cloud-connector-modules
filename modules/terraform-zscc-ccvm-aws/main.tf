@@ -1,7 +1,7 @@
 data "aws_region" "current" {}
 
 data "aws_vpc" "selected" {
-  id = var.vpc
+  id = var.vpc_id
 }
 
 resource "null_resource" "error-checker" {
