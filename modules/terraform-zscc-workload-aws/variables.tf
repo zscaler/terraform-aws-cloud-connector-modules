@@ -1,36 +1,48 @@
 variable "name_prefix" {
-  description = "A prefix to associate to all the module resources"
-  default     = "zscaler-cc"
+  type        = string
+  description = "A prefix to associate to all the Workload module resources"
+  default     = null
 }
 
 variable "resource_tag" {
-  description = "A tag to associate to all the module resources"
-  default     = "cloud-connector"
+  type        = string
+  description = "A tag to associate to all the Workload module resources"
+  default     = null
 }
 
-variable "vpc" {
-  description = "Main VPC"
+variable "global_tags" {
+  type        = map(string)
+  description = "Populate any custom user defined tags from a map"
+  default     = []
 }
 
-variable "subnet" {
-  description = "The private subnet where the server has to be attached"
+variable "vpc_id" {
+  type        = string
+  description = "Cloud Connector VPC ID"
+  default     = null
+}
+
+variable "subnet_id" {
+  type        = list(string)
+  description = "List of private subnet IDs where workload servers will be deployed"
+  default     = []
 }
 
 variable "instance_type" {
-  description = "The server instance type"
+  type        = string
+  description = "The workload server EC2 instance type"
   default     = "t3.micro"
 }
 
 variable "instance_key" {
+  type        = string
   description = "SSH Key for instances"
+  default     = null
 }
 
 variable "workload_count" {
-  description = "number of workloads to deploy"
   type        = number
-  default     = 2
+  description = "number of workloads to deploy"
+  default     = 1
 }
 
-variable "global_tags" {
-  description = "populate custom user provided tags"
-}
