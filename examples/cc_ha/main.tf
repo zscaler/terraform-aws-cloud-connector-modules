@@ -262,7 +262,7 @@ module "cc-sg" {
   name_prefix  = var.name_prefix
   resource_tag = random_string.suffix.result
   global_tags  = local.global_tags
-  vpc          = data.aws_vpc.selected.id
+  vpc_id       = data.aws_vpc.selected.id
 
   byo_security_group = var.byo_security_group
   # optional inputs. only required if byo_security_group set to true
