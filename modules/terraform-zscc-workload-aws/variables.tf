@@ -19,13 +19,11 @@ variable "global_tags" {
 variable "vpc_id" {
   type        = string
   description = "Cloud Connector VPC ID"
-  default     = null
 }
 
 variable "subnet_id" {
   type        = list(string)
   description = "List of private subnet IDs where workload servers will be deployed"
-  default     = []
 }
 
 variable "instance_type" {
@@ -37,7 +35,6 @@ variable "instance_type" {
 variable "instance_key" {
   type        = string
   description = "SSH Key for instances"
-  default     = null
 }
 
 variable "workload_count" {

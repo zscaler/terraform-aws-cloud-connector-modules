@@ -19,7 +19,6 @@ variable "global_tags" {
 variable "vpc_id" {
   type        = string
   description = "VPC ID for the Route 53 Endpoints"
-  default     = null
 }
 
 variable "cc_vm1_id" {

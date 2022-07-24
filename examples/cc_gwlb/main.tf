@@ -297,13 +297,13 @@ module "gwlb" {
 
 # 4. Create Endpoint Service associated with GWLB and 1x GWLB Endpoint per CC subnet
 module "gwlb-endpoint" {
-  source        = "../../modules/terraform-zscc-gwlbendpoint-aws"
-  name_prefix   = var.name_prefix
-  resource_tag  = random_string.suffix.result
-  global_tags   = local.global_tags
-  vpc_id        = data.aws_vpc.selected.id
-  cc_subnet_ids = data.aws_subnet.cc-selected.*.id
-  gwlb_arn      = module.gwlb.gwlb_arn
+  source       = "../../modules/terraform-zscc-gwlbendpoint-aws"
+  name_prefix  = var.name_prefix
+  resource_tag = random_string.suffix.result
+  global_tags  = local.global_tags
+  vpc_id       = data.aws_vpc.selected.id
+  subnet_ids   = data.aws_subnet.cc-selected.*.id
+  gwlb_arn     = module.gwlb.gwlb_arn
 }
 
 

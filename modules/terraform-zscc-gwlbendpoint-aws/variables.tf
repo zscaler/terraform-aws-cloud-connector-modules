@@ -13,13 +13,11 @@ variable "resource_tag" {
 variable "vpc_id" {
   type        = string
   description = "Cloud Connector VPC ID"
-  default     = null
 }
 
-variable "cc_subnet_ids" {
+variable "subnet_ids" {
   type        = list(string)
-  description = "Cloud Connector subnet IDs list"
-  default     = []
+  description = "List of Subnet ID to create GLWB Endpoints in"
 }
 
 variable "global_tags" {
@@ -31,5 +29,4 @@ variable "global_tags" {
 variable "gwlb_arn" {
   type        = string
   description = "ARN of GWLB for Endpoint Service to be assigned"
-  default     = []
 }

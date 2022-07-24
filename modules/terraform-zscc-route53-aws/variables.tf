@@ -19,13 +19,11 @@ variable "global_tags" {
 variable "vpc_id" {
   type        = string
   description = "VPC ID for the Route 53 Endpoints"
-  default     = null
 }
 
 variable "r53_subnet_ids" {
   type        = list(string)
   description = "List of Subnet IDs for the Route53 Endpoint"
-  default     = []
 }
 
 variable "domain_names" {

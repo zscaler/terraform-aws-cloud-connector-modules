@@ -59,7 +59,7 @@ No modules.
 | <a name="input_route_updater_filename"></a> [route\_updater\_filename](#input\_route\_updater\_filename) | Route updater lambda deployment package filename | `string` | `"rte_updater_lambda.py.zip"` | no |
 | <a name="input_route_updater_handler"></a> [route\_updater\_handler](#input\_route\_updater\_handler) | Route updater lambda handler | `string` | `"rte_updater_lambda.lambda_handler"` | no |
 | <a name="input_route_updater_runtime"></a> [route\_updater\_runtime](#input\_route\_updater\_runtime) | Route updater lambda runtime | `string` | `"python3.8"` | no |
-| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC ID for the Route 53 Endpoints | `string` | `null` | no |
+| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC ID for the Route 53 Endpoints | `string` | n/a | yes |
 
 ## Outputs
 

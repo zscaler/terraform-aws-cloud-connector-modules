@@ -13,7 +13,6 @@ variable "resource_tag" {
 variable "vpc_id" {
   type        = string
   description = "Cloud Connector VPC ID"
-  default     = null
 }
 
 variable "cc_small_service_ips" {
@@ -80,14 +79,12 @@ variable "cross_zone_lb_enabled" {
 variable "cc_subnet_ids" {
   type        = list(string)
   description = "Cloud Connector subnet IDs list"
-  default     = []
 }
 
 variable "global_tags" {
   type        = map(string)
   description = "Populate any custom user defined tags from a map"
   default     = []
-
 }
 
 variable "cc_instance_size" {
