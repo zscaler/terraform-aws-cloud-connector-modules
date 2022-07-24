@@ -1,10 +1,10 @@
 data "aws_region" "current" {}
 
 data "aws_vpc" "selected" {
-  id = var.vpc
+  id = var.vpc_id
 }
 data "aws_security_group" "selected" {
-  vpc_id = var.vpc
+  vpc_id = var.vpc_id
   name   = "default"
 }
 
@@ -56,7 +56,7 @@ resource "aws_route53_resolver_rule" "fwd" {
 resource "aws_route53_resolver_rule_association" "r53-rule-association_fwd" {
   for_each         = var.domain_names
   resolver_rule_id = aws_route53_resolver_rule.fwd[each.key].id
-  vpc_id           = var.vpc
+  vpc_id           = var.vpc_id
 }
 
 
@@ -76,5 +76,5 @@ resource "aws_route53_resolver_rule" "system" {
 resource "aws_route53_resolver_rule_association" "r53-rule-association_system" {
   for_each         = var.zscaler_domains
   resolver_rule_id = aws_route53_resolver_rule.system[each.key].id
-  vpc_id           = var.vpc
+  vpc_id           = var.vpc_id
 }
