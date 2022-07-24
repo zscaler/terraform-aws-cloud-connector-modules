@@ -19,7 +19,6 @@ variable "global_tags" {
 variable "vpc_id" {
   type        = string
   description = "Cloud Connector VPC ID"
-  default     = null
 }
 
 variable "sg_count" {
