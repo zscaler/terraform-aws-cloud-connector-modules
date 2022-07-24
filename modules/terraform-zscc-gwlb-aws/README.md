@@ -36,12 +36,12 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="name_prefix"></a> [name\_prefix](#name\_prefix) | A prefix to associate to all the Cloud Connector module resources. | `string` | `null` | no |
-| <a name="resource_tag"></a> [resource\_tag](#resource\_tag | A tag to associate to all the Cloud Connector module resources. | `string` | `null` | no |
+| <a name="resource_tag"></a> [resource\_tag](#resource\_tag) | A tag to associate to all the Cloud Connector module resources. | `string` | `null` | no |
 | <a name="vpc_id"></a> [vpc\_id](#vpc\_id) | Cloud Connector VPC ID. | `string` | `null` | yes |
-| <a name="cc_small_service_ips"></a> [cc\_small\_service\_ips](#cc\_small\_service\_ips) | Cloud Connector Small instance size service IPs to be assigned to target group attachments. | `list(string)` | `[]` | no |
-| <a name="cc_med_lrg_service_1_ips"></a> [cc\_med\_lrg\_service\_1\_ips](#cc\_med\_lrg\_service\_1\_ips) | Cloud Connector Medium or Large instance size service interface 1 IPs to be assigned to target group attachments. | `list(string)` | `[]` | no |
-| <a name="cc_med_lrg_service_2_ips"></a> [cc\_med\_lrg\_service\_2\_ips](#cc\_med\_lrg\_service\_1\_ips) | Cloud Connector Medium or Large instance size service interface 2 IPs to be assigned to target group attachments. | `list(string)` | `[]` | no |
-| <a name="cc_lrg_service_3_ips"></a> [cc\_lrg\_service\_3\_ips](#cc\_lrg\_service\_3\_ips) | Cloud Connector Large instance size service interface 3 IPs to be assigned to target group attachments. | `list(string)` | `[]` | no |
+| <a name="cc_small_service_ips"></a> [cc\_small\_service\_ips](#cc\_small\_service\_ips) | Cloud Connector Small instance size service IPs to be assigned to target group attachments. Required if cc_instance_size = "small". | `list(string)` | `[]` | no |
+| <a name="cc_med_lrg_service_1_ips"></a> [cc\_med\_lrg\_service\_1\_ips](#cc\_med\_lrg\_service\_1\_ips) | Cloud Connector Medium or Large instance size service interface 1 IPs to be assigned to target group attachments. Required if cc_instance_size = "medium" OR "large". | `list(string)` | `[]` | no |
+| <a name="cc_med_lrg_service_2_ips"></a> [cc\_med\_lrg\_service\_2\_ips](#cc\_med\_lrg\_service\_1\_ips) | Cloud Connector Medium or Large instance size service interface 2 IPs to be assigned to target group attachments. Required if cc_instance_size = "medium" OR "large". | `list(string)` | `[]` | no |
+| <a name="cc_lrg_service_3_ips"></a> [cc\_lrg\_service\_3\_ips](#cc\_lrg\_service\_3\_ips) | Cloud Connector Large instance size service interface 3 IPs to be assigned to target group attachments. Required if cc_instance_size = "large". | `list(string)` | `[]` | no |
 | <a name="http_probe_port"></a> [health\_probe\_port](#health\_probe\_port) | Port number for Cloud Connector cloud init to enable listener port for HTTP probe from GWLB Target Group. | `number` | `50000` | no |
 | <a name="health_check_interval"></a> [health\_check\_interval](#health\_check\_interval) | Interval for GWLB target group health check probing, in seconds, of Cloud Connector targets. Minimum 5 and maximum 300 seconds. | `number` | `10` | no |
 | <a name="healthy_threshold"></a> [healthy\_threshold](#healthy\_threshold) | The number of successful health checks required before an unhealthy target becomes healthy. Minimum 2 and maximum 10. | `number` | `3` | no |
