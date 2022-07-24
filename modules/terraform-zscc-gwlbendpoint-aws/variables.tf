@@ -29,7 +29,7 @@ variable "global_tags" {
 }
 
 variable "gwlb_arn" {
-  type = string
+  type        = string
   description = "ARN of GWLB for Endpoint Service to be assigned"
-  default = []
+  default     = []
 }
