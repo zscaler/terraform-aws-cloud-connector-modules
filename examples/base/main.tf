@@ -162,8 +162,8 @@ module "workload" {
   name_prefix    = "${var.name_prefix}-workload"
   resource_tag   = random_string.suffix.result
   global_tags    = local.global_tags
-  vpc            = aws_vpc.vpc1.id
-  subnet         = aws_subnet.privsubnet.*.id
+  vpc_id         = aws_vpc.vpc1.id
+  subnet_id      = aws_subnet.privsubnet.*.id
   instance_key   = aws_key_pair.deployer.key_name
 }
 
