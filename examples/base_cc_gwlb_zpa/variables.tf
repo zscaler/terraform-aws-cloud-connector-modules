@@ -181,4 +181,3 @@ variable "target_address" {
   description = "Route 53 DNS queries will be forwarded to these Zscaler Global VIP addresses"
   default     = ["185.46.212.88", "185.46.212.89"]
 }
-
