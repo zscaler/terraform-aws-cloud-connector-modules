@@ -1,12 +1,12 @@
 variable "name_prefix" {
   type        = string
-  description = "A prefix to associate to all the Cloud Connector module resources"
+  description = "A prefix to associate to all the Cloud Connector IAM module resources"
   default     = null
 }
 
 variable "resource_tag" {
   type        = string
-  description = "A tag to associate to all the Cloud Connector module resources"
+  description = "A tag to associate to all the Cloud Connector IAM module resources"
   default     = null
 }
 
