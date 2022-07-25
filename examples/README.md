@@ -38,7 +38,7 @@ base_1cc_zpa: Everything from base_1cc Deployment Type + Creates 2 Route 53 subn
 base_2cc: Everything from base_1cc + Creates a second Cloud Connector in a new subnet/AZ w/ Lambda for HA failover of workload route tables
 base_2cc_zpa: Everything from Base_2cc + Creates 2 Route 53 subnets routing to service ENI of Cloud Connector; Route 53 outbound resolver endpoint; Route 53 resolver rules for ZPA
 base_cc_gwlb: Base Deployment Type + Creates 4 Cloud Connectors (2 per subnet/AZ) routing to NAT Gateway; Gateway Load Balancer auto registering service ips to target group with health checks; VPC Endpoint Service; 2 GWLB Endpoints (1 in each Cloud Connector subnet); workload private subnet routes repointed to the GWLBE in their same AZ
-base_cc_gwlb_zpa: Everything from base_cc_gwlb_zpa + Creates 2 Route 53 subnets routing to service ENI of Cloud Connector; Route 53 outbound resolver endpoint; Route 53 resolver rules for ZPA
+base_cc_gwlb_zpa: Everything from base_cc_gwlb + Creates 2 Route 53 subnets routing to service ENI of Cloud Connector; Route 53 outbound resolver endpoint; Route 53 resolver rules for ZPA
 ```
 
 ## Destroying the cluster
