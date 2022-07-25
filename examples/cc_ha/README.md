@@ -1,6 +1,8 @@
-# Zscaler "cc_gwlb" deployment type
+# Zscaler "cc_ha" deployment type
 
-This deployment type is intended for brownfield/production purposes. By default, it will create 1 new VPC with 2 public subnets and 2 Cloud Connector private subnets; 1 IGW; 2 NAT Gateways; 4 Cloud Connector VMs (2 per subnet/AZ) routing to the NAT Gateway in their same AZ; generates local key pair .pem file for ssh access; Number of Cloud Connectors and subnets deployed, ability to use existing resources (VPC, subnets, IGW, NAT Gateways), toggle ZPA/R53 resources; generates local key pair .pem file for ssh access; Gateway Load Balancer auto registers service IPs to target group with health checks; VPC Endpoint Service; 2 GWLB Endpoints (1 in each Cloud Connector subnet)
+This deployment type is intended for brownfield/production purposes. By default, it will create 1 new VPC with 2 public subnets and 2 Cloud Connector private subnets; 1 IGW; 2 NAT Gateways; 2 Cloud Connector VMs (2 per subnet/AZ) routing to the NAT Gateway in their same AZ; generates local key pair .pem file for ssh access; BYO ability to use existing resources (VPC, subnets, IGW, NAT Gateways), and toggle ZPA/R53 and Lambda HA failover features; generates local key pair .pem file for ssh access; Gateway Load Balancer auto registers service IPs to target group with health checks; VPC Endpoint Service; 2 GWLB Endpoints (1 in each Cloud Connector subnet)<br>
+
+*** For production deployments and better scaling/resliency, we highly advise leveraging Gateway Load Balancer (GWLB) rather than HA with Lambda failover. You can refer to deployment type "cc_gwlb" for this reference architecture.
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
@@ -26,10 +28,9 @@ This deployment type is intended for brownfield/production purposes. By default,
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_cc-iam"></a> [cc-iam](#module\_cc-iam) | ../../modules/terraform-zscc-iam-aws | n/a |
+| <a name="module_cc-lambda"></a> [cc-lambda](#module\_cc-lambda) | ../../modules/terraform-zscc-lambda-aws | n/a |
 | <a name="module_cc-sg"></a> [cc-sg](#module\_cc-sg) | ../../modules/terraform-zscc-sg-aws | n/a |
 | <a name="module_cc-vm"></a> [cc-vm](#module\_cc-vm) | ../../modules/terraform-zscc-ccvm-aws | n/a |
-| <a name="module_gwlb"></a> [gwlb](#module\_gwlb) | ../../modules/terraform-zscc-gwlb-aws | n/a |
-| <a name="module_gwlb-endpoint"></a> [gwlb-endpoint](#module\_gwlb-endpoint) | ../../modules/terraform-zscc-gwlbendpoint-aws | n/a |
 | <a name="module_route53"></a> [route53](#module\_route53) | ../../modules/terraform-zscc-route53-aws | n/a |
 
 ## Resources
@@ -82,7 +83,7 @@ This deployment type is intended for brownfield/production purposes. By default,
 | <a name="input_byo_vpc"></a> [byo\_vpc](#input\_byo\_vpc) | Bring your own AWS VPC for Cloud Connector | `bool` | `false` | no |
 | <a name="input_byo_vpc_id"></a> [byo\_vpc\_id](#input\_byo\_vpc\_id) | User provided existing AWS VPC ID | `string` | `null` | no |
 | <a name="input_cc_callhome_enabled"></a> [cc\_callhome\_enabled](#input\_cc\_callhome\_enabled) | determine whether or not to create the cc-callhome-policy IAM Policy and attach it to the CC IAM Role | `bool` | `true` | no |
-| <a name="input_cc_count"></a> [cc\_count](#input\_cc\_count) | Default number of Cloud Connector appliances to create | `number` | `4` | no |
+| <a name="input_cc_count"></a> [cc\_count](#input\_cc\_count) | Default number of Cloud Connector appliances to create | `number` | `2` | no |
 | <a name="input_cc_instance_size"></a> [cc\_instance\_size](#input\_cc\_instance\_size) | Cloud Connector Instance size. Determined by and needs to match  the Cloud Connector Portal provisioning template configuration | `string` | `"small"` | no |
 | <a name="input_cc_vm_prov_url"></a> [cc\_vm\_prov\_url](#input\_cc\_vm\_prov\_url) | Zscaler Cloud Connector Provisioning URL | `string` | n/a | yes |
 | <a name="input_ccvm_instance_type"></a> [ccvm\_instance\_type](#input\_ccvm\_instance\_type) | Cloud Connector Instance Type | `string` | `"m5.large"` | no |
@@ -101,6 +102,8 @@ This deployment type is intended for brownfield/production purposes. By default,
 | <a name="input_unhealthy_threshold"></a> [unhealthy\_threshold](#input\_unhealthy\_threshold) | The number of unsuccessful health checks required before an healthy target becomes unhealthy. Minimum 2 and maximum 10 | `number` | `3` | no |
 | <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | VPC CIDR | `string` | `"10.1.0.0/16"` | no |
 | <a name="input_workload_count"></a> [workload\_count](#input\_workload\_count) | Default number of workload VMs to create | `number` | `2` | no |
+| <a name="input_workload_route_table_ids_to_cc_1"></a> [workload\_route\_table\_ids\_to\_cc\_1](#input\_workload\_route\_table\_ids\_to\_cc\_1) | User provided existing AWS Route Table IDs sending to Cloud Connector 1 in pair | `list(string)` | `null` | no |
+| <a name="input_workload_route_table_ids_to_cc_2"></a> [workload\_route\_table\_ids\_to\_cc\_2](#input\_workload\_route\_table\_ids\_to\_cc\_2) | User provided existing AWS Route Table IDs sending to Cloud Connector 2 in pair | `list(string)` | `null` | no |
 | <a name="input_zpa_enabled"></a> [zpa\_enabled](#input\_zpa\_enabled) | Configure Route 53 Subnets, Route Tables, and Resolvers for ZPA DNS redirection | `bool` | `false` | no |
 
 ## Outputs
