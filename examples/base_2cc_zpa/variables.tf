@@ -79,6 +79,7 @@ variable "ccvm_instance_type" {
 
 variable "cc_instance_size" {
   type    = string
+  description = "Cloud Connector Instance size. Determined by and needs to match  the Cloud Connector Portal provisioning template configuration"
   default = "small"
   validation {
     condition = (
