@@ -4,6 +4,38 @@ This deployment type is intended for greenfield/pov/lab purposes. It will deploy
 
 Additionally: Creates 2 Route 53 subnets routing to the service ENI of Cloud Connector; Route 53 outbound resolver endpoint; and Route 53 resolver rules for ZPA DNS redirection.
 
+## How to deploy:
+
+### Option 1 (guided):
+From the examples directory, run the zsec bash script that walks to all required inputs.
+- ./zsec up
+- enter "greenfield"
+- enter "base_1cc_zpa"
+- follow the remainder of the authentication and configuration input prompts.
+- script will detect client operating system and download/run a specific version of terraform in a temporary bin directory
+- inputs will be validated and terraform init/apply will automatically exectute.
+- verify all resources that will be created/modified and enter "yes" to confirm
+
+### Option 2 (manual):
+Modify/populate any required variable input values in base/terraform.tfvars file and save.
+
+From base directory execute:
+- terraform init
+- terraform apply
+
+## How to destroy:
+
+### Option 1 (guided):
+From the examples directory, run the zsec bash script that walks to all required inputs.
+- ./zsec destroy
+- enter "greenfield"
+- enter "base_1cc_zpa"
+
+### Option 2 (manual):
+From base_1cc_zpa directory execute:
+- terraform destroy
+
+
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 

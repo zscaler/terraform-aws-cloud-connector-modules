@@ -28,7 +28,7 @@ From base directory execute:
 From the examples directory, run the zsec bash script that walks to all required inputs.
 - ./zsec destroy
 - enter "greenfield"
-- enter base"
+- enter "base"
 
 ### Option 2 (manual):
 From base directory execute:

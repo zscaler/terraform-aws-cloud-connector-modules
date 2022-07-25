@@ -4,6 +4,38 @@ This deployment type is intended for greenfield/pov/lab purposes. It will deploy
 
 Additionally: Creates a second Cloud Connector in a new subnet/Availability Zone wwith Lambda configured for HA failover of workload route tables between the two Cloud Connectors
 
+## How to deploy:
+
+### Option 1 (guided):
+From the examples directory, run the zsec bash script that walks to all required inputs.
+- ./zsec up
+- enter "greenfield"
+- enter "base_2cc"
+- follow the remainder of the authentication and configuration input prompts.
+- script will detect client operating system and download/run a specific version of terraform in a temporary bin directory
+- inputs will be validated and terraform init/apply will automatically exectute.
+- verify all resources that will be created/modified and enter "yes" to confirm
+
+### Option 2 (manual):
+Modify/populate any required variable input values in base/terraform.tfvars file and save.
+
+From base directory execute:
+- terraform init
+- terraform apply
+
+## How to destroy:
+
+### Option 1 (guided):
+From the examples directory, run the zsec bash script that walks to all required inputs.
+- ./zsec destroy
+- enter "greenfield"
+- enter "base_2cc"
+
+### Option 2 (manual):
+From base_2cc directory execute:
+- terraform destroy
+
+
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 

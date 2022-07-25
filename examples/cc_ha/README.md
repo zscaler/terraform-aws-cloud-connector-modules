@@ -4,6 +4,37 @@ This deployment type is intended for brownfield/production purposes. By default,
 
 *** For production deployments and better scaling/resliency, we highly advise leveraging Gateway Load Balancer (GWLB) rather than HA with Lambda failover. You can refer to deployment type "cc_gwlb" for this reference architecture.
 
+## How to deploy:
+
+### Option 1 (guided):
+From the examples directory, run the zsec bash script that walks to all required inputs.
+- ./zsec up
+- enter "brownfield"
+- enter "cc_ha"
+- follow the remainder of the authentication and configuration input prompts.
+- script will detect client operating system and download/run a specific version of terraform in a temporary bin directory
+- inputs will be validated and terraform init/apply will automatically exectute.
+- verify all resources that will be created/modified and enter "yes" to confirm
+
+### Option 2 (manual):
+Modify/populate any required variable input values in base/terraform.tfvars file and save.
+
+From base directory execute:
+- terraform init
+- terraform apply
+
+## How to destroy:
+
+### Option 1 (guided):
+From the examples directory, run the zsec bash script that walks to all required inputs.
+- ./zsec destroy
+- enter "brownfield"
+- enter "cc_ha"
+
+### Option 2 (manual):
+From base directory execute:
+- terraform destroy
+
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 
