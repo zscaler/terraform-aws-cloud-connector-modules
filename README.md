@@ -1,82 +1,64 @@
 # Zscaler Cloud Connector AWS Terraform Modules
 
-Description:
+## Description:
 This repository contains various modules and deployment configurations that can be used to deploy Zscaler Cloud Connector appliances to securely connect Workload to Internet and Workload to Workload communication within Amazon Web Services (AWS). The examples directory contains complete automation scripts for both greenfield/POV and brownfield/production use.
 
+These deployment templates are intended to be fully functional and self service for both greenfield/pov as well as production use. All modules may also be utilized as design recommendation based on Zscaler's Official [Zero Trust Security for AWS Workloads Reference Architecture](https://help.zscaler.com/cloud-connector/zero-trust-security-aws-workloads-zscaler-cloud-connector).
 
-## Prerequisites (You will be prompted for AWS keys and region during deployment)
+## Prerequisites
 
-These 
+Our Deployment scripts are leveraging Terraform v1.1.9 that includes full binary and provider support for MacOS M1 chips, but any Terraform version 0.13.7 should be generally supported.
 
-Terraform v0.14.0
+- provider registry.terraform.io/hashicorp/aws v4.7.x
+- provider registry.terraform.io/hashicorp/random v3.3.x
+- provider registry.terraform.io/hashicorp/local v2.2.x
+- provider registry.terraform.io/hashicorp/null v3.1.x
+- provider registry.terraform.io/providers/hashicorp/tls v3.4.x
 
-provider registry.terraform.io/hashicorp/aws v4.7.x
-provider registry.terraform.io/hashicorp/random v2.2.x
-provider registry.terraform.io/hashicorp/local v2.2.x
-provider registry.terraform.io/hashicorp/null v3.1.x
-
+### AWS requirements
 1. A valid AWS account
 2. AWS ACCESS KEY ID
 3. AWS SECRET ACCESS KEY
 4. AWS Region (E.g. us-west-2)
-5. Subscribe and accept terms of using CentOS 7 (for base deployments with workloads + bastion) at [this link](https://aws.amazon.com/marketplace/pp/B00O7WM7QW/).
-6. Subscribe and accept terms of using Zscaler Cloud Connector image at [this link](https://aws.amazon.com/marketplace/pp/prodview-cvzx4oiv7oljm).
-7. A valid Zscaler Cloud Connector provisioning URL
-8. Zscaler Cloud Connector Credentials are stored in AWS Secrets Manager
+5. Subscribe and accept terms of using CentOS 7 (for base deployments with workloads + bastion) at [this link](https://aws.amazon.com/marketplace/pp/B00O7WM7QW/)
+6. Subscribe and accept terms of using Zscaler Cloud Connector image at [this link](https://aws.amazon.com/marketplace/pp/prodview-cvzx4oiv7oljm)
 
-## Deploying the cluster
-(The automated tool can run only from MacOS and Linux)   
- 
-**1. Greenfield Deployments**
+### Zscaler requirements
+7. A valid Zscaler Cloud Connector provisioning URL generated from the Cloud Connector Portal
+8. Zscaler Cloud Connector Credentials (api key, username, password) are stored in AWS Secrets Manager
 
-(Use this if you are building an entire cluster from ground up.
- Particularly useful for a Customer Demo/PoC or dev-test environment)
+See: [Zscaler Cloud Cloud Connector AWS Deployment Guide](https://help.zscaler.com/cloud-connector/deploying-cloud-connector-amazon-web-services) for additional prerequisite provisioning steps.
 
-```
-bash
-cd aws/deployment/terraform
-Edit the terraform.tfvars file under azure/deployment/terraform to setup your Cloud Connector(Details are documented inside the file)
-./zsec up
-```
-**Greenfield Deployment Types:**
+## Format
 
-```
-Deployment Type: (base | base_1cc | base_1cc_zpa | base_2cc | base_2cc_zpa | base_cc_gwlb | base_cc_gwlb_zpa | cc):
-base: Creates 1 new VPC with 1 public subnet and 1 private/workload subnet; 1 IGW; 1 NAT Gateway; 1 Centos server workload in the private subnet routing to NAT Gateway;
-1 Bastion Host in the public subnet assigned an Elastic IP and routing to the IGW; generates local key pair .pem file for ssh access
-base_1cc: Base Deployment Type + Creates 1 Cloud Connector private subnet; 1 Cloud Connector VM routing to NAT Gateway; workload private subnet route repointed to service ENI of Cloud Connector
-base_1cc_zpa: Everything from base_1cc Deployment Type + Creates 2 Route 53 subnets routing to service ENI of Cloud Connector; Route 53 outbound resolver endpoint; Route 53 resolver rules for ZPA
-base_2cc: Everything from base_1cc + Creates a second Cloud Connector in a new subnet/AZ w/ Lambda for HA failover of workload route tables
-base_2cc_zpa: Everything from Base_2cc + Creates 2 Route 53 subnets routing to service ENI of Cloud Connector; Route 53 outbound resolver endpoint; Route 53 resolver rules for ZPA
-base_cc_gwlb: Base Deployment Type + Creates 4 Cloud Connectors (2 per subnet/AZ) routing to NAT Gateway; Gateway Load Balancer auto registering service ips to target group with health checks; VPC Endpoint Service; 2 GWLB Endpoints (1 in each Cloud Connector subnet); workload private subnet routes repointed to the GWLBE in their same AZ
-base_cc_gwlb_zpa: Everything from base_cc_gwlb_zpa + Creates 2 Route 53 subnets routing to service ENI of Cloud Connector; Route 53 outbound resolver endpoint; Route 53 resolver rules for ZPA
-```
+This repository follows the [Hashicorp Standard Modules Structure](https://www.terraform.io/registry/modules/publish):
 
-## Destroying the cluster
-```
-./zsec destroy
-```
+* `modules` - All module resources utilized by and customized specifically for Cloud Connector deployments. The intent is these modules are resusable and functional for any deployment type referencing for both production or lab/testing purposes.
+* `examples` - Zscaler provides fully functional deployment templates utilizing a combination of some or all of the modules published. These can utilized in there entirety or as reference templates for more advanced customers or custom deployments. For novice Terraform users, we also provide a bash script (zsec) that can be run from any Linux/Mac OS or CSP Cloud Shell that walks through all provisioning requirements as well as downloading/running an isolated teraform process. This allows Cloud Connector deployments from any supported client without having to even have Terraform installed or know how the language/syntax for running it.
 
-## Notes
+## Versioning
 
-1. For auto approval set environment variable **AUTO_APPROVE** or add `export AUTO_APPROVE=1`
-2. For deployment type set environment variable **DTYPE** to the required deployment type or add `export DTYPE=base_1cc_zpa`
-3. To override the Cloud Connector instance type from m5.large, edit `ccvm_instance_type` in terraform.tfvars
-4. To provide new credentials or region, delete the autogenerated .zsecrc file in your current working directory and re-run zsec.
+These modules follow recommended release tagging in [Semantic Versioning](http://semver.org/). You can find each new release,
+along with the changelog, on the GitHub [Releases](https://github.com/zscaler/terraform-aws-cloud-connector-modules/releases) page.
 
-**2. Brownfield Deployment Types**
+# License and Copyright
 
-```
-Deployment Type: (cc_ha | cc_gwlb):
-cc_ha: Creates 1 new VPC with 2 public subnets and 2 Cloud Connector private subnets; 1 IGW; 2 NAT Gateways; 2 Cloud Connector VMs (1 per subnet/AZ) routing to the NAT Gateway in their same AZ; Lambda configured for route table failover; generates local key pair .pem file for ssh access; Number of Cloud Connectors and subnets deployed, ability to use existing resources (VPC, subnets, IGW, NAT Gateways), and toggle ZPA/R53 and Lambda HA failover features; generates local key pair .pem file for ssh access
-cc_gwlb: All options from cc_ha + replace lambda with Gateway Load Balancer auto registering service ips to target group with health checks; VPC Endpoint Service; 1 GWLB Endpoints per Cloud Connector subnet
-The following Cloud Connector terraform modules are provided for a brownfield deployment
-```
+Copyright (c) 2022 Zscaler, Inc.
 
-ls aws/deployment/terraform/tfdir/modules
-terraform-zscc-aws
-terraform-zsroute53-aws
-terraform-zslambda-aws
-terraform-zsgwlbendpoint-aws
-terraform-zsgwlb-aws
-```
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
