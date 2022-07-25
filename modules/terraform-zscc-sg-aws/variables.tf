@@ -28,19 +28,19 @@ variable "sg_count" {
 }
 
 variable "byo_security_group" {
-  default     = false
   type        = bool
   description = "Bring your own Security Group for Cloud Connector. Setting this variable to true will effectively instruct this module to not create any resources and only reference data resources from values provided in byo_mgmt_security_group_id and byo_service_security_group_id"
+  default     = false
 }
 
 variable "byo_mgmt_security_group_id" {
   type        = list(string)
-  default     = null
   description = "Management Security Group ID for Cloud Connector association"
+  default     = null
 }
 
 variable "byo_service_security_group_id" {
   type        = list(string)
-  default     = null
   description = "Service Security Group ID for Cloud Connector association"
+  default     = null
 }
