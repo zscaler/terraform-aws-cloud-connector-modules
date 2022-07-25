@@ -7,7 +7,7 @@ This deployment type is just for greenfield/POV reference and/or spoke workload 
 
 ### Option 1 (guided):
 From the examples directory, run the zsec bash script that walks to all required inputs.
-./zsec up
+- ./zsec up
 - enter "greenfield"
 - enter "base"
 - follow the remainder of the authentication and configuration input prompts.
@@ -26,7 +26,7 @@ From base directory execute:
 
 ### Option 1 (guided):
 From the examples directory, run the zsec bash script that walks to all required inputs.
-./zsec destroy
+- ./zsec destroy
 - enter "greenfield"
 - enter base"
 
