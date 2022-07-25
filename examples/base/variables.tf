@@ -11,7 +11,7 @@ variable "name_prefix" {
 }
 
 variable "vpc_cidr" {
-  type        = number
+  type        = string
   description = "VPC CIDR"
   default     = "10.1.0.0/16"
 }
