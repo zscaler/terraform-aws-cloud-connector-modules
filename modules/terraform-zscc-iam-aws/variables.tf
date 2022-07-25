@@ -42,12 +42,12 @@ variable "cc_callhome_enabled" {
 
 variable "byo_iam" {
   type        = bool
-  default     = false
   description = "Bring your own IAM Instance Profile for Cloud Connector. Setting this variable to true will effectively instruct this module to not create any resources and only reference data resources from values provided in byo_iam_instance_profile_id"
+  default     = false
 }
 
 variable "byo_iam_instance_profile_id" {
   type        = list(string)
-  default     = null
   description = "Existing IAM Instance Profile IDs for Cloud Connector association"
+  default     = null
 }
