@@ -5,7 +5,7 @@ This deployment type is just for greenfield/POV reference and/or spoke workload 
 
 ## How to deploy:
 
-Option 1 (guided):
+### Option 1 (guided):
 From the examples directory, run the zsec bash script that walks to all required inputs.
 ./zsec up
 - enter "greenfield"
@@ -15,21 +15,22 @@ From the examples directory, run the zsec bash script that walks to all required
 - inputs will be validated and terraform init/apply will automatically exectute.
 - verify all resources that will be created/modified and enter "yes" to confirm
 
-Option 2 (manual):
+### Option 2 (manual):
 Modify/populate any required variable input values in base/terraform.tfvars file and save.
 
 From base directory execute:
 - terraform init
 - terraform apply
 
-How to destroy:
-Option 1 (guided):
+## How to destroy:
+
+### Option 1 (guided):
 From the examples directory, run the zsec bash script that walks to all required inputs.
 ./zsec destroy
 - enter "greenfield"
 - enter base"
 
-Option 2 (manual):
+### Option 2 (manual):
 From base directory execute:
 - terraform destroy
 
