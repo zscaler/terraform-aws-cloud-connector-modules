@@ -4,12 +4,15 @@
 
 ## Prerequisites (You will be prompted for AWS keys and region during deployment)
 
-1. A valid AWS account enabled for programmatic access
+### AWS requirements
+1. A valid AWS account
 2. AWS ACCESS KEY ID
 3. AWS SECRET ACCESS KEY
 4. AWS Region (E.g. us-west-2)
-5. Subscribe and accept terms of using CentOS 7 (for base deployments with workloads + bastion) at [this link](https://aws.amazon.com/marketplace/pp/B00O7WM7QW/).
-6. Subscribe and accept terms of using Zscaler Cloud Connector image at [this link](https://aws.amazon.com/marketplace/pp/prodview-cvzx4oiv7oljm).
+5. Subscribe and accept terms of using CentOS 7 (for base deployments with workloads + bastion) at [this link](https://aws.amazon.com/marketplace/pp/B00O7WM7QW/)
+6. Subscribe and accept terms of using Zscaler Cloud Connector image at [this link](https://aws.amazon.com/marketplace/pp/prodview-cvzx4oiv7oljm)
+
+### Zscaler requirements
 7. A valid Zscaler Cloud Connector provisioning URL generated from the Cloud Connector Portal
 8. Zscaler Cloud Connector Credentials (api key, username, password) are stored in AWS Secrets Manager
 
