@@ -13,7 +13,7 @@
 7. A valid Zscaler Cloud Connector provisioning URL generated from the Cloud Connector Portal
 8. Zscaler Cloud Connector Credentials (api key, username, password) are stored in AWS Secrets Manager
 
-See: https://help.zscaler.com/cloud-connector/deploying-cloud-connector-amazon-web-services for additional prerequisite provisioning steps
+See: [Zscaler Cloud Cloud Connector AWS Deployment Guide](https://help.zscaler.com/cloud-connector/deploying-cloud-connector-amazon-web-services) for additional prerequisite provisioning steps.
 
 ## Deploying the cluster
 (The automated tool can run only from MacOS and Linux. You can also upload all repo contents to the respective public cloud provider Cloud Shells and run directly from there).   
