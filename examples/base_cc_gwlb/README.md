@@ -4,6 +4,37 @@ This deployment type is intended for greenfield/pov/lab purposes. It will deploy
 
 Additionally: Creates 4 Cloud Connectors (2 per subnet/AZ) routing to NAT Gateway; Gateway Load Balancer auto registers service IPs to target group with health checks; VPC Endpoint Service; 2 GWLB Endpoints (1 in each Cloud Connector subnet); workload private subnet routes pointing to the GWLB Endpoint in their same AZ
 
+## How to deploy:
+
+### Option 1 (guided):
+From the examples directory, run the zsec bash script that walks to all required inputs.
+- ./zsec up
+- enter "greenfield"
+- enter "base_cc_gwlb"
+- follow the remainder of the authentication and configuration input prompts.
+- script will detect client operating system and download/run a specific version of terraform in a temporary bin directory
+- inputs will be validated and terraform init/apply will automatically exectute.
+- verify all resources that will be created/modified and enter "yes" to confirm
+
+### Option 2 (manual):
+Modify/populate any required variable input values in base/terraform.tfvars file and save.
+
+From base directory execute:
+- terraform init
+- terraform apply
+
+## How to destroy:
+
+### Option 1 (guided):
+From the examples directory, run the zsec bash script that walks to all required inputs.
+- ./zsec destroy
+- enter "greenfield"
+- enter "base_cc_gwlb"
+
+### Option 2 (manual):
+From base directory execute:
+- terraform destroy
+
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 

@@ -4,6 +4,38 @@ This deployment type is intended for greenfield/pov/lab purposes. It will deploy
 
 Additionally: Creates 1 Cloud Connector private subnet; 1 Cloud Connector VM routing to NAT Gateway; workload private subnet route repointed to service ENI of Cloud Connector.
 
+
+## How to deploy:
+
+### Option 1 (guided):
+From the examples directory, run the zsec bash script that walks to all required inputs.
+- ./zsec up
+- enter "greenfield"
+- enter "base_1cc"
+- follow the remainder of the authentication and configuration input prompts.
+- script will detect client operating system and download/run a specific version of terraform in a temporary bin directory
+- inputs will be validated and terraform init/apply will automatically exectute.
+- verify all resources that will be created/modified and enter "yes" to confirm
+
+### Option 2 (manual):
+Modify/populate any required variable input values in base/terraform.tfvars file and save.
+
+From base directory execute:
+- terraform init
+- terraform apply
+
+## How to destroy:
+
+### Option 1 (guided):
+From the examples directory, run the zsec bash script that walks to all required inputs.
+- ./zsec destroy
+- enter "greenfield"
+- enter "base_1cc"
+
+### Option 2 (manual):
+From base_1cc directory execute:
+- terraform destroy
+
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 
