@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -eo pipefail
 
@@ -115,7 +115,7 @@ fi
 echo "Checking AWS Environment Variables..."
     # Checking for AWS MFA required
     while true; do
-    read -p "Is an AWS MFA session token generation required? (yes/no): " mfa_response
+    read -r -p "Is an AWS MFA session token generation required? (yes/no): " mfa_response
 case $mfa_response in 
 	yes|y ) 
     echo "MFA enabled"
@@ -138,11 +138,11 @@ if [[ $dtype == "base" && ! -e ./.zsecrc ]]; then
     if [[ $mfa_enabled == true ]]; then
     echo "Gathering information to get AWS Session Token. We need the following details:"
     echo "example - arn:aws:iam::1234567890:mfa/user@company.com where Account ID = 1234567890 and User Account = user@company.com"
-    read -p "Enter AWS Account ID: " aws_account_id
-    read -p "Enter AWS MFA User account: " aws_user_account
+    read -r -p "Enter AWS Account ID: " aws_account_id
+    read -r -p "Enter AWS MFA User account: " aws_user_account
     echo "unsetting existing AWS Environment variables (unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)"
     unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
-    read -p "Enter token code from MFA device: " mfa_token
+    read -r -p "Enter token code from MFA device: " mfa_token
     echo "getting session token (aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
     aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}  
 
@@ -225,11 +225,11 @@ if [[ "$oper" == "up" && $dtype != base && ! -e ./.zsecrc ]]; then
     if [[ $mfa_enabled == true ]]; then
     echo "Gathering information to get AWS Session Token. We need the following details:"
     echo "example - arn:aws:iam::1234567890:mfa/user@company.com where Account ID = 1234567890 and User Account = user@company.com"
-    read -p "Enter AWS Account ID: " aws_account_id
-    read -p "Enter AWS MFA User account: " aws_user_account
+    read -r -p "Enter AWS Account ID: " aws_account_id
+    read -r -p "Enter AWS MFA User account: " aws_user_account
     echo "unsetting existing AWS Environment variables (unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)"
     unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
-    read -p "Enter token code from MFA device: " mfa_token
+    read -r -p "Enter token code from MFA device: " mfa_token
     echo "getting session token (aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
     aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}
  
@@ -372,7 +372,7 @@ if [[ "$dtype" == "base_1"* ]]; then
 elif [[ "$dtype" == "base_2"* || "$dtype" == "cc_ha" ]]; then  
     echo "${dtype} will deploy two Cloud Connectors in ${aws_region}"  
 elif [[ "$dtype" != *"gwlb"* ]]; then
-    read -p "Enter how many Cloud Connectors to deploy? [Default=$cc_count_default]: " cc_count_input
+    read -r -p "Enter how many Cloud Connectors to deploy? [Default=$cc_count_default]: " cc_count_input
 cc_count=${cc_count_input:-$cc_count_default}
 if ((cc_count >= 1 && cc_count <= 20)); then
     echo "${dtype} will deploy ${cc_count} Cloud Connectors in ${aws_region}"
@@ -388,7 +388,7 @@ az_count_default=2
 if [[ "$dtype" == "base_1"* || "$dtype" == "base" ]]; then
     echo "${dtype} will deploy resources in one Availability Zone subnet in ${aws_region}"  
 else
-    read -p "Enter how many Availability Zone subnets [1-3] to deploy across? [Default=$az_count_default]: " az_count_input
+    read -r -p "Enter how many Availability Zone subnets [1-3] to deploy across? [Default=$az_count_default]: " az_count_input
 az_count=${az_count_input:-$az_count_default}
 if ((az_count >= 1 && az_count <= 3)); then
     echo "${dtype} will deploy ${cc_count} Cloud Connectors across ${az_count} Availabiliy Zone subnets in ${aws_region}"
@@ -402,7 +402,7 @@ fi
 
 if [[ "$dtype" == *"gwlb"* ]]; then
     echo "GWLB deployment detected"
-    read -p "Enable GWLB cross-zone loadbalancing? (yes/no): " cross_zone_lb_enabled
+    read -r -p "Enable GWLB cross-zone loadbalancing? (yes/no): " cross_zone_lb_enabled
 
     while true; do
 case $cross_zone_lb_enabled in 
@@ -426,7 +426,7 @@ fi
 
 # add local bin directory to PATH
 if ! grep -Fxq "export PATH=\${PATH}:\${PWD}/bin" .zsecrc; then
-    echo 'export PATH=${PATH}:${PWD}/bin' >> .zsecrc
+    echo "export PATH=${PATH}:${PWD}/bin" >> .zsecrc
 fi
 
 
@@ -461,9 +461,9 @@ else
     echo "Updating .zsecrc"
     sed '/AWS_SESSION_TOKEN\|AWS_ACCESS_KEY_ID\|AWS_SECRET_ACCESS_KEY/d' .zsecrc > .zsecrcnew && mv .zsecrcnew .zsecrc
     echo "example - arn:aws:iam::1234567890:mfa/user@company.com where Account ID = 1234567890 and User Account = user@company.com"
-    read -p "Enter AWS Account ID: " aws_account_id
-    read -p "Enter AWS MFA User account: " aws_user_account
-    read -p "Enter token code from MFA device: " mfa_token
+    read -r -p "Enter AWS Account ID: " aws_account_id
+    read -r -p "Enter AWS MFA User account: " aws_user_account
+    read -r -p "Enter token code from MFA device: " mfa_token
     echo "getting session token (aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
     aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}
  
@@ -493,21 +493,21 @@ fi
 
 if [[ "$oper" == "up" ]]; then
     echo "Bringing up Cloud Connector cluster..."
-    TF_DATA_DIR=../.terraform ./$dir/terraform -chdir=$dtype init
+    TF_DATA_DIR=../.terraform ./$dir/terraform -chdir="$dtype" init
     if [[ "$AUTO_APPROVE" ]]; then
-        TF_DATA_DIR=../.terraform ./$dir/terraform -chdir=$dtype apply -auto-approve
+        TF_DATA_DIR=../.terraform ./$dir/terraform -chdir="$dtype" apply -auto-approve
     else
-        TF_DATA_DIR=../.terraform ./$dir/terraform -chdir=$dtype apply
+        TF_DATA_DIR=../.terraform ./$dir/terraform -chdir="$dtype" apply
     fi
    
 
 elif [[ "$oper" == "destroy" ]]; then
     echo "Destroying Edge Connector cluster..."
-    TF_DATA_DIR=../.terraform ./$dir/terraform -chdir=$dtype init
+    TF_DATA_DIR=../.terraform ./$dir/terraform -chdir="$dtype" init
     if [[ "$AUTO_APPROVE" ]]; then
-      TF_DATA_DIR=../.terraform ./$dir/terraform -chdir=$dtype destroy -auto-approve
+      TF_DATA_DIR=../.terraform ./$dir/terraform -chdir="$dtype" destroy -auto-approve
     else
-      TF_DATA_DIR=../.terraform ./$dir/terraform -chdir=$dtype destroy -compact-warnings
+      TF_DATA_DIR=../.terraform ./$dir/terraform -chdir="$dtype" destroy -compact-warnings
     fi
     rm -rf bin 
     rm -rf **/.terraform/* && rm -rf **/.terraform*
