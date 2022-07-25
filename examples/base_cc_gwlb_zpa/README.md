@@ -29,7 +29,7 @@ From base directory execute:
 From the examples directory, run the zsec bash script that walks to all required inputs.
 - ./zsec destroy
 - enter "greenfield"
-- enter base_cc_gwlb_zpa"
+- enter "base_cc_gwlb_zpa"
 
 ### Option 2 (manual):
 From base directory execute:
@@ -42,17 +42,20 @@ From base directory execute:
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 4.7.0 |
+| <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.2.0 |
+| <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.1.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.3.0 |
+| <a name="requirement_tls"></a> [tls](#requirement\_tls) | ~> 3.4.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.7.0 |
-| <a name="provider_local"></a> [local](#provider\_local) | 2.2.3 |
-| <a name="provider_null"></a> [null](#provider\_null) | 3.1.1 |
-| <a name="provider_random"></a> [random](#provider\_random) | 3.3.2 |
-| <a name="provider_tls"></a> [tls](#provider\_tls) | 4.0.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 4.7.0 |
+| <a name="provider_local"></a> [local](#provider\_local) | ~> 2.2.0 |
+| <a name="provider_null"></a> [null](#provider\_null) | ~> 3.1.0 |
+| <a name="provider_random"></a> [random](#provider\_random) | ~> 3.3.0 |
+| <a name="provider_tls"></a> [tls](#provider\_tls) | ~> 3.4.0 |
 
 ## Modules
 

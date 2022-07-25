@@ -511,6 +511,7 @@ elif [[ "$oper" == "destroy" ]]; then
     fi
     rm -rf bin 
     rm -rf **/.terraform/* && rm -rf **/.terraform*
+	find . -type f -name '.terraform.lock.hcl' -delete
     rm -rf .terraform* && rm -f terraform.tfstate*
     rm -f *.pem && rm -f *.pem.pub
     rm -f name_prefix random_string

@@ -11,6 +11,7 @@ This module creates all the necessary IAM Roles/Polices, Lambda Functions/Permis
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 4.7.0 |
+| <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.2.0 |
 
 ## Providers
 

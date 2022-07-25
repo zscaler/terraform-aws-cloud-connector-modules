@@ -9,13 +9,15 @@ This module creates all AWS EC2 instance and network interface resources needed 
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 4.7.0 |
+| <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.2.0 |
+| <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.1.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 4.7.0 |
-| <a name="provider_null"></a> [null](#provider\_null) | n/a |
+| <a name="provider_null"></a> [null](#provider\_null) | ~> 3.1.0 |
 
 ## Modules
 
