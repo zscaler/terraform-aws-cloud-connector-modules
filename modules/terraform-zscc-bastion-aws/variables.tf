@@ -40,7 +40,7 @@ variable "disk_size" {
 
 variable "bastion_nsg_source_prefix" {
   type        = list(string)
-  description = "CIDR blocks of trusted networks"
+  description = "CIDR blocks of trusted networks for bastion host ssh access"
   default     = ["0.0.0.0/0"]
 }
 
