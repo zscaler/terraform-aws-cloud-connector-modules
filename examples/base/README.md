@@ -2,6 +2,37 @@
 
 This deployment type is just for greenfield/POV reference and/or spoke workload testing. It does not deploy any Cloud Connector appliances. Full set of resources provisioned list below, but this will effectively create all network infrastructure dependencies for an AWS environment. Creates 1 new VPC with 1 public subnet and 1 private/workload subnet; 1 IGW; 1 NAT Gateway; 1 Centos server workload in the private subnet routing to NAT Gateway; 1 Bastion Host in the public subnet assigned an Elastic IP and routing to the IGW; generates local key pair .pem file for ssh access
 
+
+## How to deploy:
+
+Option 1 (guided):
+From the examples directory, run the zsec bash script that walks to all required inputs.
+./zsec up
+- enter "greenfield"
+- enter "base"
+- follow the remainder of the authentication and configuration input prompts.
+- script will detect client operating system and download/run a specific version of terraform in a temporary bin directory
+- inputs will be validated and terraform init/apply will automatically exectute.
+- verify all resources that will be created/modified and enter "yes" to confirm
+
+Option 2 (manual):
+Modify/populate any required variable input values in base/terraform.tfvars file and save.
+
+From base directory execute:
+- terraform init
+- terraform apply
+
+How to destroy:
+Option 1 (guided):
+From the examples directory, run the zsec bash script that walks to all required inputs.
+./zsec destroy
+- enter "greenfield"
+- enter base"
+
+Option 2 (manual):
+From base directory execute:
+- terraform destroy
+
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 

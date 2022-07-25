@@ -1,6 +1,6 @@
 # Zscaler Cloud Connector / AWS Gateway Load Balancer Endpoint and Endpoint Service Module
 
-This module creates Gateway Load Balancer Endpoint (GWLBE) and VPC Endpoint Service for GWLB resources. Endpoint service associates to a GWLB ARN input and Endpoints associate to a list of Subnet ID inputs.
+This module creates Gateway Load Balancer Endpoint (GWLBE) and VPC Endpoint Service for GWLB resources. Endpoint service associates to a GWLB ARN input and Endpoints associate to a list of Subnet ID inputs. The intent is to deploy these GWLB Endpoints across availability zone subnets for HA/resiliency and utilize the configured ENIs as next-hop for workload/spoke subnet default routes to steer all traffic to backend Cloud Connector clusters sitting behind GWLB.
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
