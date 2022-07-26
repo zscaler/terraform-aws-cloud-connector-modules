@@ -371,7 +371,7 @@ if [[ "$dtype" == "base_1"* ]]; then
     echo "${dtype} will deploy one Cloud Connector in ${aws_region}"  
 elif [[ "$dtype" == "base_2"* || "$dtype" == "cc_ha" ]]; then  
     echo "${dtype} will deploy two Cloud Connectors in ${aws_region}"  
-elif [[ "$dtype" != *"gwlb"* ]]; then
+elif [[ "$dtype" == *"gwlb"* ]]; then
     read -p "Enter how many Cloud Connectors to deploy? [Default=$cc_count_default]: " cc_count_input
 cc_count=${cc_count_input:-$cc_count_default}
 if ((cc_count >= 1 && cc_count <= 20)); then
