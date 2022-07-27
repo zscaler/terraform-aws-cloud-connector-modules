@@ -55,8 +55,8 @@ No modules.
 | <a name="input_cc_vm2_rte_list"></a> [cc\_vm2\_rte\_list](#input\_cc\_vm2\_rte\_list) | List of route tables using Cloud Connector 2 instance id | `list(string)` | n/a | yes |
 | <a name="input_global_tags"></a> [global\_tags](#input\_global\_tags) | Populate any custom user defined tags from a map | `map(string)` | `{}` | no |
 | <a name="input_http_probe_port"></a> [http\_probe\_port](#input\_http\_probe\_port) | HTTP port to send the health probes on Cloud Connector cloud | `number` | `50000` | no |
-| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | A prefix to associate to all the Route 53 module resources | `string` | `null` | no |
-| <a name="input_resource_tag"></a> [resource\_tag](#input\_resource\_tag) | A tag to associate to all the Route 53 module resources | `string` | `null` | no |
+| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | A prefix to associate to all Cloud Connector Lambda module resources | `string` | `null` | no |
+| <a name="input_resource_tag"></a> [resource\_tag](#input\_resource\_tag) | A tag to associate to all Cloud Connector Lambda module resources | `string` | `null` | no |
 | <a name="input_route_updater_filename"></a> [route\_updater\_filename](#input\_route\_updater\_filename) | Route updater lambda deployment package filename | `string` | `"rte_updater_lambda.py.zip"` | no |
 | <a name="input_route_updater_handler"></a> [route\_updater\_handler](#input\_route\_updater\_handler) | Route updater lambda handler | `string` | `"rte_updater_lambda.lambda_handler"` | no |
 | <a name="input_route_updater_runtime"></a> [route\_updater\_runtime](#input\_route\_updater\_runtime) | Route updater lambda runtime | `string` | `"python3.8"` | no |
