@@ -426,7 +426,7 @@ fi
 
 # add local bin directory to PATH
 if ! grep -Fxq "export PATH=\${PATH}:\${PWD}/bin" .zsecrc; then
-    echo "export PATH=${PATH}:${PWD}/bin" >> .zsecrc
+    echo 'export PATH=${PATH}:${PWD}/bin' >> .zsecrc
 fi
 
 
