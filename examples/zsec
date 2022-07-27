@@ -408,12 +408,12 @@ if [[ "$dtype" == *"gwlb"* ]]; then
 case $cross_zone_lb_enabled in 
 	yes|y ) 
     echo "Cross-zone loadbalancing enabled"
-    cross_zone_lb_enabled=true
+    echo "export TF_VAR_cross_zone_lb_enabled=true" >> .zsecrc
     break
     ;;
 	no|n )
     echo "Cross-zone loadbalancing disabled"
-    cross_zone_lb_enabled=false
+    echo "export TF_VAR_cross_zone_lb_enabled=false" >> .zsecrc
     break
     ;;
 	* ) echo "invalid response. Please enter yes or no";;
