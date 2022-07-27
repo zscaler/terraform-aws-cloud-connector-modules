@@ -45,8 +45,8 @@ No modules.
 | <a name="input_iam_count"></a> [iam\_count](#input\_iam\_count) | Default number IAM roles/policies/profiles to create | `number` | `1` | no |
 | <a name="input_iam_role_policy_smrw"></a> [iam\_role\_policy\_smrw](#input\_iam\_role\_policy\_smrw) | Cloud Connector EC2 Instance predefined IAM Role to access Secrets Manager resources | `string` | `"SecretsManagerReadWrite"` | no |
 | <a name="input_iam_role_policy_ssmcore"></a> [iam\_role\_policy\_ssmcore](#input\_iam\_role\_policy\_ssmcore) | Cloud Connector EC2 Instance predefined IAM Role to access AWS SSM | `string` | `"AmazonSSMManagedInstanceCore"` | no |
-| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | A prefix to associate to all the Cloud Connector module resources | `string` | `null` | no |
-| <a name="input_resource_tag"></a> [resource\_tag](#input\_resource\_tag) | A tag to associate to all the Cloud Connector module resources | `string` | `null` | no |
+| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | A prefix to associate to all the Cloud Connector IAM module resources | `string` | `null` | no |
+| <a name="input_resource_tag"></a> [resource\_tag](#input\_resource\_tag) | A tag to associate to all the Cloud Connector IAM module resources | `string` | `null` | no |
 
 ## Outputs
 
