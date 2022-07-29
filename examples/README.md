@@ -55,8 +55,7 @@ base_cc_gwlb_zpa: Everything from base_cc_gwlb + Creates 2 Route 53 subnets rout
 
 **2. Brownfield Deployments**
 
-(Use this if you are building an entire cluster from ground up.
- Particularly useful for a Customer Demo/PoC or dev-test environment)
+(These templates would be most applicable for production deployments and have more customization options than a "base" deployments)
 
 ```
 bash
