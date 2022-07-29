@@ -15,9 +15,9 @@ From the examples directory, run the zsec bash script that walks to all required
 - verify all resources that will be created/modified and enter "yes" to confirm
 
 ### Option 2 (manual):
-Modify/populate any required variable input values in base/terraform.tfvars file and save.
+Modify/populate any required variable input values in cc_gwlb/terraform.tfvars file and save.
 
-From base directory execute:
+From cc_gwlb directory execute:
 - terraform init
 - terraform apply
 
@@ -30,7 +30,7 @@ From the examples directory, run the zsec bash script that walks to all required
 - enter "cc_gwlb"
 
 ### Option 2 (manual):
-From base directory execute:
+From cc_gwlb directory execute:
 - terraform destroy
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
@@ -49,11 +49,11 @@ From base directory execute:
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 4.7.0 |
-| <a name="provider_local"></a> [local](#provider\_local) | ~> 2.2.0 |
-| <a name="provider_null"></a> [null](#provider\_null) | ~> 3.1.0 |
-| <a name="provider_random"></a> [random](#provider\_random) | ~> 3.3.0 |
-| <a name="provider_tls"></a> [tls](#provider\_tls) | ~> 3.4.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.7.0 |
+| <a name="provider_local"></a> [local](#provider\_local) | 2.2.3 |
+| <a name="provider_null"></a> [null](#provider\_null) | 3.1.1 |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.3.2 |
+| <a name="provider_tls"></a> [tls](#provider\_tls) | 3.4.0 |
 
 ## Modules
 
