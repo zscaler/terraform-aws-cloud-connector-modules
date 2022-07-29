@@ -17,9 +17,9 @@ From the examples directory, run the zsec bash script that walks to all required
 - verify all resources that will be created/modified and enter "yes" to confirm
 
 ### Option 2 (manual):
-Modify/populate any required variable input values in base/terraform.tfvars file and save.
+Modify/populate any required variable input values in base_cc_gwlb_zpa/terraform.tfvars file and save.
 
-From base directory execute:
+From base_cc_gwlb_zpa directory execute:
 - terraform init
 - terraform apply
 
@@ -32,7 +32,7 @@ From the examples directory, run the zsec bash script that walks to all required
 - enter "base_cc_gwlb_zpa"
 
 ### Option 2 (manual):
-From base directory execute:
+From base_cc_gwlb_zpa directory execute:
 - terraform destroy
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
