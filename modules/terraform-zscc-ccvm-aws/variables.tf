@@ -1,34 +1,48 @@
 variable "name_prefix" {
+  type        = string
   description = "A prefix to associate to all the Cloud Connector module resources"
-  default     = "zscaler-cc"
+  default     = null
 }
 
 variable "resource_tag" {
+  type        = string
   description = "A tag to associate to all the Cloud Connector module resources"
-  default     = "cloud-connector"
+  default     = null
 }
 
-variable "vpc" {
-  description = "Cloud Connector VPC"
+variable "global_tags" {
+  type        = map(string)
+  description = "Populate any custom user defined tags from a map"
+  default     = {}
+}
+
+variable "vpc_id" {
+  type        = string
+  description = "Cloud Connector VPC ID"
 }
 
 variable "mgmt_subnet_id" {
+  type        = list(string)
   description = "Cloud Connector EC2 Instance management subnet id"
 }
 
 variable "service_subnet_id" {
+  type        = list(string)
   description = "Cloud Connector EC2 Instance service subnet id"
 }
 
 variable "instance_key" {
-  description = "Cloud Connector Instance Key"
+  type        = string
+  description = "SSH Key for instances"
 }
 
 variable "user_data" {
+  type        = string
   description = "Cloud Init data"
 }
 
 variable "ccvm_instance_type" {
+  type        = string
   description = "Cloud Connector Instance Type"
   default     = "m5.large"
   validation {
@@ -59,17 +73,16 @@ locals {
   )
 }
 
-variable "global_tags" {
-  description = "populate custom user provided tags"
-}
-
 variable "cc_count" {
+  type        = number
   description = "Default number of Cloud Connector appliances to create"
   default     = 1
 }
 
 variable "cc_instance_size" {
-  default = "small"
+  type        = string
+  description = "Cloud Connector Instance size. Determined by and needs to match  the Cloud Connector Portal provisioning template configuration"
+  default     = "small"
   validation {
     condition = (
       var.cc_instance_size == "small" ||
@@ -81,19 +94,18 @@ variable "cc_instance_size" {
 }
 
 variable "mgmt_security_group_id" {
-  description = "Cloud Connector EC2 Instance management subnet id"
   type        = list(string)
+  description = "Cloud Connector EC2 Instance management subnet id"
 }
 
 variable "service_security_group_id" {
-  description = "Cloud Connector EC2 Instance service subnet id"
   type        = list(string)
+  description = "Cloud Connector EC2 Instance service subnet id"
 }
 
 variable "iam_instance_profile" {
-  description = "IAM instance profile ID assigned to Cloud Connector"
-  default     = null
   type        = list(string)
+  description = "IAM instance profile ID assigned to Cloud Connector"
 }
 
 

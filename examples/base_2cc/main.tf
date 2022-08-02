@@ -162,7 +162,7 @@ module "bastion" {
   name_prefix               = var.name_prefix
   resource_tag              = random_string.suffix.result
   global_tags               = local.global_tags
-  vpc                       = aws_vpc.vpc1.id
+  vpc_id                    = aws_vpc.vpc1.id
   public_subnet             = aws_subnet.pubsubnet.0.id
   instance_key              = aws_key_pair.deployer.key_name
   bastion_nsg_source_prefix = var.bastion_nsg_source_prefix
@@ -178,8 +178,8 @@ module "workload" {
   name_prefix    = "${var.name_prefix}-workload"
   resource_tag   = random_string.suffix.result
   global_tags    = local.global_tags
-  vpc            = aws_vpc.vpc1.id
-  subnet         = aws_subnet.privsubnet.*.id
+  vpc_id         = aws_vpc.vpc1.id
+  subnet_id      = aws_subnet.privsubnet.*.id
   instance_key   = aws_key_pair.deployer.key_name
 }
 
@@ -242,7 +242,7 @@ module "cc-vm" {
   name_prefix               = var.name_prefix
   resource_tag              = random_string.suffix.result
   global_tags               = local.global_tags
-  vpc                       = aws_vpc.vpc1.id
+  vpc_id                    = aws_vpc.vpc1.id
   mgmt_subnet_id            = aws_subnet.cc-subnet.*.id
   service_subnet_id         = aws_subnet.cc-subnet.*.id
   instance_key              = aws_key_pair.deployer.key_name
@@ -274,7 +274,7 @@ module "cc-sg" {
   name_prefix  = var.name_prefix
   resource_tag = random_string.suffix.result
   global_tags  = local.global_tags
-  vpc          = aws_vpc.vpc1.id
+  vpc_id       = aws_vpc.vpc1.id
 }
 
 
@@ -310,7 +310,7 @@ module "cc-lambda" {
   name_prefix     = var.name_prefix
   resource_tag    = random_string.suffix.result
   global_tags     = local.global_tags
-  vpc             = aws_vpc.vpc1.id
+  vpc_id          = aws_vpc.vpc1.id
   cc_vm1_id       = module.cc-vm.id[0]
   cc_vm2_id       = module.cc-vm.id[1]
   cc_subnet_ids   = aws_subnet.cc-subnet.*.id

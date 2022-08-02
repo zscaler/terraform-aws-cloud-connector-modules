@@ -162,7 +162,7 @@ module "bastion" {
   name_prefix               = var.name_prefix
   resource_tag              = random_string.suffix.result
   global_tags               = local.global_tags
-  vpc                       = aws_vpc.vpc1.id
+  vpc_id                    = aws_vpc.vpc1.id
   public_subnet             = aws_subnet.pubsubnet.0.id
   instance_key              = aws_key_pair.deployer.key_name
   bastion_nsg_source_prefix = var.bastion_nsg_source_prefix
@@ -178,8 +178,8 @@ module "workload" {
   name_prefix    = "${var.name_prefix}-workload"
   resource_tag   = random_string.suffix.result
   global_tags    = local.global_tags
-  vpc            = aws_vpc.vpc1.id
-  subnet         = aws_subnet.privsubnet.*.id
+  vpc_id         = aws_vpc.vpc1.id
+  subnet_id      = aws_subnet.privsubnet.*.id
   instance_key   = aws_key_pair.deployer.key_name
 }
 
@@ -242,7 +242,7 @@ module "cc-vm" {
   name_prefix               = var.name_prefix
   resource_tag              = random_string.suffix.result
   global_tags               = local.global_tags
-  vpc                       = aws_vpc.vpc1.id
+  vpc_id                    = aws_vpc.vpc1.id
   mgmt_subnet_id            = aws_subnet.cc-subnet.*.id
   service_subnet_id         = aws_subnet.cc-subnet.*.id
   instance_key              = aws_key_pair.deployer.key_name
@@ -274,7 +274,7 @@ module "cc-sg" {
   name_prefix  = var.name_prefix
   resource_tag = random_string.suffix.result
   global_tags  = local.global_tags
-  vpc          = aws_vpc.vpc1.id
+  vpc_id       = aws_vpc.vpc1.id
 }
 
 
@@ -286,7 +286,7 @@ module "gwlb" {
   name_prefix              = var.name_prefix
   resource_tag             = random_string.suffix.result
   global_tags              = local.global_tags
-  vpc                      = aws_vpc.vpc1.id
+  vpc_id                   = aws_vpc.vpc1.id
   cc_subnet_ids            = aws_subnet.cc-subnet.*.id
   cc_small_service_ips     = module.cc-vm.cc_service_private_ip
   cc_med_lrg_service_1_ips = module.cc-vm.cc_med_lrg_service_1_private_ip
@@ -294,21 +294,21 @@ module "gwlb" {
   cc_lrg_service_3_ips     = module.cc-vm.cc_lrg_service_3_private_ip
   cc_instance_size         = var.cc_instance_size
   http_probe_port          = var.http_probe_port
+  health_check_interval    = var.health_check_interval
+  healthy_threshold        = var.healthy_threshold
+  unhealthy_threshold      = var.unhealthy_threshold
   cross_zone_lb_enabled    = var.cross_zone_lb_enabled
-  interval                 = 10
-  healthy_threshold        = 3
-  unhealthy_threshold      = 3
 }
 
 # 6. Create Endpoint Service associated with GWLB and 1x GWLB Endpoint per CC subnet
 module "gwlb-endpoint" {
-  source        = "../../modules/terraform-zscc-gwlbendpoint-aws"
-  name_prefix   = var.name_prefix
-  resource_tag  = random_string.suffix.result
-  global_tags   = local.global_tags
-  vpc           = aws_vpc.vpc1.id
-  cc_subnet_ids = aws_subnet.cc-subnet.*.id
-  gwlb_arn      = module.gwlb.gwlb_arn
+  source       = "../../modules/terraform-zscc-gwlbendpoint-aws"
+  name_prefix  = var.name_prefix
+  resource_tag = random_string.suffix.result
+  global_tags  = local.global_tags
+  vpc_id       = aws_vpc.vpc1.id
+  subnet_ids   = aws_subnet.cc-subnet.*.id
+  gwlb_arn     = module.gwlb.gwlb_arn
 }
 
 
