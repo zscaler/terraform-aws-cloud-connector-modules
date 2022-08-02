@@ -197,7 +197,7 @@ if [[ $bastionipinput =~ /[0-9]{1,2}$ ]]; then
 echo "$bastionipinput - IP/Netmask valid"
 else
 echo "netmask not present or invalid"
-exit
+exit 1
 fi
 else
 echo "$bastionipinput is not valid"
@@ -220,7 +220,7 @@ fi
 
 echo "Checking AWS Environment Variables and Cloud Connector bootstrap requirements... For ZPA or brownfield/byo deployments, please stop and refer to the README and terraform.tfvars file instructions"
 # if .zsecrc is not present we'll assume that AWS env was never set
-if [[ "$oper" == "up" && $dtype != base && ! -e ./.zsecrc ]]; then
+if [[ "$oper" == "up" && "$dtype" != base && ! -e ./.zsecrc ]]; then
     # Get MFA session token
     if [[ $mfa_enabled == true ]]; then
     echo "Gathering information to get AWS Session Token. We need the following details:"
@@ -284,7 +284,7 @@ if [[ $bastionipinput =~ /[0-9]{1,2}$ ]]; then
 echo "$bastionipinput - IP/Netmask valid"
 else
 echo "netmask not present or invalid"
-exit
+exit 1
 fi
 else
 echo "$bastionipinput is not valid"
@@ -302,19 +302,27 @@ done
 fi
 
     cc_instance_size_default=small
+while true; do
     read -r -p "Enter CC Instance Size. Valid input = small, medium, or large. This needs to match the size chosen in the CC provisioning template [Default=$cc_instance_size_default]: " cc_instance_size_input
 cc_instance_size=${cc_instance_size_input:-$cc_instance_size_default}
     case $cc_instance_size in
       small|medium|large)
           echo "Cloud Connector size: ${cc_instance_size}"
           echo "export TF_VAR_cc_instance_size=${cc_instance_size}" >> .zsecrc
+          break
       ;;
       *)
           echo "Invalid Cloud Connector size: ${cc_instance_size}."
-          echo "Delete .zsecrc file and re-run zsecup ..."
-          exit 1
       ;;
     esac
+done
+    if [[ "$dtype" == *"asg"* ]]; then
+    echo "Autoscaling deployment type identified. Only small CC instance sizes are currently support. Make sure that the CC provisioning template specified has small selected."
+    echo "Setting cc_instance_size to small"
+    echo "export TF_VAR_cc_instance_size=small" >> .zsecrc
+    cc_instance_size=small
+    fi
+
 ccvm_instance_type_default=m5.large
 while true; do
     read -r -p "Enter desired AWS EC2 instance type for CC. Recommended types: Small CC (m5.large or c5.large); Medium (m5.2xlarge or c5.2xlarge); Large (m5.4xlarge or c5.4xlarge) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
@@ -385,7 +393,7 @@ fi
 fi
 
 az_count_default=2
-if [[ "$dtype" == "base_1"* || "$dtype" == "base" ]]; then
+if [[ "$dtype" == "base_1"* ]]; then
     echo "${dtype} will deploy resources in one Availability Zone subnet in ${aws_region}"  
 else
     read -r -p "Enter how many Availability Zone subnets [1-3] to deploy across? [Default=$az_count_default]: " az_count_input
@@ -402,9 +410,8 @@ fi
 
 if [[ "$dtype" == *"gwlb"* ]]; then
     echo "GWLB deployment detected"
-    read -r -p "Enable GWLB cross-zone loadbalancing? (yes/no): " cross_zone_lb_enabled
-
     while true; do
+    read -r -p "Enable GWLB cross-zone loadbalancing? (yes/no): " cross_zone_lb_enabled
 case $cross_zone_lb_enabled in 
 	yes|y ) 
     echo "Cross-zone loadbalancing enabled"
