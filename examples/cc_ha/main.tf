@@ -224,7 +224,7 @@ module "cc-vm" {
   name_prefix               = var.name_prefix
   resource_tag              = random_string.suffix.result
   global_tags               = local.global_tags
-  vpc                       = data.aws_vpc.selected.id
+  vpc_id                    = data.aws_vpc.selected.id
   mgmt_subnet_id            = data.aws_subnet.cc-selected.*.id
   service_subnet_id         = data.aws_subnet.cc-selected.*.id
   instance_key              = aws_key_pair.deployer.key_name
@@ -262,7 +262,7 @@ module "cc-sg" {
   name_prefix  = var.name_prefix
   resource_tag = random_string.suffix.result
   global_tags  = local.global_tags
-  vpc          = data.aws_vpc.selected.id
+  vpc_id       = data.aws_vpc.selected.id
 
   byo_security_group = var.byo_security_group
   # optional inputs. only required if byo_security_group set to true
@@ -288,7 +288,7 @@ module "cc-lambda" {
   name_prefix     = var.name_prefix
   resource_tag    = random_string.suffix.result
   global_tags     = local.global_tags
-  vpc             = data.aws_vpc.selected.id
+  vpc_id          = data.aws_vpc.selected.id
   cc_vm1_id       = module.cc-vm.id[0]
   cc_vm2_id       = module.cc-vm.id[1]
   cc_subnet_ids   = data.aws_subnet.cc-selected.*.id
@@ -340,7 +340,7 @@ module "route53" {
   name_prefix    = var.name_prefix
   resource_tag   = random_string.suffix.result
   global_tags    = local.global_tags
-  vpc            = data.aws_vpc.selected.id
+  vpc_id         = data.aws_vpc.selected.id
   r53_subnet_ids = aws_subnet.r53-subnet.*.id
   domain_names   = var.domain_names
   target_address = var.target_address

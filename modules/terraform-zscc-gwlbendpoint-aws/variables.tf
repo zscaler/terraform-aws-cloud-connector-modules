@@ -1,25 +1,32 @@
 variable "name_prefix" {
-  description = "A prefix to associate to all the Cloud Connector module resources"
-  default     = "zscaler-cc"
+  type        = string
+  description = "A prefix to associate to all the GWLB Endpoint module resources"
+  default     = null
 }
 
 variable "resource_tag" {
-  description = "A tag to associate to all the Cloud Connector module resources"
-  default     = "cloud-connector"
+  type        = string
+  description = "A tag to associate to all the GWLB Endpoint module resources"
+  default     = null
 }
 
-variable "vpc" {
-  description = "Cloud Connector VPC"
+variable "vpc_id" {
+  type        = string
+  description = "Cloud Connector VPC ID"
 }
 
-variable "cc_subnet_ids" {
-  description = "Cloud Connector subnet IDs list"
+variable "subnet_ids" {
+  type        = list(string)
+  description = "List of Subnet ID to create GLWB Endpoints in"
 }
 
 variable "global_tags" {
-  description = "populate custom user provided tags"
+  type        = map(string)
+  description = "Populate any custom user defined tags from a map"
+  default     = {}
 }
 
 variable "gwlb_arn" {
+  type        = string
   description = "ARN of GWLB for Endpoint Service to be assigned"
 }

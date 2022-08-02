@@ -1,29 +1,30 @@
-# aws variables
-
 variable "aws_region" {
+  type        = string
   description = "The AWS region."
   default     = "us-west-2"
 }
 
 variable "name_prefix" {
+  type        = string
   description = "The name prefix for all your resources"
   default     = "zsdemo"
-  type        = string
 }
 
 variable "vpc_cidr" {
+  type        = string
   description = "VPC CIDR"
   default     = "10.1.0.0/16"
 }
 
 variable "workload_count" {
+  type        = number
   description = "Default number of workload VMs to create"
   default     = 1
 }
 
 variable "az_count" {
-  description = "Default number of subnets to create based on availability zone"
   type        = number
+  description = "Default number of subnets to create based on availability zone"
   default     = 1
   validation {
     condition = (
@@ -34,18 +35,19 @@ variable "az_count" {
 }
 
 variable "owner_tag" {
-  description = "populate custom owner tag attribute"
   type        = string
+  description = "populate custom owner tag attribute"
   default     = "zscc-admin"
 }
 
 variable "tls_key_algorithm" {
-  default = "RSA"
-  type    = string
+  type        = string
+  description = "algorithm for tls_private_key resource"
+  default     = "RSA"
 }
 
 variable "bastion_nsg_source_prefix" {
-  description = "CIDR blocks of trusted networks"
   type        = list(string)
+  description = "CIDR blocks of trusted networks for bastion host ssh access"
   default     = ["0.0.0.0/0"]
 }
