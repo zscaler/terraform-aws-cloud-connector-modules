@@ -4,17 +4,22 @@
 
 ## Prerequisites (You will be prompted for AWS keys and region during deployment)
 
+### AWS requirements
 1. A valid AWS account
 2. AWS ACCESS KEY ID
 3. AWS SECRET ACCESS KEY
 4. AWS Region (E.g. us-west-2)
-5. Subscribe and accept terms of using CentOS 7 (for base deployments with workloads + bastion) at [this link](https://aws.amazon.com/marketplace/pp/B00O7WM7QW/).
-6. Subscribe and accept terms of using Zscaler Cloud Connector image at [this link](https://aws.amazon.com/marketplace/pp/prodview-cvzx4oiv7oljm).
-7. A valid Zscaler Cloud Connector provisioning URL
-8. Zscaler Cloud Connector Credentials are stored in AWS Secrets Manager
+5. Subscribe and accept terms of using CentOS 7 (for base deployments with workloads + bastion) at [this link](https://aws.amazon.com/marketplace/pp/B00O7WM7QW/)
+6. Subscribe and accept terms of using Zscaler Cloud Connector image at [this link](https://aws.amazon.com/marketplace/pp/prodview-cvzx4oiv7oljm)
+
+### Zscaler requirements
+7. A valid Zscaler Cloud Connector provisioning URL generated from the Cloud Connector Portal
+8. Zscaler Cloud Connector Credentials (api key, username, password) are stored in AWS Secrets Manager
+
+See: [Zscaler Cloud Cloud Connector AWS Deployment Guide](https://help.zscaler.com/cloud-connector/deploying-cloud-connector-amazon-web-services) for additional prerequisite provisioning steps.
 
 ## Deploying the cluster
-(The automated tool can run only from MacOS and Linux)   
+(The automated tool can run only from MacOS and Linux. You can also upload all repo contents to the respective public cloud provider Cloud Shells and run directly from there).   
  
 **1. Greenfield Deployments**
 
@@ -23,10 +28,17 @@
 
 ```
 bash
-cd aws/deployment/terraform
-Edit the terraform.tfvars file under azure/deployment/terraform to setup your Cloud Connector(Details are documented inside the file)
-./zsec up
+cd examples
+Optional: Edit the terraform.tfvars file under your desired deployment type (ie: base_1cc) to setup your Cloud Connector (Details are documented inside the file)
+- ./zsec up
+- enter "greenfield"
+- enter <desired deployment type>
+- follow prompts for any additional configuration inputs. *keep in mind, any modifications done to terraform.tfvars first will override any inputs from the zsec script*
+- script will detect client operating system and download/run a specific version of terraform in a temporary bin directory
+- inputs will be validated and terraform init/apply will automatically exectute.
+- verify all resources that will be created/modified and enter "yes" to confirm
 ```
+
 **Greenfield Deployment Types:**
 
 ```
@@ -38,34 +50,46 @@ base_1cc_zpa: Everything from base_1cc Deployment Type + Creates 2 Route 53 subn
 base_2cc: Everything from base_1cc + Creates a second Cloud Connector in a new subnet/AZ w/ Lambda for HA failover of workload route tables
 base_2cc_zpa: Everything from Base_2cc + Creates 2 Route 53 subnets routing to service ENI of Cloud Connector; Route 53 outbound resolver endpoint; Route 53 resolver rules for ZPA
 base_cc_gwlb: Base Deployment Type + Creates 4 Cloud Connectors (2 per subnet/AZ) routing to NAT Gateway; Gateway Load Balancer auto registering service ips to target group with health checks; VPC Endpoint Service; 2 GWLB Endpoints (1 in each Cloud Connector subnet); workload private subnet routes repointed to the GWLBE in their same AZ
-base_cc_gwlb_zpa: Everything from base_cc_gwlb_zpa + Creates 2 Route 53 subnets routing to service ENI of Cloud Connector; Route 53 outbound resolver endpoint; Route 53 resolver rules for ZPA
+base_cc_gwlb_zpa: Everything from base_cc_gwlb + Creates 2 Route 53 subnets routing to service ENI of Cloud Connector; Route 53 outbound resolver endpoint; Route 53 resolver rules for ZPA
 ```
 
-## Destroying the cluster
+**2. Brownfield Deployments**
+
+(These templates would be most applicable for production deployments and have more customization options than a "base" deployments)
+
 ```
-./zsec destroy
+bash
+cd examples
+Optional: Edit the terraform.tfvars file under your desired deployment type (ie: cc_gwlb) to setup your Cloud Connector (Details are documented inside the file)
+- ./zsec up
+- enter "brownfield"
+- enter <desired deployment type>
+- follow prompts for any additional configuration inputs. *keep in mind, any modifications done to terraform.tfvars first will override any inputs from the zsec script*
+- script will detect client operating system and download/run a specific version of terraform in a temporary bin directory
+- inputs will be validated and terraform init/apply will automatically exectute.
+- verify all resources that will be created/modified and enter "yes" to confirm
 ```
 
-## Notes
-
-1. For auto approval set environment variable **AUTO_APPROVE** or add `export AUTO_APPROVE=1`
-2. For deployment type set environment variable **DTYPE** to the required deployment type or add `export DTYPE=base_1cc_zpa`
-3. To override the Cloud Connector instance type from m5.large, edit `ccvm_instance_type` in terraform.tfvars
-4. To provide new credentials or region, delete the autogenerated .zsecrc file in your current working directory and re-run zsec.
-
-**2. Brownfield Deployment Types**
+**Brownfield Deployment Types**
 
 ```
 Deployment Type: (cc_ha | cc_gwlb):
 cc_ha: Creates 1 new VPC with 2 public subnets and 2 Cloud Connector private subnets; 1 IGW; 2 NAT Gateways; 2 Cloud Connector VMs (1 per subnet/AZ) routing to the NAT Gateway in their same AZ; generates local key pair .pem file for ssh access; Number of Cloud Connectors and subnets deployed, ability to use existing resources (VPC, subnets, IGW, NAT Gateways), and toggle ZPA/R53 and Lambda HA failover features; generates local key pair .pem file for ssh access
 cc_gwlb: All options from cc_ha + replace lambda with Gateway Load Balancer auto registering service ips to target group with health checks; VPC Endpoint Service; 1 GWLB Endpoints per Cloud Connector subnet
-The following Cloud Connector terraform modules are provided for a brownfield deployment
 ```
 
-ls aws/deployment/terraform/tfdir/modules
-terraform-zscc-aws
-terraform-zsroute53-aws
-terraform-zslambda-aws
-terraform-zsgwlbendpoint-aws
-terraform-zsgwlb-aws
+## Destroying the cluster
+```
+cd examples
+- ./zsec destroy
+- enter "brownfield" or "greenfield" based on your original creation/up selection
+- enter "deployment type" from original creation/up selection
+- verify all resources that will be destroyed and enter "yes" to confirm
+```
+
+## Notes
+```
+1. For auto approval set environment variable **AUTO_APPROVE** or add `export AUTO_APPROVE=1`
+2. For deployment type set environment variable **DTYPE** to the required deployment type or add `export DTYPE=base_1cc_zpa`
+3. To provide new credentials or region, delete the autogenerated .zsecrc file in your current working directory and re-run zsec.
 ```

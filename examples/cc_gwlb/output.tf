@@ -53,5 +53,5 @@ output "testbedconfig" {
 
 resource "local_file" "testbed" {
   content  = local.testbedconfig
-  filename = "testbed.txt"
+  filename = "../testbed.txt"
 }

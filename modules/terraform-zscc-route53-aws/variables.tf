@@ -1,34 +1,43 @@
 variable "name_prefix" {
-  description = "A prefix to associate to all the Cloud Connector module resources"
-  default     = "zscaler-cc"
+  type        = string
+  description = "A prefix to associate to all Route 53 module resources"
+  default     = null
 }
 
 variable "resource_tag" {
-  description = "A tag to associate to all the Cloud Connector module resources"
-  default     = "cloud-connector"
+  type        = string
+  description = "A tag to associate to all Route 53 module resources"
+  default     = null
 }
 
-variable "vpc" {
-  description = "VPC id for the Route53 Endpoint"
+variable "global_tags" {
+  type        = map(string)
+  description = "Populate any custom user defined tags from a map"
+  default     = {}
+}
+
+variable "vpc_id" {
+  type        = string
+  description = "VPC ID for the Route 53 Endpoints"
 }
 
 variable "r53_subnet_ids" {
-  description = "Subnet IDs for the Route53 Endpoint"
+  type        = list(string)
+  description = "List of Subnet IDs for the Route53 Endpoint"
 }
 
 variable "domain_names" {
   type        = map(map(string))
   description = "Domain names fqdn/wildcard to have Route 53 redirect DNS requests to Cloud Connector for ZPA. Refer to terraform.tfvars step 10"
+  default = {
+    appseg01 = { domain_name = "example.com" }
+  }
 }
 
 variable "target_address" {
   type        = list(string)
   description = "Route 53 DNS queries will be forwarded to these Zscaler Global VIP addresses"
   default     = ["185.46.212.88", "185.46.212.89"]
-}
-
-variable "global_tags" {
-  description = "populate custom user provided tags"
 }
 
 variable "zscaler_domains" {

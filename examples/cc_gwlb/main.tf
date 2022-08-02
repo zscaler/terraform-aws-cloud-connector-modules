@@ -224,7 +224,7 @@ module "cc-vm" {
   name_prefix               = var.name_prefix
   resource_tag              = random_string.suffix.result
   global_tags               = local.global_tags
-  vpc                       = data.aws_vpc.selected.id
+  vpc_id                    = data.aws_vpc.selected.id
   mgmt_subnet_id            = data.aws_subnet.cc-selected.*.id
   service_subnet_id         = data.aws_subnet.cc-selected.*.id
   instance_key              = aws_key_pair.deployer.key_name
@@ -262,7 +262,7 @@ module "cc-sg" {
   name_prefix  = var.name_prefix
   resource_tag = random_string.suffix.result
   global_tags  = local.global_tags
-  vpc          = data.aws_vpc.selected.id
+  vpc_id       = data.aws_vpc.selected.id
 
   byo_security_group = var.byo_security_group
   # optional inputs. only required if byo_security_group set to true
@@ -279,7 +279,7 @@ module "gwlb" {
   name_prefix              = var.name_prefix
   resource_tag             = random_string.suffix.result
   global_tags              = local.global_tags
-  vpc                      = data.aws_vpc.selected.id
+  vpc_id                   = data.aws_vpc.selected.id
   cc_subnet_ids            = data.aws_subnet.cc-selected.*.id
   cc_small_service_ips     = module.cc-vm.cc_service_private_ip
   cc_med_lrg_service_1_ips = module.cc-vm.cc_med_lrg_service_1_private_ip
@@ -287,23 +287,23 @@ module "gwlb" {
   cc_lrg_service_3_ips     = module.cc-vm.cc_lrg_service_3_private_ip
   cc_instance_size         = var.cc_instance_size
   http_probe_port          = var.http_probe_port
+  health_check_interval    = var.health_check_interval
+  healthy_threshold        = var.healthy_threshold
+  unhealthy_threshold      = var.unhealthy_threshold
   cross_zone_lb_enabled    = var.cross_zone_lb_enabled
-  interval                 = 10
-  healthy_threshold        = 3
-  unhealthy_threshold      = 3
 }
 
 
 
 # 4. Create Endpoint Service associated with GWLB and 1x GWLB Endpoint per CC subnet
 module "gwlb-endpoint" {
-  source        = "../../modules/terraform-zscc-gwlbendpoint-aws"
-  name_prefix   = var.name_prefix
-  resource_tag  = random_string.suffix.result
-  global_tags   = local.global_tags
-  vpc           = data.aws_vpc.selected.id
-  cc_subnet_ids = data.aws_subnet.cc-selected.*.id
-  gwlb_arn      = module.gwlb.gwlb_arn
+  source       = "../../modules/terraform-zscc-gwlbendpoint-aws"
+  name_prefix  = var.name_prefix
+  resource_tag = random_string.suffix.result
+  global_tags  = local.global_tags
+  vpc_id       = data.aws_vpc.selected.id
+  subnet_ids   = data.aws_subnet.cc-selected.*.id
+  gwlb_arn     = module.gwlb.gwlb_arn
 }
 
 
@@ -348,7 +348,7 @@ module "route53" {
   name_prefix    = var.name_prefix
   resource_tag   = random_string.suffix.result
   global_tags    = local.global_tags
-  vpc            = data.aws_vpc.selected.id
+  vpc_id         = data.aws_vpc.selected.id
   r53_subnet_ids = aws_subnet.r53-subnet.*.id
   domain_names   = var.domain_names
   target_address = var.target_address

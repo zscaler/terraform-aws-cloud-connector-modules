@@ -1,29 +1,30 @@
-# aws variables
-
 variable "aws_region" {
+  type        = string
   description = "The AWS region."
   default     = "us-west-2"
 }
 
 variable "name_prefix" {
+  type        = string
   description = "The name prefix for all your resources"
   default     = "zsdemo"
-  type        = string
 }
 
 variable "vpc_cidr" {
+  type        = string
   description = "VPC CIDR"
   default     = "10.1.0.0/16"
 }
 
-variable "cc_count" {
-  description = "Default number of Cloud Connector appliances to create"
+variable "workload_count" {
+  type        = number
+  description = "Default number of workload VMs to create"
   default     = 2
 }
 
 variable "az_count" {
-  description = "Default number of subnets to create based on availability zone"
   type        = number
+  description = "Default number of subnets to create based on availability zone"
   default     = 2
   validation {
     condition = (
@@ -33,30 +34,32 @@ variable "az_count" {
   }
 }
 
-variable "http_probe_port" {
-  description = "port for Cloud Connector cloud init to enable listener port for HTTP probe from LB"
-  default     = 0
-  validation {
-    condition = (
-      var.http_probe_port == 0 ||
-      var.http_probe_port == 80 ||
-      (var.http_probe_port >= 1024 && var.http_probe_port <= 65535)
-    )
-    error_message = "Input http_probe_port must be set to a single value of 80 or any number between 1024-65535."
-  }
+variable "owner_tag" {
+  type        = string
+  description = "populate custom owner tag attribute"
+  default     = "zscc-admin"
 }
 
-variable "cc_vm_prov_url" {
-  description = "Zscaler Cloud Connector Provisioning URL"
+variable "tls_key_algorithm" {
   type        = string
+  description = "algorithm for tls_private_key resource"
+  default     = "RSA"
 }
 
-variable "secret_name" {
-  description = "AWS Secrets Manager Secret Name for Cloud Connector provisioning"
-  type        = string
+variable "bastion_nsg_source_prefix" {
+  type        = list(string)
+  description = "CIDR blocks of trusted networks for bastion host ssh access"
+  default     = ["0.0.0.0/0"]
+}
+
+variable "cc_count" {
+  type        = number
+  description = "Default number of Cloud Connector appliances to create"
+  default     = 2
 }
 
 variable "ccvm_instance_type" {
+  type        = string
   description = "Cloud Connector Instance Type"
   default     = "m5.large"
   validation {
@@ -74,19 +77,10 @@ variable "ccvm_instance_type" {
   }
 }
 
-variable "owner_tag" {
-  description = "populate custom owner tag attribute"
-  type        = string
-  default     = "zscc-admin"
-}
-
-variable "tls_key_algorithm" {
-  default = "RSA"
-  type    = string
-}
-
 variable "cc_instance_size" {
-  default = "small"
+  type        = string
+  description = "Cloud Connector Instance size. Determined by and needs to match  the Cloud Connector Portal provisioning template configuration"
+  default     = "small"
   validation {
     condition = (
       var.cc_instance_size == "small" ||
@@ -97,54 +91,7 @@ variable "cc_instance_size" {
   }
 }
 
-variable "byo_vpc" {
-  default     = false
-  type        = bool
-  description = "Bring your own AWS VPC for Cloud Connector"
-}
-
-variable "byo_vpc_id" {
-  default     = null
-  type        = string
-  description = "User provided existing AWS VPC ID"
-}
-
-variable "byo_subnets" {
-  default     = false
-  type        = bool
-  description = "Bring your own AWS Subnets for Cloud Connector"
-}
-
-variable "byo_subnet_ids" {
-  default     = null
-  type        = list(string)
-  description = "User provided existing AWS Subnet IDs"
-}
-
-variable "byo_igw" {
-  default     = false
-  type        = bool
-  description = "Bring your own AWS VPC for Cloud Connector"
-}
-
-variable "byo_igw_id" {
-  default     = null
-  type        = string
-  description = "User provided existing AWS Internet Gateway ID"
-}
-
-variable "byo_ngw" {
-  default     = false
-  type        = bool
-  description = "Bring your own AWS NAT Gateway(s) Cloud Connector"
-}
-
-variable "byo_ngw_ids" {
-  default     = null
-  type        = list(string)
-  description = "User provided existing AWS NAT Gateway IDs"
-}
-
+# Validation to ensure that ccvm_instance_type and cc_instance_size are set appropriately
 locals {
   small_cc_instance  = ["t3.medium", "m5.large", "c5.large", "c5a.large", "m5.2xlarge", "c5.2xlarge", "m5.4xlarge", "c5.4xlarge"]
   medium_cc_instance = ["m5.2xlarge", "c5.2xlarge", "m5.4xlarge", "c5.4xlarge"]
@@ -157,16 +104,82 @@ locals {
   )
 }
 
-variable "cross_zone_lb_enabled" {
-  default     = false
+variable "cc_vm_prov_url" {
+  type        = string
+  description = "Zscaler Cloud Connector Provisioning URL"
+}
+
+variable "secret_name" {
+  type        = string
+  description = "AWS Secrets Manager Secret Name for Cloud Connector provisioning"
+}
+
+variable "http_probe_port" {
+  description = "port for Cloud Connector cloud init to enable listener port for HTTP probe from LB"
+  default     = 50000
+  validation {
+    condition = (
+      var.http_probe_port == 80 ||
+      (var.http_probe_port >= 1024 && var.http_probe_port <= 65535)
+    )
+    error_message = "Input http_probe_port must be set to a single value of 80 or any number between 1024-65535."
+  }
+}
+
+variable "cc_callhome_enabled" {
   type        = bool
-  description = "Toggle cross-zone loadbalancing of GWLB on/off"
+  description = "determine whether or not to create the cc-callhome-policy IAM Policy and attach it to the CC IAM Role"
+  default     = true
+}
+
+variable "reuse_security_group" {
+  type        = bool
+  description = "Specifies whether the SG module should create 1:1 security groups per instance or 1 security group for all instances"
+  default     = false
+}
+
+variable "reuse_iam" {
+  type        = bool
+  description = "Specifies whether the SG module should create 1:1 IAM per instance or 1 IAM for all instances"
+  default     = false
+}
+
+variable "health_check_interval" {
+  type        = number
+  description = "Interval for GWLB target group health check probing, in seconds, of Cloud Connector targets. Minimum 5 and maximum 300 seconds"
+  default     = 10
+}
+
+variable "healthy_threshold" {
+  type        = number
+  description = "The number of successful health checks required before an unhealthy target becomes healthy. Minimum 2 and maximum 10"
+  default     = 3
+}
+
+variable "unhealthy_threshold" {
+  type        = number
+  description = "The number of unsuccessful health checks required before an healthy target becomes unhealthy. Minimum 2 and maximum 10"
+  default     = 3
+}
+
+variable "cross_zone_lb_enabled" {
+  type        = bool
+  description = "Determines whether GWLB cross zone load balancing should be enabled or not"
+  default     = false
+}
+
+variable "zpa_enabled" {
+  type        = bool
+  default     = false
+  description = "Configure Route 53 Subnets, Route Tables, and Resolvers for ZPA DNS redirection"
 }
 
 variable "domain_names" {
   type        = map(map(string))
   description = "Domain names fqdn/wildcard to have Route 53 redirect DNS requests to Cloud Connector for ZPA. Refer to terraform.tfvars step 10"
-  default     = null
+  default = {
+    appseg01 = { domain_name = "example.com" }
+  }
 }
 
 variable "target_address" {
@@ -175,68 +188,95 @@ variable "target_address" {
   default     = ["185.46.212.88", "185.46.212.89"]
 }
 
-variable "zpa_enabled" {
+
+# BYO (Bring-your-own) variables list
+
+variable "byo_vpc" {
+  type        = bool
+  description = "Bring your own AWS VPC for Cloud Connector"
   default     = false
-  type        = bool
-  description = "Configure Route 53 Subnets, Route Tables, and Resolvers for ZPA DNS redirection"
 }
 
-variable "workload_route_table_ids_to_cc_1" {
+variable "byo_vpc_id" {
+  type        = string
+  description = "User provided existing AWS VPC ID"
   default     = null
-  type        = list(string)
-  description = "User provided existing AWS Route Table IDs sending to Cloud Connector 1 in pair"
 }
 
-variable "workload_route_table_ids_to_cc_2" {
+variable "byo_subnets" {
+  type        = bool
+  description = "Bring your own AWS Subnets for Cloud Connector"
+  default     = false
+}
+
+variable "byo_subnet_ids" {
+  type        = list(string)
+  description = "User provided existing AWS Subnet IDs"
   default     = null
+}
+
+variable "byo_igw" {
+  type        = bool
+  description = "Bring your own AWS VPC for Cloud Connector"
+  default     = false
+}
+
+variable "byo_igw_id" {
+  type        = string
+  description = "User provided existing AWS Internet Gateway ID"
+  default     = null
+}
+
+variable "byo_ngw" {
+  type        = bool
+  description = "Bring your own AWS NAT Gateway(s) Cloud Connector"
+  default     = false
+}
+
+variable "byo_ngw_ids" {
   type        = list(string)
-  description = "User provided existing AWS Route Table IDs sending to Cloud Connector 2 in pair"
-}
-
-variable "cc_callhome_enabled" {
-  description = "determine whether or not to create the cc-callhome-policy IAM Policy and attach it to the CC IAM Role"
-  default     = "true"
-  type        = bool
-}
-
-variable "reuse_security_group" {
-  description = "Specifies whether the SG module should create 1:1 security groups per instance or 1 security group for all instances"
-  default     = "false"
-  type        = bool
-}
-
-variable "reuse_iam" {
-  description = "Specifies whether the SG module should create 1:1 IAM per instance or 1 IAM for all instances"
-  default     = "false"
-  type        = bool
+  description = "User provided existing AWS NAT Gateway IDs"
+  default     = null
 }
 
 variable "byo_iam" {
-  default     = false
   type        = bool
   description = "Bring your own IAM Instance Profile for Cloud Connector"
+  default     = false
 }
 
 variable "byo_iam_instance_profile_id" {
   type        = list(string)
-  default     = null
   description = "IAM Instance Profile ID for Cloud Connector association"
+  default     = null
 }
 
 variable "byo_security_group" {
-  default     = false
   type        = bool
   description = "Bring your own Security Group for Cloud Connector"
+  default     = false
 }
 
 variable "byo_mgmt_security_group_id" {
   type        = list(string)
-  default     = null
   description = "Management Security Group ID for Cloud Connector association"
+  default     = null
 }
 
 variable "byo_service_security_group_id" {
   type        = list(string)
-  default     = null
   description = "Service Security Group ID for Cloud Connector association"
+  default     = null
+}
+
+variable "workload_route_table_ids_to_cc_1" {
+  type        = list(string)
+  description = "User provided existing AWS Route Table IDs sending to Cloud Connector 1 in pair"
+  default     = null
+}
+
+variable "workload_route_table_ids_to_cc_2" {
+  type        = list(string)
+  description = "User provided existing AWS Route Table IDs sending to Cloud Connector 2 in pair"
+  default     = null
 }
