@@ -49,11 +49,11 @@ From cc_gwlb directory execute:
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.7.0 |
-| <a name="provider_local"></a> [local](#provider\_local) | 2.2.3 |
-| <a name="provider_null"></a> [null](#provider\_null) | 3.1.1 |
-| <a name="provider_random"></a> [random](#provider\_random) | 3.3.2 |
-| <a name="provider_tls"></a> [tls](#provider\_tls) | 3.4.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 4.7.0 |
+| <a name="provider_local"></a> [local](#provider\_local) | ~> 2.2.0 |
+| <a name="provider_null"></a> [null](#provider\_null) | ~> 3.1.0 |
+| <a name="provider_random"></a> [random](#provider\_random) | ~> 3.3.0 |
+| <a name="provider_tls"></a> [tls](#provider\_tls) | ~> 3.4.0 |
 
 ## Modules
 
@@ -64,41 +64,25 @@ From cc_gwlb directory execute:
 | <a name="module_cc-vm"></a> [cc-vm](#module\_cc-vm) | ../../modules/terraform-zscc-ccvm-aws | n/a |
 | <a name="module_gwlb"></a> [gwlb](#module\_gwlb) | ../../modules/terraform-zscc-gwlb-aws | n/a |
 | <a name="module_gwlb-endpoint"></a> [gwlb-endpoint](#module\_gwlb-endpoint) | ../../modules/terraform-zscc-gwlbendpoint-aws | n/a |
+| <a name="module_network"></a> [network](#module\_network) | ../../modules/terraform-zscc-network-aws | n/a |
 | <a name="module_route53"></a> [route53](#module\_route53) | ../../modules/terraform-zscc-route53-aws | n/a |
 
 ## Resources
 
 | Name | Type |
 |------|------|
-| [aws_eip.eip](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
-| [aws_internet_gateway.igw1](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway) | resource |
 | [aws_key_pair.deployer](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/key_pair) | resource |
-| [aws_nat_gateway.ngw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/nat_gateway) | resource |
-| [aws_route_table.cc-rt](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
-| [aws_route_table.routetablepublic1](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
-| [aws_route_table.rt-r53](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
-| [aws_route_table_association.cc-rt-asssociation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
-| [aws_route_table_association.r53-rt-asssociation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
-| [aws_route_table_association.routetablepublic1](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
-| [aws_subnet.cc-subnet](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
-| [aws_subnet.pubsubnet](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
-| [aws_subnet.r53-subnet](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
-| [aws_vpc.vpc1](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc) | resource |
 | [local_file.testbed](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.user-data-file](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [null_resource.cc-error-checker](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [random_string.suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) | resource |
 | [tls_private_key.key](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
-| [aws_availability_zones.available](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/availability_zones) | data source |
-| [aws_internet_gateway.selected](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/internet_gateway) | data source |
-| [aws_nat_gateway.selected](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/nat_gateway) | data source |
-| [aws_subnet.cc-selected](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/subnet) | data source |
-| [aws_vpc.selected](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/vpc) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_associate_public_ip_address"></a> [associate\_public\_ip\_address](#input\_associate\_public\_ip\_address) | Default is false. If true, Cloud Connector Route Tables will route directly to selected IGW instead of NAT Gateway | `bool` | `false` | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region. | `string` | `"us-west-2"` | no |
 | <a name="input_az_count"></a> [az\_count](#input\_az\_count) | Default number of subnets to create based on availability zone | `number` | `2` | no |
 | <a name="input_bastion_nsg_source_prefix"></a> [bastion\_nsg\_source\_prefix](#input\_bastion\_nsg\_source\_prefix) | CIDR blocks of trusted networks for bastion host ssh access | `list(string)` | <pre>[<br>  "0.0.0.0/0"<br>]</pre> | no |
@@ -122,6 +106,7 @@ From cc_gwlb directory execute:
 | <a name="input_ccvm_instance_type"></a> [ccvm\_instance\_type](#input\_ccvm\_instance\_type) | Cloud Connector Instance Type | `string` | `"m5.large"` | no |
 | <a name="input_cross_zone_lb_enabled"></a> [cross\_zone\_lb\_enabled](#input\_cross\_zone\_lb\_enabled) | Determines whether GWLB cross zone load balancing should be enabled or not | `bool` | `false` | no |
 | <a name="input_domain_names"></a> [domain\_names](#input\_domain\_names) | Domain names fqdn/wildcard to have Route 53 redirect DNS requests to Cloud Connector for ZPA. Refer to terraform.tfvars step 10 | `map(map(string))` | <pre>{<br>  "appseg01": {<br>    "domain_name": "example.com"<br>  }<br>}</pre> | no |
+| <a name="input_gwlb_enabled"></a> [gwlb\_enabled](#input\_gwlb\_enabled) | Default is true. Workload/Route 53 subnet route tables will point to vpc\_endpoint\_id via var.gwlb\_endpoint\_ids input. If false, these Route Tables will point to network\_interface\_id via var.cc\_service\_enis | `bool` | `true` | no |
 | <a name="input_health_check_interval"></a> [health\_check\_interval](#input\_health\_check\_interval) | Interval for GWLB target group health check probing, in seconds, of Cloud Connector targets. Minimum 5 and maximum 300 seconds | `number` | `10` | no |
 | <a name="input_healthy_threshold"></a> [healthy\_threshold](#input\_healthy\_threshold) | The number of successful health checks required before an unhealthy target becomes healthy. Minimum 2 and maximum 10 | `number` | `3` | no |
 | <a name="input_http_probe_port"></a> [http\_probe\_port](#input\_http\_probe\_port) | port for Cloud Connector cloud init to enable listener port for HTTP probe from LB | `number` | `50000` | no |
@@ -135,6 +120,7 @@ From cc_gwlb directory execute:
 | <a name="input_unhealthy_threshold"></a> [unhealthy\_threshold](#input\_unhealthy\_threshold) | The number of unsuccessful health checks required before an healthy target becomes unhealthy. Minimum 2 and maximum 10 | `number` | `3` | no |
 | <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | VPC CIDR | `string` | `"10.1.0.0/16"` | no |
 | <a name="input_workload_count"></a> [workload\_count](#input\_workload\_count) | Default number of workload VMs to create | `number` | `2` | no |
+| <a name="input_workloads_enabled"></a> [workloads\_enabled](#input\_workloads\_enabled) | Configure Workload Subnets, Route Tables, and associations if set to true | `bool` | `false` | no |
 | <a name="input_zpa_enabled"></a> [zpa\_enabled](#input\_zpa\_enabled) | Configure Route 53 Subnets, Route Tables, and Resolvers for ZPA DNS redirection | `bool` | `false` | no |
 
 ## Outputs

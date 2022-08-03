@@ -39,6 +39,50 @@ EOF
 }
 
 
+# 1. Create/reference all network infrastructure resource dependencies for all child modules (vpc, igw, nat gateway, subnets, route tables)
+module "network" {
+  source                      = "../../modules/terraform-zscc-network-aws"
+  name_prefix                 = var.name_prefix
+  resource_tag                = random_string.suffix.result
+  global_tags                 = local.global_tags
+  workloads_enabled           = true
+  az_count                    = var.az_count
+  vpc_cidr                    = var.vpc_cidr
+  associate_public_ip_address = var.associate_public_ip_address
+  gwlb_enabled                = var.gwlb_enabled
+  gwlb_endpoint_ids           = module.gwlb-endpoint.gwlbe
+}
+
+
+# 2. Create Bastion Host
+module "bastion" {
+  source                    = "../../modules/terraform-zscc-bastion-aws"
+  name_prefix               = var.name_prefix
+  resource_tag              = random_string.suffix.result
+  global_tags               = local.global_tags
+  vpc_id                    = module.network.vpc-id
+  public_subnet             = module.network.public-subnet-ids[0]
+  instance_key              = aws_key_pair.deployer.key_name
+  bastion_nsg_source_prefix = var.bastion_nsg_source_prefix
+}
+
+
+# 3. Create Workloads
+module "workload" {
+  workload_count = var.workload_count
+  source         = "../../modules/terraform-zscc-workload-aws"
+  name_prefix    = "${var.name_prefix}-workload"
+  resource_tag   = random_string.suffix.result
+  global_tags    = local.global_tags
+  vpc_id         = module.network.vpc-id
+  subnet_id      = module.network.workload-subnet-ids
+  instance_key   = aws_key_pair.deployer.key_name
+}
+
+
+# 4. Create X CC VMs per cc_count which will span equally across designated availability zones per az_count
+#    E.g. cc_count set to 4 and az_count set to 2 will create 2x CCs in AZ1 and 2x CCs in AZ2
+
 ## Create the user_data file
 locals {
   userdata = <<USERDATA
@@ -54,197 +98,15 @@ resource "local_file" "user-data-file" {
   filename = "../user_data"
 }
 
-
-# 1. Network Creation
-# Identify availability zones available for region selected
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
-
-# Create a new VPC
-resource "aws_vpc" "vpc1" {
-  cidr_block           = var.vpc_cidr
-  enable_dns_hostnames = true
-
-  tags = merge(local.global_tags,
-    { Name = "${var.name_prefix}-vpc1-${random_string.suffix.result}" }
-  )
-}
-
-
-# Create an Internet Gateway
-resource "aws_internet_gateway" "igw1" {
-  vpc_id = aws_vpc.vpc1.id
-
-  tags = merge(local.global_tags,
-    { Name = "${var.name_prefix}-vpc1-igw-${random_string.suffix.result}" }
-  )
-}
-
-
-# Create equal number of Public/NAT Subnets and Private/Workload Subnets to how many Cloud Connector subnets exist. 
-resource "aws_subnet" "pubsubnet" {
-  count             = length(aws_subnet.cc-subnet.*.id)
-  availability_zone = data.aws_availability_zones.available.names[count.index]
-  cidr_block        = cidrsubnet(aws_vpc.vpc1.cidr_block, 8, count.index + 101)
-  vpc_id            = aws_vpc.vpc1.id
-
-  tags = merge(local.global_tags,
-    { Name = "${var.name_prefix}-vpc1-public-subnet-${count.index + 1}-${random_string.suffix.result}" }
-  )
-}
-
-
-resource "aws_subnet" "privsubnet" {
-  count             = length(aws_subnet.cc-subnet.*.id)
-  availability_zone = data.aws_availability_zones.available.names[count.index]
-  cidr_block        = cidrsubnet(aws_vpc.vpc1.cidr_block, 8, count.index + 1)
-  vpc_id            = aws_vpc.vpc1.id
-
-  tags = merge(local.global_tags,
-    { Name = "${var.name_prefix}-vpc1-workload-subnet-${count.index + 1}-${random_string.suffix.result}" }
-  )
-}
-
-
-# Create a public Route Table towards IGW
-resource "aws_route_table" "routetablepublic1" {
-  vpc_id = aws_vpc.vpc1.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw1.id
-  }
-
-  tags = merge(local.global_tags,
-    { Name = "${var.name_prefix}-igw-rt-${random_string.suffix.result}" }
-  )
-}
-
-
-# Create equal number of Route Table associations to how many Public subnets exist. 
-resource "aws_route_table_association" "routetablepublic1" {
-  count          = length(aws_subnet.pubsubnet.*.id)
-  subnet_id      = aws_subnet.pubsubnet.*.id[count.index]
-  route_table_id = aws_route_table.routetablepublic1.id
-}
-
-
-# Create NAT Gateway and assign EIP per AZ.
-resource "aws_eip" "eip" {
-  count      = length(aws_subnet.pubsubnet.*.id)
-  vpc        = true
-  depends_on = [aws_internet_gateway.igw1]
-
-  tags = merge(local.global_tags,
-    { Name = "${var.name_prefix}-eip-az${count.index + 1}-${random_string.suffix.result}" }
-  )
-}
-
-
-# Create 1 NAT Gateway per Public Subnet.
-resource "aws_nat_gateway" "ngw" {
-  count         = length(aws_subnet.pubsubnet.*.id)
-  allocation_id = aws_eip.eip.*.id[count.index]
-  subnet_id     = aws_subnet.pubsubnet.*.id[count.index]
-  depends_on    = [aws_internet_gateway.igw1]
-
-  tags = merge(local.global_tags,
-    { Name = "${var.name_prefix}-vpc1-natgw-az${count.index + 1}-${random_string.suffix.result}" }
-  )
-}
-
-
-# 2. Create Bastion Host
-module "bastion" {
-  source                    = "../../modules/terraform-zscc-bastion-aws"
-  name_prefix               = var.name_prefix
-  resource_tag              = random_string.suffix.result
-  global_tags               = local.global_tags
-  vpc_id                    = aws_vpc.vpc1.id
-  public_subnet             = aws_subnet.pubsubnet.0.id
-  instance_key              = aws_key_pair.deployer.key_name
-  bastion_nsg_source_prefix = var.bastion_nsg_source_prefix
-}
-
-
-
-# 3. Create Workload
-# Create Workloads
-module "workload" {
-  workload_count = var.workload_count
-  source         = "../../modules/terraform-zscc-workload-aws"
-  name_prefix    = "${var.name_prefix}-workload"
-  resource_tag   = random_string.suffix.result
-  global_tags    = local.global_tags
-  vpc_id         = aws_vpc.vpc1.id
-  subnet_id      = aws_subnet.privsubnet.*.id
-  instance_key   = aws_key_pair.deployer.key_name
-}
-
-
-# 4. Create CC network, routing, and appliance
-# Create subnet for CC network
-resource "aws_subnet" "cc-subnet" {
-  count = var.az_count
-
-  availability_zone = data.aws_availability_zones.available.names[count.index]
-  cidr_block        = cidrsubnet(aws_vpc.vpc1.cidr_block, 8, count.index + 200)
-  vpc_id            = aws_vpc.vpc1.id
-
-  tags = merge(local.global_tags,
-    { Name = "${var.name_prefix}-vpc1-cc-subnet-${count.index + 1}-${random_string.suffix.result}" }
-  )
-}
-
-
-# Create Route Tables for CC subnets pointing to NAT Gateway resource in each AZ
-resource "aws_route_table" "cc-rt" {
-  count  = length(aws_subnet.cc-subnet.*.id)
-  vpc_id = aws_vpc.vpc1.id
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = element(aws_nat_gateway.ngw.*.id, count.index)
-  }
-
-  tags = merge(local.global_tags,
-    { Name = "${var.name_prefix}-cc-rt-ngw-${count.index + 1}-${random_string.suffix.result}" }
-  )
-}
-
-
-# CC subnet NATGW Route Table Association
-resource "aws_route_table_association" "cc-rt-asssociation" {
-  count          = length(aws_subnet.cc-subnet.*.id)
-  subnet_id      = aws_subnet.cc-subnet.*.id[count.index]
-  route_table_id = aws_route_table.cc-rt.*.id[count.index]
-}
-
-
-# Validation for Cloud Connector instance size and EC2 Instance Type compatibilty. A file will get generated in root path if this error gets triggered.
-resource "null_resource" "cc-error-checker" {
-  count = local.valid_cc_create ? 0 : 1 # 0 means no error is thrown, else throw error
-  provisioner "local-exec" {
-    command = <<EOF
-      echo "Cloud Connector parameters were invalid. No appliances were created. Please check the documentation and cc_instance_size / ccvm_instance_type values that were chosen" >> ../errorlog.txt
-EOF
-  }
-}
-
-
-
-# Create X CC VMs per cc_count which will span equally across designated availability zones per az_count
-# E.g. cc_count set to 4 and az_count set to 2 will create 2x CCs in AZ1 and 2x CCs in AZ2
 module "cc-vm" {
   source                    = "../../modules/terraform-zscc-ccvm-aws"
   cc_count                  = var.cc_count
   name_prefix               = var.name_prefix
   resource_tag              = random_string.suffix.result
   global_tags               = local.global_tags
-  vpc_id                    = aws_vpc.vpc1.id
-  mgmt_subnet_id            = aws_subnet.cc-subnet.*.id
-  service_subnet_id         = aws_subnet.cc-subnet.*.id
+  vpc_id                    = module.network.vpc-id
+  mgmt_subnet_id            = module.network.cc-subnet-ids
+  service_subnet_id         = module.network.cc-subnet-ids
   instance_key              = aws_key_pair.deployer.key_name
   user_data                 = local.userdata
   ccvm_instance_type        = var.ccvm_instance_type
@@ -255,8 +117,8 @@ module "cc-vm" {
 }
 
 
-# Create IAM Policy, Roles, and Instance Profiles to be assigned to CC appliances. Default behavior will create 1 of each resource per CC VM. Set variable reuse_iam to true
-# if you would like a single IAM profile created and assigned to ALL Cloud Connectors
+# 5. Create IAM Policy, Roles, and Instance Profiles to be assigned to CC appliances. Default behavior will create 1 of each resource per CC VM. Set variable reuse_iam to true
+#    if you would like a single IAM profile created and assigned to ALL Cloud Connectors
 module "cc-iam" {
   source              = "../../modules/terraform-zscc-iam-aws"
   iam_count           = var.reuse_iam == false ? var.cc_count : 1
@@ -266,28 +128,28 @@ module "cc-iam" {
   cc_callhome_enabled = var.cc_callhome_enabled
 }
 
-# Create Security Group and rules to be assigned to CC mgmt and and service interface(s). Default behavior will create 1 of each resource per CC VM. Set variable reuse_security_group
-# to true if you would like a single security group created and assigned to ALL Cloud Connectors
+
+# 6. Create Security Group and rules to be assigned to CC mgmt and and service interface(s). Default behavior will create 1 of each resource per CC VM. Set variable reuse_security_group
+#    to true if you would like a single security group created and assigned to ALL Cloud Connectors
 module "cc-sg" {
   source       = "../../modules/terraform-zscc-sg-aws"
   sg_count     = var.reuse_security_group == false ? var.cc_count : 1
   name_prefix  = var.name_prefix
   resource_tag = random_string.suffix.result
   global_tags  = local.global_tags
-  vpc_id       = aws_vpc.vpc1.id
+  vpc_id       = module.network.vpc-id
 }
 
 
-
-# 5. Create GWLB in all CC subnets. Create Target Group and attach primary service IP from all created Cloud
+# 7. Create GWLB in all CC subnets. Create Target Group and attach primary service IP from all created Cloud
 #    Connectors as registered targets.
 module "gwlb" {
   source                   = "../../modules/terraform-zscc-gwlb-aws"
   name_prefix              = var.name_prefix
   resource_tag             = random_string.suffix.result
   global_tags              = local.global_tags
-  vpc_id                   = aws_vpc.vpc1.id
-  cc_subnet_ids            = aws_subnet.cc-subnet.*.id
+  vpc_id                   = module.network.vpc-id
+  cc_subnet_ids            = module.network.cc-subnet-ids
   cc_small_service_ips     = module.cc-vm.cc_service_private_ip
   cc_med_lrg_service_1_ips = module.cc-vm.cc_med_lrg_service_1_private_ip
   cc_med_lrg_service_2_ips = module.cc-vm.cc_med_lrg_service_2_private_ip
@@ -300,39 +162,25 @@ module "gwlb" {
   cross_zone_lb_enabled    = var.cross_zone_lb_enabled
 }
 
-# 6. Create Endpoint Service associated with GWLB and 1x GWLB Endpoint per CC subnet
+
+# 8. Create Endpoint Service associated with GWLB and 1x GWLB Endpoint per CC subnet
 module "gwlb-endpoint" {
   source       = "../../modules/terraform-zscc-gwlbendpoint-aws"
   name_prefix  = var.name_prefix
   resource_tag = random_string.suffix.result
   global_tags  = local.global_tags
-  vpc_id       = aws_vpc.vpc1.id
-  subnet_ids   = aws_subnet.cc-subnet.*.id
+  vpc_id       = module.network.vpc-id
+  subnet_ids   = module.network.cc-subnet-ids
   gwlb_arn     = module.gwlb.gwlb_arn
 }
 
 
-
-# 7. Create Route Table for private subnets (workload servers) towards CC Service ENI or GWLB Endpoint
-# Create Workload Route Table
-
-# Create Route Table for private subnet pointing to the GWLB Endpoint in the same AZ
-resource "aws_route_table" "routetableprivate" {
-  count  = length(aws_subnet.privsubnet.*.id)
-  vpc_id = aws_vpc.vpc1.id
-  route {
-    cidr_block      = "0.0.0.0/0"
-    vpc_endpoint_id = element(module.gwlb-endpoint.gwlbe, count.index)
+# Validation for Cloud Connector instance size and EC2 Instance Type compatibilty. A file will get generated in root path if this error gets triggered.
+resource "null_resource" "cc-error-checker" {
+  count = local.valid_cc_create ? 0 : 1 # 0 means no error is thrown, else throw error
+  provisioner "local-exec" {
+    command = <<EOF
+      echo "Cloud Connector parameters were invalid. No appliances were created. Please check the documentation and cc_instance_size / ccvm_instance_type values that were chosen" >> ../errorlog.txt
+EOF
   }
-
-  tags = merge(local.global_tags,
-    { Name = "${var.name_prefix}-private-to-gwlbe-${count.index + 1}-rt-${random_string.suffix.result}" }
-  )
-}
-
-# Create Workload Route Table Association
-resource "aws_route_table_association" "private-rt-asssociation" {
-  count          = length(aws_subnet.privsubnet.*.id)
-  subnet_id      = aws_subnet.privsubnet.*.id[count.index]
-  route_table_id = aws_route_table.routetableprivate.*.id[count.index]
 }

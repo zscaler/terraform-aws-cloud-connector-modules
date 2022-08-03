@@ -167,3 +167,21 @@ variable "cross_zone_lb_enabled" {
   description = "Determines whether GWLB cross zone load balancing should be enabled or not"
   default     = false
 }
+
+variable "zpa_enabled" {
+  type        = bool
+  default     = false
+  description = "Configure Route 53 Subnets, Route Tables, and Resolvers for ZPA DNS redirection"
+}
+
+variable "associate_public_ip_address" {
+  type        = bool
+  default     = false
+  description = "Default is false. If true, Cloud Connector Route Tables will route directly to selected IGW instead of NAT Gateway"
+}
+
+variable "gwlb_enabled" {
+  type        = bool
+  default     = true
+  description = "Default is false. Workload/Route 53 subnet Route Tables will point to network_interface_id via var.cc_service_enis. If true, Route Tables will point to vpc_endpoint_id via var.gwlb_endpoint_ids input."
+}
