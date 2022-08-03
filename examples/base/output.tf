@@ -14,11 +14,11 @@ ssh -i ${var.name_prefix}-key-${random_string.suffix.result}.pem centos@${module
 All Workload IPs. Replace private IP below with centos@"ip address" in ssh example command above.
 ${join("\n", module.workload.private_ip)}
 
-VPC:          ${aws_vpc.vpc1.id}
-NAT GW IP:    ${aws_nat_gateway.ngw[0].public_ip}
+VPC:         
+${module.network.vpc-id}
 
 All NAT GW IPs:
-${join("\n", aws_nat_gateway.ngw.*.public_ip)}
+${join("\n", module.network.nat-gateway-ips)}
 
 TB
 }

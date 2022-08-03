@@ -188,6 +188,23 @@ variable "target_address" {
   default     = ["185.46.212.88", "185.46.212.89"]
 }
 
+variable "workloads_enabled" {
+  type        = bool
+  default     = false
+  description = "Configure Workload Subnets, Route Tables, and associations if set to true"
+}
+
+variable "gwlb_enabled" {
+  type        = bool
+  default     = true
+  description = "Default is true. Workload/Route 53 subnet route tables will point to vpc_endpoint_id via var.gwlb_endpoint_ids input. If false, these Route Tables will point to network_interface_id via var.cc_service_enis"
+}
+
+variable "associate_public_ip_address" {
+  type        = bool
+  default     = false
+  description = "Default is false. If true, Cloud Connector Route Tables will route directly to selected IGW instead of NAT Gateway"
+}
 
 
 # BYO (Bring-your-own) variables list

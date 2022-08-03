@@ -4,7 +4,7 @@ locals {
 
 
 VPC:         
-${data.aws_vpc.selected.id}
+${module.network.vpc-id}
 
 All CC AZs:
 ${join("\n", distinct(module.cc-vm.availability_zone))}
@@ -32,7 +32,7 @@ All CC Primary Service ENIs:
 ${join("\n", module.cc-vm.service_eni_1)}
 
 All NAT GW IPs:
-${join("\n", data.aws_nat_gateway.selected.*.public_ip)}
+${join("\n", module.network.nat-gateway-ips)}
 
 All GWLB Endpoint IDs:
 ${join("\n", module.gwlb-endpoint.gwlbe)}
