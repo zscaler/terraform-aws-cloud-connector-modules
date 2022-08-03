@@ -51,3 +51,15 @@ variable "bastion_nsg_source_prefix" {
   description = "CIDR blocks of trusted networks for bastion host ssh access"
   default     = ["0.0.0.0/0"]
 }
+
+variable "zpa_enabled" {
+  type        = bool
+  default     = false
+  description = "Configure Route 53 Subnets, Route Tables, and Resolvers for ZPA DNS redirection"
+}
+
+variable "associate_public_ip_address" {
+  type        = bool
+  default     = false
+  description = "Default is false. If true, Cloud Connector Route Tables will route directly to selected IGW instead of NAT Gateway"
+}

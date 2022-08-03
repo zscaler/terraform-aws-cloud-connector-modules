@@ -181,3 +181,21 @@ variable "target_address" {
   description = "Route 53 DNS queries will be forwarded to these Zscaler Global VIP addresses"
   default     = ["185.46.212.88", "185.46.212.89"]
 }
+
+variable "zpa_enabled" {
+  type        = bool
+  default     = true
+  description = "Configure Route 53 Subnets, Route Tables, and Resolvers for ZPA DNS redirection"
+}
+
+variable "associate_public_ip_address" {
+  type        = bool
+  default     = false
+  description = "Default is false. If true, Cloud Connector Route Tables will route directly to selected IGW instead of NAT Gateway"
+}
+
+variable "gwlb_enabled" {
+  type        = bool
+  default     = true
+  description = "Default is false. Workload/Route 53 subnet Route Tables will point to network_interface_id via var.cc_service_enis. If true, Route Tables will point to vpc_endpoint_id via var.gwlb_endpoint_ids input."
+}

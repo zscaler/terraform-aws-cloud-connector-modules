@@ -21,8 +21,8 @@ ssh -i ${var.name_prefix}-key-${random_string.suffix.result}.pem centos@${module
 All Workload IPs. Replace private IP below with centos@"ip address" in ssh example command above.
 ${join("\n", module.workload.private_ip)}
 
-VPC: 
-${aws_vpc.vpc1.id}
+VPC:         
+${module.network.vpc-id}
 
 All CC AZs:
 ${join("\n", distinct(module.cc-vm.availability_zone))}
@@ -37,12 +37,10 @@ All CC Service ENIs:
 ${join("\n", module.cc-vm.service_eni_1)}
 
 All NAT GW IPs:
-${join("\n", aws_nat_gateway.ngw.*.public_ip)}
+${join("\n", module.network.nat-gateway-ips)}
 
 All CC IAM Role ARNs (Please provide this to Zscaler for callhome enablement):
 ${join("\n", module.cc-iam.iam_instance_profile_arn)}
-
-change2
 
 TB
 
