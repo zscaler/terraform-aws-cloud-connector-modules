@@ -144,3 +144,9 @@ variable "reuse_iam" {
   description = "Specifies whether the SG module should create 1:1 IAM per instance or 1 IAM for all instances"
   default     = false
 }
+
+variable "zpa_enabled" {
+  type        = bool
+  default     = false
+  description = "Configure Route 53 Subnets, Route Tables, and Resolvers for ZPA DNS redirection"
+}

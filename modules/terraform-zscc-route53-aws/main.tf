@@ -1,14 +1,17 @@
+################################################################################
+# Pull in region and security group information
+################################################################################
 data "aws_region" "current" {}
 
-data "aws_vpc" "selected" {
-  id = var.vpc_id
-}
 data "aws_security_group" "selected" {
   vpc_id = var.vpc_id
   name   = "default"
 }
 
-# Create Route 53 outbound endpoint
+
+################################################################################
+# Create Route 53 outbound endpoints per subnet IDs specified
+################################################################################
 resource "aws_route53_resolver_endpoint" "zpa-r53-ep" {
   name      = "${var.name_prefix}-r53-resolver-ep-${var.resource_tag}"
   direction = "OUTBOUND"
@@ -31,7 +34,11 @@ resource "aws_route53_resolver_endpoint" "zpa-r53-ep" {
   )
 }
 
-# Create Route 53 resolver rule to steer ZPA desired domain requests to Cloud Connector
+
+################################################################################
+# Create Route 53 resolver rule to steer ZPA desired domain requests to 
+# Cloud Connector per map for variable "domain_names"
+################################################################################
 resource "aws_route53_resolver_rule" "fwd" {
   for_each             = var.domain_names
   domain_name          = each.value.domain_name
@@ -60,7 +67,10 @@ resource "aws_route53_resolver_rule_association" "r53-rule-association_fwd" {
 }
 
 
-# Create Route 53 resolver rules to have AWS recursively resolve Zscaler domains directly rather than send to Cloud Connector
+################################################################################
+# Create Route 53 resolver rules to have AWS recursively resolve Zscaler 
+# domains directly rather than send to Cloud Connector
+################################################################################
 resource "aws_route53_resolver_rule" "system" {
   for_each    = var.zscaler_domains
   domain_name = each.value.domain_name

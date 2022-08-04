@@ -51,3 +51,9 @@ variable "bastion_nsg_source_prefix" {
   description = "CIDR blocks of trusted networks for bastion host ssh access"
   default     = ["0.0.0.0/0"]
 }
+
+variable "zpa_enabled" {
+  type        = bool
+  default     = false
+  description = "Configure Route 53 Subnets, Route Tables, and Resolvers for ZPA DNS redirection"
+}
