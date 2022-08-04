@@ -1,12 +1,12 @@
-output "vpc-id" {
+output "vpc_id" {
   value = data.aws_vpc.vpc-selected.id
 }
 
-output "cc-subnet-ids" {
+output "cc_subnet_ids" {
   value = data.aws_subnet.cc-subnet-selected.*.id
 }
 
-output "workload-subnet-ids" {
+output "workload_subnet_ids" {
   value = aws_subnet.workload-subnet.*.id
 }
 
@@ -14,7 +14,7 @@ output "public-subnet-ids" {
   value = aws_subnet.public-subnet.*.id
 }
 
-output "route53-subnet-ids" {
+output "route53_subnet_ids" {
   value = aws_subnet.route53-subnet.*.id
 }
 

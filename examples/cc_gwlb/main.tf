@@ -85,9 +85,9 @@ module "cc-vm" {
   name_prefix               = var.name_prefix
   resource_tag              = random_string.suffix.result
   global_tags               = local.global_tags
-  vpc_id                    = module.network.vpc-id
-  mgmt_subnet_id            = module.network.cc-subnet-ids
-  service_subnet_id         = module.network.cc-subnet-ids
+  vpc_id                    = module.network.vpc_id
+  mgmt_subnet_id            = module.network.cc_subnet_ids
+  service_subnet_id         = module.network.cc_subnet_ids
   instance_key              = aws_key_pair.deployer.key_name
   user_data                 = local.userdata
   ccvm_instance_type        = var.ccvm_instance_type
@@ -123,7 +123,7 @@ module "cc-sg" {
   name_prefix  = var.name_prefix
   resource_tag = random_string.suffix.result
   global_tags  = local.global_tags
-  vpc_id       = module.network.vpc-id
+  vpc_id       = module.network.vpc_id
 
   byo_security_group = var.byo_security_group
   # optional inputs. only required if byo_security_group set to true
@@ -140,8 +140,8 @@ module "gwlb" {
   name_prefix              = var.name_prefix
   resource_tag             = random_string.suffix.result
   global_tags              = local.global_tags
-  vpc_id                   = module.network.vpc-id
-  cc_subnet_ids            = module.network.cc-subnet-ids
+  vpc_id                   = module.network.vpc_id
+  cc_subnet_ids            = module.network.cc_subnet_ids
   cc_small_service_ips     = module.cc-vm.cc_service_private_ip
   cc_med_lrg_service_1_ips = module.cc-vm.cc_med_lrg_service_1_private_ip
   cc_med_lrg_service_2_ips = module.cc-vm.cc_med_lrg_service_2_private_ip
@@ -161,8 +161,8 @@ module "gwlb-endpoint" {
   name_prefix  = var.name_prefix
   resource_tag = random_string.suffix.result
   global_tags  = local.global_tags
-  vpc_id       = module.network.vpc-id
-  subnet_ids   = module.network.cc-subnet-ids
+  vpc_id       = module.network.vpc_id
+  subnet_ids   = module.network.cc_subnet_ids
   gwlb_arn     = module.gwlb.gwlb_arn
 }
 
@@ -175,8 +175,8 @@ module "route53" {
   name_prefix    = var.name_prefix
   resource_tag   = random_string.suffix.result
   global_tags    = local.global_tags
-  vpc_id         = module.network.vpc-id
-  r53_subnet_ids = module.network.route53-subnet-ids
+  vpc_id         = module.network.vpc_id
+  r53_subnet_ids = module.network.route53_subnet_ids
   domain_names   = var.domain_names
   target_address = var.target_address
 }
