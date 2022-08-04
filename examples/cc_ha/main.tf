@@ -84,9 +84,9 @@ module "cc-vm" {
   name_prefix               = var.name_prefix
   resource_tag              = random_string.suffix.result
   global_tags               = local.global_tags
-  vpc_id                    = module.network.vpc-id
-  mgmt_subnet_id            = module.network.cc-subnet-ids
-  service_subnet_id         = module.network.cc-subnet-ids
+  vpc_id                    = module.network.vpc_id
+  mgmt_subnet_id            = module.network.cc_subnet_ids
+  service_subnet_id         = module.network.cc_subnet_ids
   instance_key              = aws_key_pair.deployer.key_name
   user_data                 = local.userdata
   ccvm_instance_type        = var.ccvm_instance_type
@@ -123,7 +123,7 @@ module "cc-sg" {
   name_prefix  = var.name_prefix
   resource_tag = random_string.suffix.result
   global_tags  = local.global_tags
-  vpc_id       = module.network.vpc-id
+  vpc_id       = module.network.vpc_id
 
   byo_security_group = var.byo_security_group
   # optional inputs. only required if byo_security_group set to true
@@ -149,10 +149,10 @@ module "cc-lambda" {
   name_prefix     = var.name_prefix
   resource_tag    = random_string.suffix.result
   global_tags     = local.global_tags
-  vpc_id          = module.network.vpc-id
+  vpc_id          = module.network.vpc_id
   cc_vm1_id       = module.cc-vm.id[0]
   cc_vm2_id       = module.cc-vm.id[1]
-  cc_subnet_ids   = module.network.cc-subnet-ids
+  cc_subnet_ids   = module.network.cc_subnet_ids
   cc_vm1_rte_list = var.workload_route_table_ids_to_cc_1
   cc_vm2_rte_list = var.workload_route_table_ids_to_cc_2
   http_probe_port = var.http_probe_port
@@ -168,8 +168,8 @@ module "route53" {
   name_prefix    = var.name_prefix
   resource_tag   = random_string.suffix.result
   global_tags    = local.global_tags
-  vpc_id         = module.network.vpc-id
-  r53_subnet_ids = module.network.route53-subnet-ids
+  vpc_id         = module.network.vpc_id
+  r53_subnet_ids = module.network.route53_subnet_ids
   domain_names   = var.domain_names
   target_address = var.target_address
 }

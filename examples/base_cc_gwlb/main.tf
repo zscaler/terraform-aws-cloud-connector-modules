@@ -60,8 +60,8 @@ module "bastion" {
   name_prefix               = var.name_prefix
   resource_tag              = random_string.suffix.result
   global_tags               = local.global_tags
-  vpc_id                    = module.network.vpc-id
-  public_subnet             = module.network.public-subnet-ids[0]
+  vpc_id                    = module.network.vpc_id
+  public_subnet             = module.network.public_subnet_ids[0]
   instance_key              = aws_key_pair.deployer.key_name
   bastion_nsg_source_prefix = var.bastion_nsg_source_prefix
 }
@@ -74,8 +74,8 @@ module "workload" {
   name_prefix    = "${var.name_prefix}-workload"
   resource_tag   = random_string.suffix.result
   global_tags    = local.global_tags
-  vpc_id         = module.network.vpc-id
-  subnet_id      = module.network.workload-subnet-ids
+  vpc_id         = module.network.vpc_id
+  subnet_id      = module.network.workload_subnet_ids
   instance_key   = aws_key_pair.deployer.key_name
 }
 
@@ -104,9 +104,9 @@ module "cc-vm" {
   name_prefix               = var.name_prefix
   resource_tag              = random_string.suffix.result
   global_tags               = local.global_tags
-  vpc_id                    = module.network.vpc-id
-  mgmt_subnet_id            = module.network.cc-subnet-ids
-  service_subnet_id         = module.network.cc-subnet-ids
+  vpc_id                    = module.network.vpc_id
+  mgmt_subnet_id            = module.network.cc_subnet_ids
+  service_subnet_id         = module.network.cc_subnet_ids
   instance_key              = aws_key_pair.deployer.key_name
   user_data                 = local.userdata
   ccvm_instance_type        = var.ccvm_instance_type
@@ -137,7 +137,7 @@ module "cc-sg" {
   name_prefix  = var.name_prefix
   resource_tag = random_string.suffix.result
   global_tags  = local.global_tags
-  vpc_id       = module.network.vpc-id
+  vpc_id       = module.network.vpc_id
 }
 
 
@@ -148,8 +148,8 @@ module "gwlb" {
   name_prefix              = var.name_prefix
   resource_tag             = random_string.suffix.result
   global_tags              = local.global_tags
-  vpc_id                   = module.network.vpc-id
-  cc_subnet_ids            = module.network.cc-subnet-ids
+  vpc_id                   = module.network.vpc_id
+  cc_subnet_ids            = module.network.cc_subnet_ids
   cc_small_service_ips     = module.cc-vm.cc_service_private_ip
   cc_med_lrg_service_1_ips = module.cc-vm.cc_med_lrg_service_1_private_ip
   cc_med_lrg_service_2_ips = module.cc-vm.cc_med_lrg_service_2_private_ip
@@ -169,8 +169,8 @@ module "gwlb-endpoint" {
   name_prefix  = var.name_prefix
   resource_tag = random_string.suffix.result
   global_tags  = local.global_tags
-  vpc_id       = module.network.vpc-id
-  subnet_ids   = module.network.cc-subnet-ids
+  vpc_id       = module.network.vpc_id
+  subnet_ids   = module.network.cc_subnet_ids
   gwlb_arn     = module.gwlb.gwlb_arn
 }
 
