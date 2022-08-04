@@ -1,8 +1,7 @@
+################################################################################
+# Pull region information
+################################################################################
 data "aws_region" "current" {}
-
-data "aws_vpc" "selected" {
-  id = var.vpc_id
-}
 
 resource "null_resource" "error-checker" {
   count = local.valid_cc_create ? 0 : 1 # 0 means no error is thrown, else throw error
@@ -13,7 +12,10 @@ EOF
   }
 }
 
-# Locate current CC AMI by product code
+
+################################################################################
+# Locate Latest CC AMI by product code
+################################################################################
 data "aws_ami" "cloudconnector" {
   most_recent = true
 
@@ -25,7 +27,10 @@ data "aws_ami" "cloudconnector" {
   owners = ["aws-marketplace"]
 }
 
+
+################################################################################
 # Create Cloud Connector VM
+################################################################################
 resource "aws_instance" "cc-vm" {
   count                       = local.valid_cc_create ? var.cc_count : 0
   ami                         = data.aws_ami.cloudconnector.id
@@ -42,7 +47,11 @@ resource "aws_instance" "cc-vm" {
   )
 }
 
-# Create Cloud Connector Service Interface for Small CC. This interface becomes LB0 interface for Medium/Large CC
+
+################################################################################
+# Create Cloud Connector Service Interface for Small CC. 
+# This interface becomes LB0 interface for Medium/Large size CCs
+################################################################################
 resource "aws_network_interface" "cc-vm-nic-index-1" {
   count             = local.valid_cc_create ? var.cc_count : 0
   description       = var.cc_instance_size == "small" ? "Primary Interface for service traffic" : "CC Med/Lrg LB interface"
@@ -67,7 +76,10 @@ data "aws_network_interface" "cc-vm-nic-index-1-eni" {
 }
 
 
-# Create Cloud Connector Service Interface #1 for Medium/Large CC. This resource will not be created for "small" CC instances
+################################################################################
+# Create Cloud Connector Service Interface #1 for Medium/Large CC. 
+# This resource will not be created for "small" CC instances.
+################################################################################
 resource "aws_network_interface" "cc-vm-nic-index-2" {
   count             = local.valid_cc_create && var.cc_instance_size != "small" ? var.cc_count : 0
   description       = "CC Service 1 interface"
@@ -91,7 +103,10 @@ data "aws_network_interface" "cc-vm-nic-index-2-eni" {
 }
 
 
-# Create Cloud Connector Service Interface #2 for Medium/Large CC. This resource will not be created for "small" CC instances
+################################################################################
+# Create Cloud Connector Service Interface #2 for Medium/Large CC. 
+# This resource will not be created for "small" CC instances.
+################################################################################
 resource "aws_network_interface" "cc-vm-nic-index-3" {
   count             = local.valid_cc_create && var.cc_instance_size != "small" ? var.cc_count : 0
   description       = "CC Service 2 interface"
@@ -115,7 +130,10 @@ data "aws_network_interface" "cc-vm-nic-index-3-eni" {
 }
 
 
-# Create Cloud Connector Service Interface #3 for Large CC. This resource will not be created for "small" or "medium" CC instances
+################################################################################
+# Create Cloud Connector Service Interface #3 for Large CC. This resource will 
+# not be created for "small" or "medium" CC instances
+################################################################################
 resource "aws_network_interface" "cc-vm-nic-index-4" {
   count             = local.valid_cc_create && var.cc_instance_size == "large" ? var.cc_count : 0
   description       = "CC Service 3 interface"
