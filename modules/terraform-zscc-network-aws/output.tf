@@ -10,7 +10,7 @@ output "workload_subnet_ids" {
   value = aws_subnet.workload-subnet.*.id
 }
 
-output "public-subnet-ids" {
+output "public_subnet_ids" {
   value = aws_subnet.public-subnet.*.id
 }
 
@@ -18,11 +18,11 @@ output "route53_subnet_ids" {
   value = aws_subnet.route53-subnet.*.id
 }
 
-output "nat-gateway-ips" {
+output "nat_gateway_ips" {
   value = data.aws_nat_gateway.ngw-selected.*.public_ip
 }
 
-output "workload-route-table-ids" {
+output "workload_route_table_ids" {
   value = aws_route_table_association.workload-rt-association.*.route_table_id
 }
 

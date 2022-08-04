@@ -1,7 +1,6 @@
 ################################################################################
 # Network Infrastructure Resources
 ################################################################################
-
 # Identify availability zones available for region selected
 data "aws_availability_zones" "available" {
   state = "available"
@@ -11,7 +10,6 @@ data "aws_availability_zones" "available" {
 ################################################################################
 # VPC
 ################################################################################
-
 # Create a new VPC
 resource "aws_vpc" "vpc" {
   count                = var.byo_vpc == false ? 1 : 0
@@ -32,7 +30,6 @@ data "aws_vpc" "vpc-selected" {
 ################################################################################
 # Internet Gateway
 ################################################################################
-
 # Create an Internet Gateway
 resource "aws_internet_gateway" "igw" {
   count  = var.byo_igw == false ? 1 : 0
@@ -52,7 +49,6 @@ data "aws_internet_gateway" "igw-selected" {
 ################################################################################
 # NAT Gateway
 ################################################################################
-
 # Create NAT Gateway and assign EIP per AZ. This will not be created if var.byo_ngw is set to True
 resource "aws_eip" "eip" {
   count      = var.byo_ngw == false ? length(aws_subnet.public-subnet.*.id) : 0
@@ -86,7 +82,6 @@ data "aws_nat_gateway" "ngw-selected" {
 ################################################################################
 # Public (NAT Gateway) Subnet & Route Tables
 ################################################################################
-
 # Create equal number of Public/NAT Subnets to how many Cloud Connector subnets exist. This will not be created if var.byo_ngw is set to True
 resource "aws_subnet" "public-subnet" {
   count             = var.byo_ngw == false ? length(data.aws_subnet.cc-subnet-selected.*.id) : 0
@@ -127,7 +122,6 @@ resource "aws_route_table_association" "public-rt-association" {
 ################################################################################
 # Private (Workload) Subnet & Route Tables
 ################################################################################
-
 # Create equal number of Workload/Private Subnets to how many Cloud Connector subnets exist. This will not be created if var.workloads_enabled is set to False
 resource "aws_subnet" "workload-subnet" {
   count             = var.workloads_enabled == true ? length(aws_subnet.cc-subnet.*.id) : 0
@@ -167,7 +161,6 @@ resource "aws_route_table_association" "workload-rt-association" {
 ################################################################################
 # Private (Cloud Connector) Subnet & Route Tables
 ################################################################################
-
 # Create subnet for CC network in X availability zones per az_count variable
 resource "aws_subnet" "cc-subnet" {
   count = var.byo_subnets == false ? var.az_count : 0
@@ -194,8 +187,7 @@ resource "aws_route_table" "cc-rt" {
   vpc_id = data.aws_vpc.vpc-selected.id
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = var.associate_public_ip_address == false ? element(data.aws_nat_gateway.ngw-selected.*.id, count.index) : null
-    gateway_id     = var.associate_public_ip_address == true ? data.aws_internet_gateway.igw-selected.internet_gateway_id : null
+    nat_gateway_id = element(data.aws_nat_gateway.ngw-selected.*.id, count.index)
   }
 
   tags = merge(var.global_tags,

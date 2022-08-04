@@ -1,11 +1,16 @@
+################################################################################
 # Generate a unique random string for resource name assignment and key pair
+################################################################################
 resource "random_string" "suffix" {
   length  = 8
   upper   = false
   special = false
 }
 
+
+################################################################################
 # Map default tags with values to be assigned to all tagged resources
+################################################################################
 locals {
   global_tags = {
     Owner                                                                                 = var.owner_tag
@@ -15,13 +20,14 @@ locals {
   }
 }
 
-############################################################################################################################
-#### The following lines generates a new SSH key pair and stores the PEM file locally. The public key output is used    ####
-#### as the instance_key passed variable to the ec2 modules for admin_ssh_key public_key authentication                 ####
-#### This is not recommended for production deployments. Please consider modifying to pass your own custom              ####
-#### public key file located in a secure location                                                                       ####
-############################################################################################################################
-# private key for login
+
+################################################################################
+# The following lines generates a new SSH key pair and stores the PEM file 
+# locally. The public key output is used as the instance_key passed variable 
+# to the ec2 modules for admin_ssh_key public_key authentication.
+# This is not recommended for production deployments. Please consider modifying 
+# to pass your own custom public key file located in a secure location.   
+################################################################################
 resource "tls_private_key" "key" {
   algorithm = var.tls_key_algorithm
 }
@@ -39,7 +45,10 @@ EOF
 }
 
 
-# 1. Create/reference all network infrastructure resource dependencies for all child modules (vpc, igw, nat gateway, subnets, route tables)
+################################################################################
+# 1. Create/reference all network infrastructure resource dependencies for all 
+#    child modules (vpc, igw, nat gateway, subnets, route tables)
+################################################################################
 module "network" {
   source            = "../../modules/terraform-zscc-network-aws"
   name_prefix       = var.name_prefix
@@ -60,10 +69,12 @@ module "network" {
 }
 
 
-# 2. Create X CC VMs per cc_count which will span equally across designated availability zones per az_count
-#    E.g. cc_count set to 4 and az_count set to 2 or byo_subnet_ids configured for 2 will create 2x CCs in AZ subnet 1 and 2x CCs in AZ subnet 2
-
-## Create the user_data file
+################################################################################
+# 2. Create specified number CC VMs per cc_count which will span equally across 
+#    designated availability zones per az_count. E.g. cc_count set to 4 and 
+#    az_count set to 2 will create 2x CCs in AZ1 and 2x CCs in AZ2
+################################################################################
+# Create the user_data file with necessary bootstrap variables for Cloud Connector registration
 locals {
   userdata = <<USERDATA
 [ZSCALER]
@@ -73,18 +84,19 @@ HTTP_PROBE_PORT=${var.http_probe_port}
 USERDATA
 }
 
+# Write the file to local filesystem for storage/reference
 resource "local_file" "user-data-file" {
   content  = local.userdata
   filename = "../user_data"
 }
 
+# Create specified number of CC appliances
 module "cc-vm" {
   source                    = "../../modules/terraform-zscc-ccvm-aws"
   cc_count                  = var.cc_count
   name_prefix               = var.name_prefix
   resource_tag              = random_string.suffix.result
   global_tags               = local.global_tags
-  vpc_id                    = module.network.vpc_id
   mgmt_subnet_id            = module.network.cc_subnet_ids
   service_subnet_id         = module.network.cc_subnet_ids
   instance_key              = aws_key_pair.deployer.key_name
@@ -94,12 +106,15 @@ module "cc-vm" {
   iam_instance_profile      = module.cc-iam.iam_instance_profile_id
   mgmt_security_group_id    = module.cc-sg.mgmt_security_group_id
   service_security_group_id = module.cc-sg.service_security_group_id
-
 }
 
 
-# 3. Create IAM Policy, Roles, and Instance Profiles to be assigned to CC appliances. Default behavior will create 1 of each resource per CC VM. Set variable reuse_iam to true
-#    if you would like a single IAM profile created and assigned to ALL Cloud Connectors
+################################################################################
+# 3. Create IAM Policy, Roles, and Instance Profiles to be assigned to CC. 
+#    Default behavior will create 1 of each IAM resource per CC VM. Set variable 
+#    "reuse_iam" to true if you would like a single IAM profile created and 
+#    assigned to ALL Cloud Connectors instead.
+################################################################################
 module "cc-iam" {
   source              = "../../modules/terraform-zscc-iam-aws"
   iam_count           = var.reuse_iam == false ? var.cc_count : 1
@@ -115,8 +130,12 @@ module "cc-iam" {
 }
 
 
-# 4. Create Security Group and rules to be assigned to CC mgmt and and service interface(s). Default behavior will create 1 of each resource per CC VM. Set variable reuse_security_group
-#    to true if you would like a single security group created and assigned to ALL Cloud Connectors
+################################################################################
+# 4. Create Security Group and rules to be assigned to CC mgmt and and service 
+#    interface(s). Default behavior will create 1 of each SG resource per CC VM. 
+#    Set variable "reuse_security_group" to true if you would like a single 
+#    security group created and assigned to ALL Cloud Connectors instead.
+################################################################################
 module "cc-sg" {
   source       = "../../modules/terraform-zscc-sg-aws"
   sg_count     = var.reuse_security_group == false ? var.cc_count : 1
@@ -133,16 +152,19 @@ module "cc-sg" {
 }
 
 
-# 5. Create Lambda for HA between pair of Cloud Connectors. If deploying more than a single pair of Cloud Connectors,
-#    you will need to: 
-#    1. copy this module reference
-#    2. replace the values for cc_vm1_id, cc_vm2_id and potentially cc_vm1_snid and cc_vm2_snid
-#    3. define a new list route table IDs for cc_vm1_rte_list/cc_vm2_rte_list inline or by creating new variables
-#       e.g workload_route_table_ids_to_cc_3, etc.
+################################################################################
+# 5. Create Lambda for HA route failover between a pair of Cloud Connectors.
+#    If deploying more than a single pair of Cloud Connectors, you will need to: 
+#       1. copy this module reference
+#       2. replace the values for cc_vm1_id, cc_vm2_id and potentially 
+#          cc_vm1_snid and cc_vm2_snid
+#       3. define a new list of route table IDs for cc_vm1_rte_list/cc_vm2_rte_list 
+#          inline or by creating new variables. E.g. workload_route_table_ids_to_cc_3, etc.
 #
-#    **** Note - Lambda is not required for single or non-redundant deployments. You will need to at least specify an 
-#                existing VPC ID though for workload route table selection logic to work
-
+#    *Note* - Lambda is not required for single/non-HA deployments. You will need 
+#             to at least specify an existing VPC ID though for workload route 
+#             table selection logic to work.
+################################################################################
 module "cc-lambda" {
   count           = var.byo_vpc == true ? 1 : 0
   source          = "../../modules/terraform-zscc-lambda-aws"
@@ -159,9 +181,11 @@ module "cc-lambda" {
 }
 
 
-
-# 6. Optional Route53 for ZPA
-#    Create Route 53 Resolver Rules and Endpoints for utilization with DNS redirection to facilitate Cloud Connector ZPA service
+################################################################################
+# 6. Create Route 53 Resolver Rules and Endpoints for utilization with DNS 
+#    redirection to facilitate Cloud Connector ZPA service.
+#    This can optionally be enabled/disabled per variable "zpa_enabled".
+################################################################################
 module "route53" {
   count          = var.zpa_enabled == true ? 1 : 0
   source         = "../../modules/terraform-zscc-route53-aws"

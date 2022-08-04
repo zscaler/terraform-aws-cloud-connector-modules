@@ -1,4 +1,6 @@
-# Create the Endpint Service for Gateway Load Balancer
+################################################################################
+# Create the Endpoint Service for Gateway Load Balancer
+################################################################################
 resource "aws_vpc_endpoint_service" "gwlb-vpce-service" {
   acceptance_required        = false
   gateway_load_balancer_arns = [var.gwlb_arn]
@@ -9,6 +11,9 @@ resource "aws_vpc_endpoint_service" "gwlb-vpce-service" {
 }
 
 
+################################################################################
+# Create the GWLB Endpoint ENIs per list of subnet IDs specified
+################################################################################
 resource "aws_vpc_endpoint" "gwlb-vpce" {
   count             = length(var.subnet_ids)
   service_name      = aws_vpc_endpoint_service.gwlb-vpce-service.service_name

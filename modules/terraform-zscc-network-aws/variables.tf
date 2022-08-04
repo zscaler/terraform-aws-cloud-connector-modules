@@ -64,12 +64,6 @@ variable "az_count" {
   }
 }
 
-variable "associate_public_ip_address" {
-  type        = bool
-  default     = false
-  description = "Default is false. If true, Cloud Connector Route Tables will route directly to selected IGW instead of NAT Gateway"
-}
-
 variable "base_only" {
   type        = bool
   default     = false
