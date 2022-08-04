@@ -57,8 +57,8 @@ module "bastion" {
   name_prefix               = var.name_prefix
   resource_tag              = random_string.suffix.result
   global_tags               = local.global_tags
-  vpc_id                    = module.network.vpc-id
-  public_subnet             = module.network.public-subnet-ids[0]
+  vpc_id                    = module.network.vpc_id
+  public_subnet             = module.network.public_subnet_ids[0]
   instance_key              = aws_key_pair.deployer.key_name
   bastion_nsg_source_prefix = var.bastion_nsg_source_prefix
 }
@@ -71,7 +71,7 @@ module "workload" {
   name_prefix    = "${var.name_prefix}-workload"
   resource_tag   = random_string.suffix.result
   global_tags    = local.global_tags
-  vpc_id         = module.network.vpc-id
-  subnet_id      = module.network.workload-subnet-ids
+  vpc_id         = module.network.vpc_id
+  subnet_id      = module.network.workload_subnet_ids
   instance_key   = aws_key_pair.deployer.key_name
 }

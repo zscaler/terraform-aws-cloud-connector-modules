@@ -15,10 +15,10 @@ All Workload IPs. Replace private IP below with centos@"ip address" in ssh examp
 ${join("\n", module.workload.private_ip)}
 
 VPC:         
-${module.network.vpc-id}
+${module.network.vpc_id}
 
 All NAT GW IPs:
-${join("\n", module.network.nat-gateway-ips)}
+${join("\n", module.network.nat_gateway_ips)}
 
 TB
 }
