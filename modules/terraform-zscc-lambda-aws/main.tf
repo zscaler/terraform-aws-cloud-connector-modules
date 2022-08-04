@@ -1,12 +1,11 @@
-/*
-Create Lambda
-Environment
-Attach IAM policy
-Setup parameter store
-Triggers
-Cloud watch end points
-*/
+################################################################################
+# Create Lambda Environment
+################################################################################
 
+
+################################################################################
+# Create IAM Role and Policy for Lambda
+################################################################################
 resource "aws_iam_role" "iam_for_cc_lambda" {
   name = "${var.vpc_id}_cc_lambda_iam"
 
@@ -27,6 +26,7 @@ resource "aws_iam_role" "iam_for_cc_lambda" {
 EOF
 }
 
+# Create IAM Policy for Lambda
 resource "aws_iam_policy" "iam_policy_for_cc_lambda" {
   name        = "${var.vpc_id}_cc_lambda_iam_policy"
   description = "IAM policy created for Checker lambda in ${var.vpc_id}"
@@ -60,6 +60,7 @@ resource "aws_iam_policy" "iam_policy_for_cc_lambda" {
 EOF
 }
 
+# Attach IAM Policy to IAM Role
 resource "aws_iam_role_policy_attachment" "cc_lambda_execution_role_attachment" {
   policy_arn = aws_iam_policy.iam_policy_for_cc_lambda.arn
   role       = aws_iam_role.iam_for_cc_lambda.name
@@ -100,6 +101,10 @@ data "aws_subnet" "cc-subnets" {
   id    = element(var.cc_subnet_ids, count.index)
 }
 
+
+################################################################################
+# Create AWS Security Group and rules for Lambda
+################################################################################
 resource "aws_security_group" "lambda-sg" {
   name        = "${var.name_prefix}-port-probe-lambda-sg-${var.resource_tag}"
   description = "Allow HTTP GET access to the specified port on CC"
@@ -131,7 +136,10 @@ resource "aws_security_group" "lambda-sg" {
   depends_on = [aws_iam_role_policy_attachment.cc_lambda_execution_role_attachment]
 }
 
-# Checker Lambda
+
+################################################################################
+# Create Lambda Function
+################################################################################
 resource "aws_lambda_function" "cc_route_updater_lambda" {
   filename         = "${path.module}/${var.route_updater_filename}"
   function_name    = "${var.vpc_id}_cc_route_updater_fn"
@@ -157,6 +165,10 @@ resource "aws_lambda_function" "cc_route_updater_lambda" {
   timeout = 60
 }
 
+
+################################################################################
+# Create Cloudwatch rules, event targets, and triggers for failover execution
+################################################################################
 resource "aws_cloudwatch_event_rule" "cc_checker_timer" {
   name                = "${var.vpc_id}_cc_lambda_timer"
   description         = "Fire every 1 min"

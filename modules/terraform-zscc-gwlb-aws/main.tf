@@ -1,4 +1,6 @@
-# Configure target group and register IP addresses
+################################################################################
+# Configure target group
+################################################################################
 resource "aws_lb_target_group" "gwlb-target-group" {
   name        = "${var.name_prefix}-cc-target-${var.resource_tag}"
   port        = 6081
@@ -16,7 +18,11 @@ resource "aws_lb_target_group" "gwlb-target-group" {
   }
 }
 
-# Register all Small Cloud Connector Service Interface IPs as targets to gwlb. This does not apply to "Medium" or "Large" Cloud Connectors
+
+################################################################################
+# Register all Small Cloud Connector Service Interface IPs as targets to gwlb. 
+# This does not apply to "Medium" or "Large" Cloud Connector sizes
+################################################################################
 resource "aws_lb_target_group_attachment" "gwlb-target-group-attachment-small" {
   count            = var.cc_instance_size == "small" ? length(var.cc_small_service_ips) : 0
   target_group_arn = aws_lb_target_group.gwlb-target-group.arn
@@ -25,7 +31,11 @@ resource "aws_lb_target_group_attachment" "gwlb-target-group-attachment-small" {
   depends_on = [var.cc_small_service_ips]
 }
 
-# Register all Medium/Large Cloud Connector Service Interface-1 IPs as targets to gwlb. This does not apply to "Small" Cloud Connectors
+
+################################################################################
+# Register all Medium/Large Cloud Connector Service Interface-1 IPs as targets 
+# to gwlb. This does not apply to "Small" Cloud Connector sizes
+################################################################################
 resource "aws_lb_target_group_attachment" "gwlb-target-group-attachment-med-lrg-1" {
   count            = var.cc_instance_size != "small" ? length(var.cc_med_lrg_service_1_ips) : 0
   target_group_arn = aws_lb_target_group.gwlb-target-group.arn
@@ -34,7 +44,11 @@ resource "aws_lb_target_group_attachment" "gwlb-target-group-attachment-med-lrg-
   depends_on = [var.cc_med_lrg_service_1_ips]
 }
 
-# Register all Medium/Large Cloud Connector Service Interface-2 IPs as targets to gwlb. This does not apply to "Small" Cloud Connectors
+
+################################################################################
+# Register all Medium/Large Cloud Connector Service Interface-2 IPs as targets 
+# to gwlb. This does not apply to "Small" Cloud Connector sizes
+################################################################################
 resource "aws_lb_target_group_attachment" "gwlb-target-group-attachment-med-lrg-2" {
   count            = var.cc_instance_size != "small" ? length(var.cc_med_lrg_service_2_ips) : 0
   target_group_arn = aws_lb_target_group.gwlb-target-group.arn
@@ -43,7 +57,11 @@ resource "aws_lb_target_group_attachment" "gwlb-target-group-attachment-med-lrg-
   depends_on = [var.cc_med_lrg_service_2_ips]
 }
 
-# Register all Large Cloud Connector Service Interface-3 IPs as targets to gwlb. This does not apply to "Small" Cloud Connectors
+
+################################################################################
+# Register all Large Cloud Connector Service Interface-3 IPs as targets to gwlb. 
+# This does not apply to "Small" Cloud Connector sizes
+################################################################################
 resource "aws_lb_target_group_attachment" "gwlb-target-group-attachment-lrg-3" {
   count            = var.cc_instance_size == "large" ? length(var.cc_lrg_service_3_ips) : 0
   target_group_arn = aws_lb_target_group.gwlb-target-group.arn
@@ -53,7 +71,9 @@ resource "aws_lb_target_group_attachment" "gwlb-target-group-attachment-lrg-3" {
 }
 
 
+################################################################################
 # Configure the load balancer and listener
+################################################################################
 resource "aws_lb" "gwlb" {
   load_balancer_type               = "gateway"
   name                             = "${var.name_prefix}-cc-gwlb-${var.resource_tag}"

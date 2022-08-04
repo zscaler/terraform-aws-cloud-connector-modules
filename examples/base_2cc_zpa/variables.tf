@@ -158,3 +158,9 @@ variable "target_address" {
   description = "Route 53 DNS queries will be forwarded to these Zscaler Global VIP addresses"
   default     = ["185.46.212.88", "185.46.212.89"]
 }
+
+variable "zpa_enabled" {
+  type        = bool
+  default     = true
+  description = "Configure Route 53 Subnets, Route Tables, and Resolvers for ZPA DNS redirection with route53 module"
+}
