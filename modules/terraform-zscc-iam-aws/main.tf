@@ -1,6 +1,10 @@
+################################################################################
 # Create IAM role and instance profile w/ SSM and Secrets Manager access policies
+################################################################################
 
+################################################################################
 # Define AssumeRole access for EC2
+################################################################################
 data "aws_iam_policy_document" "instance-assume-role-policy" {
   version = "2012-10-17"
   statement {
@@ -14,7 +18,10 @@ data "aws_iam_policy_document" "instance-assume-role-policy" {
   }
 }
 
-# Define AssumeRole access for CC callhome trust
+
+################################################################################
+# Define AssumeRole access for CC callhome trust feature
+################################################################################
 data "aws_iam_policy_document" "cc-callhome-policy-document" {
   version = "2012-10-17"
   statement {
@@ -26,7 +33,9 @@ data "aws_iam_policy_document" "cc-callhome-policy-document" {
 }
 
 
+################################################################################
 # Create IAM Policy for CC callhome
+################################################################################
 resource "aws_iam_policy" "cc-callhome-policy" {
   count       = var.byo_iam == false && var.cc_callhome_enabled ? var.iam_count : 0
   description = "Policy which allows STS AssumeRole when attached to a user or role. Used for CC callhome"
@@ -41,21 +50,30 @@ resource "aws_iam_role_policy_attachment" "cc-callhome-policy-attachment" {
   role       = aws_iam_role.cc-node-iam-role.*.name[count.index]
 }
 
-# AWS Managed Secrets Manager Policy
+
+################################################################################
+# Define AWS Managed Secrets Manager Policy
+################################################################################
 resource "aws_iam_role_policy_attachment" "SecretsManagerReadWrite" {
   count      = var.byo_iam == false ? var.iam_count : 0
   policy_arn = "arn:aws:iam::aws:policy/${var.iam_role_policy_smrw}"
   role       = aws_iam_role.cc-node-iam-role.*.name[count.index]
 }
 
-# AWS Managed SSM Manager Policy
+
+################################################################################
+# Define AWS Managed SSM Manager Policy
+################################################################################
 resource "aws_iam_role_policy_attachment" "SSMManagedInstanceCore" {
   count      = var.byo_iam == false ? var.iam_count : 0
   policy_arn = "arn:aws:iam::aws:policy/${var.iam_role_policy_ssmcore}"
   role       = aws_iam_role.cc-node-iam-role.*.name[count.index]
 }
 
-# Create CC IAM Role
+
+################################################################################
+# Create CC IAM Role and Host/Instance Profile
+################################################################################
 resource "aws_iam_role" "cc-node-iam-role" {
   count              = var.byo_iam == false ? var.iam_count : 0
   name               = var.iam_count > 1 ? "${var.name_prefix}-cc-${count.index + 1}-node-iam-role-${var.resource_tag}" : "${var.name_prefix}-cc-node-iam-role-${var.resource_tag}"

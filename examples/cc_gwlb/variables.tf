@@ -200,12 +200,6 @@ variable "gwlb_enabled" {
   description = "Default is true. Workload/Route 53 subnet route tables will point to vpc_endpoint_id via var.gwlb_endpoint_ids input. If false, these Route Tables will point to network_interface_id via var.cc_service_enis"
 }
 
-variable "associate_public_ip_address" {
-  type        = bool
-  default     = false
-  description = "Default is false. If true, Cloud Connector Route Tables will route directly to selected IGW instead of NAT Gateway"
-}
-
 
 # BYO (Bring-your-own) variables list
 

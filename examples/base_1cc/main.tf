@@ -1,11 +1,16 @@
+################################################################################
 # Generate a unique random string for resource name assignment and key pair
+################################################################################
 resource "random_string" "suffix" {
   length  = 8
   upper   = false
   special = false
 }
 
+
+################################################################################
 # Map default tags with values to be assigned to all tagged resources
+################################################################################
 locals {
   global_tags = {
     Owner                                                                                 = var.owner_tag
@@ -15,13 +20,14 @@ locals {
   }
 }
 
-############################################################################################################################
-#### The following lines generates a new SSH key pair and stores the PEM file locally. The public key output is used    ####
-#### as the instance_key passed variable to the ec2 modules for admin_ssh_key public_key authentication                 ####
-#### This is not recommended for production deployments. Please consider modifying to pass your own custom              ####
-#### public key file located in a secure location                                                                       ####
-############################################################################################################################
-# private key for login
+
+################################################################################
+# The following lines generates a new SSH key pair and stores the PEM file 
+# locally. The public key output is used as the instance_key passed variable 
+# to the ec2 modules for admin_ssh_key public_key authentication.
+# This is not recommended for production deployments. Please consider modifying 
+# to pass your own custom public key file located in a secure location.   
+################################################################################
 resource "tls_private_key" "key" {
   algorithm = var.tls_key_algorithm
 }
@@ -39,21 +45,25 @@ EOF
 }
 
 
-# 1. Create/reference all network infrastructure resource dependencies for all child modules (vpc, igw, nat gateway, subnets, route tables)
+################################################################################
+# 1. Create/reference all network infrastructure resource dependencies for all 
+#    child modules (vpc, igw, nat gateway, subnets, route tables)
+################################################################################
 module "network" {
-  source                      = "../../modules/terraform-zscc-network-aws"
-  name_prefix                 = var.name_prefix
-  resource_tag                = random_string.suffix.result
-  global_tags                 = local.global_tags
-  workloads_enabled           = true
-  cc_service_enis             = module.cc-vm.service_eni_1
-  az_count                    = var.az_count
-  vpc_cidr                    = var.vpc_cidr
-  associate_public_ip_address = var.associate_public_ip_address
+  source            = "../../modules/terraform-zscc-network-aws"
+  name_prefix       = var.name_prefix
+  resource_tag      = random_string.suffix.result
+  global_tags       = local.global_tags
+  workloads_enabled = true
+  cc_service_enis   = module.cc-vm.service_eni_1
+  az_count          = var.az_count
+  vpc_cidr          = var.vpc_cidr
 }
 
 
-# 2. Create Bastion Host
+################################################################################
+# 2. Create Bastion Host for workload and CC SSH jump access
+################################################################################
 module "bastion" {
   source                    = "../../modules/terraform-zscc-bastion-aws"
   name_prefix               = var.name_prefix
@@ -66,7 +76,9 @@ module "bastion" {
 }
 
 
-# 3. Create Workloads
+################################################################################
+# 3. Create Workload Hosts to test traffic connectivity through CC
+################################################################################
 module "workload" {
   workload_count = var.workload_count
   source         = "../../modules/terraform-zscc-workload-aws"
@@ -79,10 +91,12 @@ module "workload" {
 }
 
 
-# 4. Create X CC VMs per cc_count which will span equally across designated availability zones per az_count
-#    E.g. cc_count set to 4 and az_count set to 2 will create 2x CCs in AZ1 and 2x CCs in AZ2
-
-## Create the user_data file
+################################################################################
+# 4. Create specified number CC VMs per cc_count which will span equally across 
+#    designated availability zones per az_count. E.g. cc_count set to 4 and 
+#    az_count set to 2 will create 2x CCs in AZ1 and 2x CCs in AZ2
+################################################################################
+# Create the user_data file with necessary bootstrap variables for Cloud Connector registration
 locals {
   userdata = <<USERDATA
 [ZSCALER]
@@ -92,18 +106,19 @@ HTTP_PROBE_PORT=${var.http_probe_port}
 USERDATA
 }
 
+# Write the file to local filesystem for storage/reference
 resource "local_file" "user-data-file" {
   content  = local.userdata
   filename = "../user_data"
 }
 
+# Create specified number of CC appliances
 module "cc-vm" {
   source                    = "../../modules/terraform-zscc-ccvm-aws"
   cc_count                  = var.cc_count
   name_prefix               = var.name_prefix
   resource_tag              = random_string.suffix.result
   global_tags               = local.global_tags
-  vpc_id                    = module.network.vpc_id
   mgmt_subnet_id            = module.network.cc_subnet_ids
   service_subnet_id         = module.network.cc_subnet_ids
   instance_key              = aws_key_pair.deployer.key_name
@@ -116,8 +131,12 @@ module "cc-vm" {
 }
 
 
-# 5. Create IAM Policy, Roles, and Instance Profiles to be assigned to CC appliances. Default behavior will create 1 of each resource per CC VM. Set variable reuse_iam to true
-#    if you would like a single IAM profile created and assigned to ALL Cloud Connectors
+################################################################################
+# 5. Create IAM Policy, Roles, and Instance Profiles to be assigned to CC. 
+#    Default behavior will create 1 of each IAM resource per CC VM. Set variable 
+#    "reuse_iam" to true if you would like a single IAM profile created and 
+#    assigned to ALL Cloud Connectors instead.
+################################################################################
 module "cc-iam" {
   source              = "../../modules/terraform-zscc-iam-aws"
   iam_count           = var.reuse_iam == false ? var.cc_count : 1
@@ -128,8 +147,12 @@ module "cc-iam" {
 }
 
 
-# 6. Create Security Group and rules to be assigned to CC mgmt and and service interface(s). Default behavior will create 1 of each resource per CC VM. Set variable reuse_security_group
-#    to true if you would like a single security group created and assigned to ALL Cloud Connectors
+################################################################################
+# 6. Create Security Group and rules to be assigned to CC mgmt and and service 
+#    interface(s). Default behavior will create 1 of each SG resource per CC VM. 
+#    Set variable "reuse_security_group" to true if you would like a single 
+#    security group created and assigned to ALL Cloud Connectors instead.
+################################################################################
 module "cc-sg" {
   source       = "../../modules/terraform-zscc-sg-aws"
   sg_count     = var.reuse_security_group == false ? var.cc_count : 1
@@ -140,7 +163,11 @@ module "cc-sg" {
 }
 
 
-# Validation for Cloud Connector instance size and EC2 Instance Type compatibilty. A file will get generated in root path if this error gets triggered.
+################################################################################
+# Validation for Cloud Connector instance size and EC2 Instance Type 
+# compatibilty. A file will get generated in the terraform working/root path 
+# if this error gets triggered.
+################################################################################
 resource "null_resource" "cc-error-checker" {
   count = local.valid_cc_create ? 0 : 1 # 0 means no error is thrown, else throw error
   provisioner "local-exec" {

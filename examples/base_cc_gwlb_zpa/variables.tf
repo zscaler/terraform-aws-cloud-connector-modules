@@ -188,12 +188,6 @@ variable "zpa_enabled" {
   description = "Configure Route 53 Subnets, Route Tables, and Resolvers for ZPA DNS redirection"
 }
 
-variable "associate_public_ip_address" {
-  type        = bool
-  default     = false
-  description = "Default is false. If true, Cloud Connector Route Tables will route directly to selected IGW instead of NAT Gateway"
-}
-
 variable "gwlb_enabled" {
   type        = bool
   default     = true

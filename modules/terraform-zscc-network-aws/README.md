@@ -1,6 +1,6 @@
 # Zscaler Cloud Connector / AWS Network Infrastructure Module
 
-This module has multi-purpose use and is leveraged by all other Zscaler Cloud Connector child modules in some capacity. All network infrastructure resources pertaining to connectivity dependencies for a successful Cloud Connector deployment are referenced here. Full list of resources can be found below, but in general this module will handle all VPC, IGW, Subnets, NAT Gateways, Elastic IP Addresses, and Route Table creations to build out a resilient AWS network architecture. Most resources also have "conditional create" capabilities where, by default, they will all be created unless instructed not to with various "byo" variables. Use cases are documented in more detail in each description in variables.tf as well as the terraform.tfvars example file for all non-base deployment types (ie: cc_gwlb, cc_ha, etc.).
+This module has multi-purpose use and is leveraged by all other Zscaler Cloud Connector child modules in some capacity. All network infrastructure resources pertaining to connectivity dependencies for a successful Cloud Connector deployment in a private subnet are referenced here. Full list of resources can be found below, but in general this module will handle all VPC, IGW, Subnets, NAT Gateways, Elastic IP Addresses, and Route Table creations to build out a resilient AWS network architecture. Most resources also have "conditional create" capabilities where, by default, they will all be created unless instructed not to with various "byo" variables. Use cases are documented in more detail in each description in variables.tf as well as the terraform.tfvars example file for all non-base deployment types (ie: cc_gwlb, cc_ha, etc.).
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
@@ -50,7 +50,6 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_associate_public_ip_address"></a> [associate\_public\_ip\_address](#input\_associate\_public\_ip\_address) | Default is false. If true, Cloud Connector Route Tables will route directly to selected IGW instead of NAT Gateway | `bool` | `false` | no |
 | <a name="input_az_count"></a> [az\_count](#input\_az\_count) | Default number of subnets to create based on availability zone input | `number` | `2` | no |
 | <a name="input_base_only"></a> [base\_only](#input\_base\_only) | Default is falase. Only applicable for base deployment type resulting in workload and bastion hosts, but no Cloud Connector resources. Setting this to true will point workload route able to nat\_gateway\_id | `bool` | `false` | no |
 | <a name="input_byo_igw"></a> [byo\_igw](#input\_byo\_igw) | Bring your own AWS VPC for Cloud Connector | `bool` | `false` | no |
@@ -75,11 +74,11 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_cc-subnet-ids"></a> [cc-subnet-ids](#output\_cc-subnet-ids) | n/a |
-| <a name="output_nat-gateway-ips"></a> [nat-gateway-ips](#output\_nat-gateway-ips) | n/a |
-| <a name="output_public-subnet-ids"></a> [public-subnet-ids](#output\_public-subnet-ids) | n/a |
-| <a name="output_route53-subnet-ids"></a> [route53-subnet-ids](#output\_route53-subnet-ids) | n/a |
-| <a name="output_vpc-id"></a> [vpc-id](#output\_vpc-id) | n/a |
-| <a name="output_workload-route-table-ids"></a> [workload-route-table-ids](#output\_workload-route-table-ids) | n/a |
-| <a name="output_workload-subnet-ids"></a> [workload-subnet-ids](#output\_workload-subnet-ids) | n/a |
+| <a name="output_cc_subnet_ids"></a> [cc\_subnet\_ids](#output\_cc\_subnet\_ids) | n/a |
+| <a name="output_nat_gateway_ips"></a> [nat\_gateway\_ips](#output\_nat\_gateway\_ips) | n/a |
+| <a name="output_public_subnet_ids"></a> [public\_subnet\_ids](#output\_public\_subnet\_ids) | n/a |
+| <a name="output_route53_subnet_ids"></a> [route53\_subnet\_ids](#output\_route53\_subnet\_ids) | n/a |
+| <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | n/a |
+| <a name="output_workload_route_table_ids"></a> [workload\_route\_table\_ids](#output\_workload\_route\_table\_ids) | n/a |
+| <a name="output_workload_subnet_ids"></a> [workload\_subnet\_ids](#output\_workload\_subnet\_ids) | n/a |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

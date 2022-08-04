@@ -1,9 +1,16 @@
+################################################################################
+# Pull in region and VPC info
+################################################################################
 data "aws_region" "current" {}
 
 data "aws_vpc" "selected" {
   id = var.vpc_id
 }
 
+
+################################################################################
+# Pull CentOS AMI for instance use
+################################################################################
 data "aws_ami" "centos" {
   most_recent = true
 
@@ -15,6 +22,10 @@ data "aws_ami" "centos" {
   owners = ["aws-marketplace"]
 }
 
+
+################################################################################
+# Create IAM Assume Role, Policies, and Host/Instance Profiles
+################################################################################
 resource "aws_iam_role" "node-iam-role" {
   name = "${var.name_prefix}-node-iam-role-${var.resource_tag}"
 
@@ -39,6 +50,15 @@ resource "aws_iam_role_policy_attachment" "node-AmazonEC2ContainerRegistryReadOn
   role       = aws_iam_role.node-iam-role.name
 }
 
+resource "aws_iam_instance_profile" "server_host_profile" {
+  name = "${var.name_prefix}-server_host_profile-${var.resource_tag}"
+  role = aws_iam_role.node-iam-role.name
+}
+
+
+################################################################################
+# Create Security Group and Rules
+################################################################################
 resource "aws_security_group" "node-sg" {
   name        = "${var.name_prefix}-node-sg-${var.resource_tag}"
   description = "Security group for all Server nodes in the cluster"
@@ -76,11 +96,10 @@ resource "aws_security_group_rule" "server-node-ingress-ssh" {
   type              = "ingress"
 }
 
-resource "aws_iam_instance_profile" "server_host_profile" {
-  name = "${var.name_prefix}-server_host_profile-${var.resource_tag}"
-  role = aws_iam_role.node-iam-role.name
-}
 
+################################################################################
+# Create workload EC2 instances
+################################################################################
 resource "aws_instance" "server_host" {
   count                  = var.workload_count
   ami                    = data.aws_ami.centos.id
