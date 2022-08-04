@@ -1,8 +1,15 @@
+################################################################################
+# Pull region and VPC information
+################################################################################
 data "aws_region" "current" {}
 data "aws_vpc" "selected" {
   id = var.vpc_id
 }
 
+
+################################################################################
+# Pull CentOS AMI for instance use
+################################################################################
 data "aws_ami" "centos" {
   most_recent = true
 
@@ -14,6 +21,10 @@ data "aws_ami" "centos" {
   owners = ["aws-marketplace"]
 }
 
+
+################################################################################
+# Create pre-defined AWS Security Groups and rules for Bastion
+################################################################################
 resource "aws_security_group" "bastion" {
   name        = "${var.name_prefix}-bastion-sg-${var.resource_tag}"
   description = "Allow SSH access to bastion host and outbound internet access"
@@ -55,6 +66,10 @@ resource "aws_security_group_rule" "intranet" {
   security_group_id = aws_security_group.bastion.id
 }
 
+
+################################################################################
+# Create Bastion EC2 host with automatic public IP association
+################################################################################
 resource "aws_instance" "bastion" {
   ami                         = data.aws_ami.centos.id
   instance_type               = var.instance_type

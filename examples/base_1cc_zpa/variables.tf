@@ -164,9 +164,3 @@ variable "zpa_enabled" {
   default     = true
   description = "Configure Route 53 Subnets, Route Tables, and Resolvers for ZPA DNS redirection with route53 module"
 }
-
-variable "associate_public_ip_address" {
-  type        = bool
-  default     = false
-  description = "Default is false. If true, Cloud Connector Route Tables will route directly to selected IGW instead of NAT Gateway"
-}

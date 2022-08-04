@@ -1,8 +1,14 @@
+################################################################################
+# Pull in VPC info
+################################################################################
 data "aws_vpc" "selected" {
   id = var.vpc_id
 }
 
-# Create Security Group for CC Management Interface
+
+################################################################################
+# Create Security Group and Rules for Cloud Connector Management Interfaces
+################################################################################
 resource "aws_security_group" "cc-mgmt-sg" {
   count       = var.byo_security_group == false ? var.sg_count : 0
   name        = var.sg_count > 1 ? "${var.name_prefix}-cc-${count.index + 1}-mgmt-sg-${var.resource_tag}" : "${var.name_prefix}-cc-mgmt-sg-${var.resource_tag}"
@@ -38,7 +44,10 @@ resource "aws_security_group_rule" "cc-mgmt-ingress-ssh" {
   type              = "ingress"
 }
 
-# Create Security Group for Service Interface
+
+################################################################################
+# Create Security Group and Rules for Cloud Connector Service Interfaces
+################################################################################
 resource "aws_security_group" "cc-service-sg" {
   count       = var.byo_security_group == false ? var.sg_count : 0
   name        = var.sg_count > 1 ? "${var.name_prefix}-cc-${count.index + 1}-svc-sg-${var.resource_tag}" : "${var.name_prefix}-cc-svc-sg-${var.resource_tag}"

@@ -1,11 +1,16 @@
+################################################################################
 # Generate a unique random string for resource name assignment and key pair
+################################################################################
 resource "random_string" "suffix" {
   length  = 8
   upper   = false
   special = false
 }
 
+
+################################################################################
 # Map default tags with values to be assigned to all tagged resources
+################################################################################
 locals {
   global_tags = {
     Owner                                                                                 = var.owner_tag
@@ -15,13 +20,14 @@ locals {
   }
 }
 
-############################################################################################################################
-#### The following lines generates a new SSH key pair and stores the PEM file locally. The public key output is used    ####
-#### as the instance_key passed variable to the ec2 modules for admin_ssh_key public_key authentication                 ####
-#### This is not recommended for production deployments. Please consider modifying to pass your own custom              ####
-#### public key file located in a secure location                                                                       ####
-############################################################################################################################
-# private key for login
+
+################################################################################
+# The following lines generates a new SSH key pair and stores the PEM file 
+# locally. The public key output is used as the instance_key passed variable 
+# to the ec2 modules for admin_ssh_key public_key authentication.
+# This is not recommended for production deployments. Please consider modifying 
+# to pass your own custom public key file located in a secure location.   
+################################################################################
 resource "tls_private_key" "key" {
   algorithm = var.tls_key_algorithm
 }
@@ -38,7 +44,11 @@ EOF
   }
 }
 
-# 1. Create/reference all network infrastructure resource dependencies for all child modules (vpc, igw, nat gateway, subnets, route tables)
+
+################################################################################
+# 1. Create/reference all network infrastructure resource dependencies for all 
+#    child modules (vpc, igw, nat gateway, subnets, route tables)
+################################################################################
 module "network" {
   source            = "../../modules/terraform-zscc-network-aws"
   name_prefix       = var.name_prefix
@@ -51,7 +61,9 @@ module "network" {
 }
 
 
-# 2. Create Bastion Host
+################################################################################
+# 2. Create Bastion Host for workload and CC SSH jump access
+################################################################################
 module "bastion" {
   source                    = "../../modules/terraform-zscc-bastion-aws"
   name_prefix               = var.name_prefix
@@ -64,7 +76,9 @@ module "bastion" {
 }
 
 
-# 3. Create Workloads
+################################################################################
+# 3. Create Workload Hosts to test traffic connectivity through CC
+################################################################################
 module "workload" {
   workload_count = var.workload_count
   source         = "../../modules/terraform-zscc-workload-aws"

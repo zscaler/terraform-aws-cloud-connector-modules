@@ -16,11 +16,6 @@ variable "global_tags" {
   default     = {}
 }
 
-variable "vpc_id" {
-  type        = string
-  description = "Cloud Connector VPC ID"
-}
-
 variable "mgmt_subnet_id" {
   type        = list(string)
   description = "Cloud Connector EC2 Instance management subnet id"
