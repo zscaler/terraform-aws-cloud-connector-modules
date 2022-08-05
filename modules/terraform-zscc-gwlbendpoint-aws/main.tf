@@ -1,8 +1,16 @@
 ################################################################################
-# Create the Endpoint Service for Gateway Load Balancer
+#  Pull the Account ID number of the account that owns or contains the calling entity.
+################################################################################
+data "aws_caller_identity" "current" {}
+
+################################################################################
+# Create the Endpoint Service for Gateway Load Balancer.
+# Default auto accept and allow all principals on the current AWS Account 
+# if no explicit principals are configured in var.allowed_principals
 ################################################################################
 resource "aws_vpc_endpoint_service" "gwlb-vpce-service" {
-  acceptance_required        = false
+  allowed_principals         = coalescelist(var.allowed_principals, ["arn:aws:iam::${data.aws_caller_identity.current.id}:root"])
+  acceptance_required        = var.acceptance_required
   gateway_load_balancer_arns = [var.gwlb_arn]
 
   tags = merge(var.global_tags,
