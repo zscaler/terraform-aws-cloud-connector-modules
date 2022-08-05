@@ -199,13 +199,15 @@ module "gwlb" {
 #    per Cloud Connector subnet/availability zone.
 ################################################################################
 module "gwlb-endpoint" {
-  source       = "../../modules/terraform-zscc-gwlbendpoint-aws"
-  name_prefix  = var.name_prefix
-  resource_tag = random_string.suffix.result
-  global_tags  = local.global_tags
-  vpc_id       = module.network.vpc_id
-  subnet_ids   = module.network.cc_subnet_ids
-  gwlb_arn     = module.gwlb.gwlb_arn
+  source              = "../../modules/terraform-zscc-gwlbendpoint-aws"
+  name_prefix         = var.name_prefix
+  resource_tag        = random_string.suffix.result
+  global_tags         = local.global_tags
+  vpc_id              = module.network.vpc_id
+  subnet_ids          = module.network.cc_subnet_ids
+  gwlb_arn            = module.gwlb.gwlb_arn
+  acceptance_required = var.acceptance_required
+  allowed_principals  = var.allowed_principals
 }
 
 

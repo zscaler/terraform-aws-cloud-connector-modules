@@ -195,5 +195,17 @@ variable "zpa_enabled" {
 variable "gwlb_enabled" {
   type        = bool
   default     = true
-  description = "Default is false. Workload/Route 53 subnet Route Tables will point to network_interface_id via var.cc_service_enis. If true, Route Tables will point to vpc_endpoint_id via var.gwlb_endpoint_ids input."
+  description = "Default is true. Workload/Route 53 subnet Route Tables will point to network_interface_id via var.cc_service_enis. If true, Route Tables will point to vpc_endpoint_id via var.gwlb_endpoint_ids input."
+}
+
+variable "acceptance_required" {
+  type        = bool
+  description = "Whether to require manual acceptance of any VPC Endpoint registration attempts to the Endpoint Service or not. Default is false"
+  default     = false
+}
+
+variable "allowed_principals" {
+  type        = list(string)
+  description = "List of AWS Principal ARNs who are allowed access to the GWLB Endpoint Service. E.g. [\"arn:aws:iam::1234567890:root\"]`. See https://docs.aws.amazon.com/vpc/latest/privatelink/configure-endpoint-service.html#accept-reject-connection-requests"
+  default     = []
 }

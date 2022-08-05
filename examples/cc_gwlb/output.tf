@@ -37,6 +37,9 @@ ${join("\n", module.network.nat_gateway_ips)}
 All GWLB Endpoint IDs:
 ${join("\n", module.gwlb-endpoint.gwlbe)}
 
+GWLB Endpoint Service Name:
+${module.gwlb-endpoint.vpce_service_name}
+
 GWLB:
 ${module.gwlb.gwlb_arn}
 
