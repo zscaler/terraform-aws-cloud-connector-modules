@@ -57,6 +57,8 @@ module "network" {
   workloads_enabled = true
   az_count          = var.az_count
   vpc_cidr          = var.vpc_cidr
+  public_subnets    = var.public_subnets
+  workloads_subnets = var.workloads_subnets
   base_only         = true
 }
 

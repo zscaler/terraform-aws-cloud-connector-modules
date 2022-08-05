@@ -58,6 +58,9 @@ module "network" {
   cc_service_enis   = module.cc-vm.service_eni_1
   az_count          = var.az_count
   vpc_cidr          = var.vpc_cidr
+  public_subnets    = var.public_subnets
+  workloads_subnets = var.workloads_subnets
+  cc_subnets        = var.cc_subnets
 }
 
 
@@ -149,30 +152,4 @@ module "cc-iam" {
 
 ################################################################################
 # 6. Create Security Group and rules to be assigned to CC mgmt and and service 
-#    interface(s). Default behavior will create 1 of each SG resource per CC VM. 
-#    Set variable "reuse_security_group" to true if you would like a single 
-#    security group created and assigned to ALL Cloud Connectors instead.
-################################################################################
-module "cc-sg" {
-  source       = "../../modules/terraform-zscc-sg-aws"
-  sg_count     = var.reuse_security_group == false ? var.cc_count : 1
-  name_prefix  = var.name_prefix
-  resource_tag = random_string.suffix.result
-  global_tags  = local.global_tags
-  vpc_id       = module.network.vpc_id
-}
-
-
-################################################################################
-# Validation for Cloud Connector instance size and EC2 Instance Type 
-# compatibilty. A file will get generated in the terraform working/root path 
-# if this error gets triggered.
-################################################################################
-resource "null_resource" "cc-error-checker" {
-  count = local.valid_cc_create ? 0 : 1 # 0 means no error is thrown, else throw error
-  provisioner "local-exec" {
-    command = <<EOF
-      echo "Cloud Connector parameters were invalid. No appliances were created. Please check the documentation and cc_instance_size / ccvm_instance_type values that were chosen" >> ./errorlog.txt
-EOF
-  }
-}
+#    interface(s). Default be
