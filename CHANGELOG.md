@@ -12,3 +12,4 @@
 * renamed cc_custom to cc_ha
 * renamed cc_gwlb_custom to cc_gwlb
 * added bastion source ssh security group option
+* add auto acceptance and allowed_principals capability to terraform-zscc-gwlbendpoint-aws module. Default to auto accept restricting to user's Account ID
