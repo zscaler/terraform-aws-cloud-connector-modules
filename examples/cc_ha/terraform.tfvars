@@ -83,7 +83,6 @@
 ##    Example: If you change vpc_cidr to "10.2.0.0/24", set below variables to cidrs that fit in that /24 like cc_subnets = ["10.2.0.0/27","10.2.0.32/27"] etc.
 
 #public_subnets                             = ["10.x.y.z/24","10.x.y.z/24"]
-#workloads_subnets                          = ["10.x.y.z/24","10.x.y.z/24"]
 #cc_subnets                                 = ["10.x.y.z/24","10.x.y.z/24"]
 #route53_subnets                            = ["10.x.y.z/24","10.x.y.z/24"]
 
