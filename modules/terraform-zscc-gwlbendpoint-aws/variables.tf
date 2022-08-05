@@ -30,3 +30,15 @@ variable "gwlb_arn" {
   type        = string
   description = "ARN of GWLB for Endpoint Service to be assigned"
 }
+
+variable "acceptance_required" {
+  type        = bool
+  description = "Whether to require manual acceptance of any VPC Endpoint registration attempts to the Endpoint Service or not. Default is false"
+  default     = false
+}
+
+variable "allowed_principals" {
+  type        = list(string)
+  description = "List of AWS Principal ARNs who are allowed access to the GWLB Endpoint Service. E.g. [\"arn:aws:iam::1234567890:root\"]`. See https://docs.aws.amazon.com/vpc/latest/privatelink/configure-endpoint-service.html#accept-reject-connection-requests"
+  default     = []
+}
