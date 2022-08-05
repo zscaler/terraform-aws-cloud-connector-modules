@@ -18,8 +18,32 @@ variable "global_tags" {
 
 variable "vpc_cidr" {
   type        = string
-  description = "VPC IP CIDR Range"
+  description = "VPC IP CIDR Range. All subnet resources that might get created (public, workload, cloud connector) are derived from this /16 CIDR. If you require creating a VPC smaller than /16, you may need to explicitly define all other subnets via public_subnets, workload_subnets, cc_subnets, and route53_subnets variables"
   default     = "10.1.0.0/16"
+}
+
+variable "public_subnets" {
+  type        = list(string)
+  description = "Public/NAT GW Subnets to create in VPC. This is only required if you want to override the default subnets that this code creates via vpc_cidr variable."
+  default     = null
+}
+
+variable "workloads_subnets" {
+  type        = list(string)
+  description = "Workload Subnets to create in VPC. This is only required if you want to override the default subnets that this code creates via vpc_cidr variable."
+  default     = null
+}
+
+variable "cc_subnets" {
+  type        = list(string)
+  description = "Cloud Connector Subnets to create in VPC. This is only required if you want to override the default subnets that this code creates via vpc_cidr variable."
+  default     = null
+}
+
+variable "route53_subnets" {
+  type        = list(string)
+  description = "Route 53 Outbound Endpoint Subnets to create in VPC. This is only required if you want to override the default subnets that this code creates via vpc_cidr variable."
+  default     = null
 }
 
 variable "zpa_enabled" {

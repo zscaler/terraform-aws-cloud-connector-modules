@@ -58,6 +58,10 @@ module "network" {
   cc_service_enis   = module.cc-vm.service_eni_1
   az_count          = var.az_count
   vpc_cidr          = var.vpc_cidr
+  public_subnets    = var.public_subnets
+  workloads_subnets = var.workloads_subnets
+  cc_subnets        = var.cc_subnets
+  route53_subnets   = var.route53_subnets
   zpa_enabled       = var.zpa_enabled
 }
 
