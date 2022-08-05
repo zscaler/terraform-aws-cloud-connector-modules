@@ -11,7 +11,7 @@
 #aws_region                                 = "us-west-2"
 
 
-## 7. Network Configuration:
+## 2. Network Configuration:
 
 ##    IPv4 CIDR configured with VPC creation. All Subnet resources (Workload, Public, Cloud Connector, Route 53) will be created based off this prefix
 ##    /24 subnets are created assuming this cidr is a /16. If you require creating a VPC smaller than /16, you may need to explicitly define all other 
