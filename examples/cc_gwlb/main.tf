@@ -54,18 +54,24 @@ module "network" {
   name_prefix       = var.name_prefix
   resource_tag      = random_string.suffix.result
   global_tags       = local.global_tags
-  byo_vpc           = var.byo_vpc
-  byo_vpc_id        = var.byo_vpc_id
-  byo_subnets       = var.byo_subnets
-  byo_subnet_ids    = var.byo_subnet_ids
-  byo_igw           = var.byo_igw
-  byo_igw_id        = var.byo_igw_id
   zpa_enabled       = var.zpa_enabled
   workloads_enabled = var.workloads_enabled
   gwlb_enabled      = var.gwlb_enabled
   gwlb_endpoint_ids = module.gwlb-endpoint.gwlbe
   az_count          = var.az_count
   vpc_cidr          = var.vpc_cidr
+  public_subnets    = var.public_subnets
+  cc_subnets        = var.cc_subnets
+  route53_subnets   = var.route53_subnets
+  #bring-your-own variables
+  byo_vpc        = var.byo_vpc
+  byo_vpc_id     = var.byo_vpc_id
+  byo_subnets    = var.byo_subnets
+  byo_subnet_ids = var.byo_subnet_ids
+  byo_igw        = var.byo_igw
+  byo_igw_id     = var.byo_igw_id
+  byo_ngw        = var.byo_ngw
+  byo_ngw_ids    = var.byo_ngw_ids
 }
 
 
@@ -181,13 +187,15 @@ module "gwlb" {
 #    per Cloud Connector subnet/availability zone.
 ################################################################################
 module "gwlb-endpoint" {
-  source       = "../../modules/terraform-zscc-gwlbendpoint-aws"
-  name_prefix  = var.name_prefix
-  resource_tag = random_string.suffix.result
-  global_tags  = local.global_tags
-  vpc_id       = module.network.vpc_id
-  subnet_ids   = module.network.cc_subnet_ids
-  gwlb_arn     = module.gwlb.gwlb_arn
+  source              = "../../modules/terraform-zscc-gwlbendpoint-aws"
+  name_prefix         = var.name_prefix
+  resource_tag        = random_string.suffix.result
+  global_tags         = local.global_tags
+  vpc_id              = module.network.vpc_id
+  subnet_ids          = module.network.cc_subnet_ids
+  gwlb_arn            = module.gwlb.gwlb_arn
+  acceptance_required = var.acceptance_required
+  allowed_principals  = var.allowed_principals
 }
 
 

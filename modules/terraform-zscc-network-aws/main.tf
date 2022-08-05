@@ -86,7 +86,7 @@ data "aws_nat_gateway" "ngw-selected" {
 resource "aws_subnet" "public-subnet" {
   count             = var.byo_ngw == false ? length(data.aws_subnet.cc-subnet-selected.*.id) : 0
   availability_zone = data.aws_availability_zones.available.names[count.index]
-  cidr_block        = cidrsubnet(data.aws_vpc.vpc-selected.cidr_block, 8, count.index + 101)
+  cidr_block        = var.public_subnets != null ? element(var.public_subnets, count.index) : cidrsubnet(data.aws_vpc.vpc-selected.cidr_block, 8, count.index + 101)
   vpc_id            = data.aws_vpc.vpc-selected.id
 
   tags = merge(var.global_tags,
@@ -126,7 +126,7 @@ resource "aws_route_table_association" "public-rt-association" {
 resource "aws_subnet" "workload-subnet" {
   count             = var.workloads_enabled == true ? length(aws_subnet.cc-subnet.*.id) : 0
   availability_zone = data.aws_availability_zones.available.names[count.index]
-  cidr_block        = cidrsubnet(data.aws_vpc.vpc-selected.cidr_block, 8, count.index + 1)
+  cidr_block        = var.workloads_subnets != null ? element(var.workloads_subnets, count.index) : cidrsubnet(data.aws_vpc.vpc-selected.cidr_block, 8, count.index + 1)
   vpc_id            = data.aws_vpc.vpc-selected.id
 
   tags = merge(var.global_tags,
@@ -166,7 +166,7 @@ resource "aws_subnet" "cc-subnet" {
   count = var.byo_subnets == false ? var.az_count : 0
 
   availability_zone = data.aws_availability_zones.available.names[count.index]
-  cidr_block        = cidrsubnet(data.aws_vpc.vpc-selected.cidr_block, 8, count.index + 200)
+  cidr_block        = var.cc_subnets != null ? element(var.cc_subnets, count.index) : cidrsubnet(data.aws_vpc.vpc-selected.cidr_block, 8, count.index + 200)
   vpc_id            = data.aws_vpc.vpc-selected.id
 
   tags = merge(var.global_tags,
@@ -211,7 +211,7 @@ resource "aws_route_table_association" "cc-rt-asssociation" {
 resource "aws_subnet" "route53-subnet" {
   count             = var.zpa_enabled == true ? 2 : 0
   availability_zone = data.aws_availability_zones.available.names[count.index]
-  cidr_block        = cidrsubnet(data.aws_vpc.vpc-selected.cidr_block, 12, (64 + count.index * 16))
+  cidr_block        = var.route53_subnets != null ? element(var.route53_subnets, count.index) : cidrsubnet(data.aws_vpc.vpc-selected.cidr_block, 12, (64 + count.index * 16))
   vpc_id            = data.aws_vpc.vpc-selected.id
 
   tags = merge(var.global_tags,
