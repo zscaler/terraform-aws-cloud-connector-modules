@@ -58,6 +58,10 @@ module "network" {
   cc_service_enis   = module.cc-vm.service_eni_1
   az_count          = var.az_count
   vpc_cidr          = var.vpc_cidr
+  public_subnets    = var.public_subnets
+  workloads_subnets = var.workloads_subnets
+  cc_subnets        = var.cc_subnets
+  route53_subnets   = var.route53_subnets
   zpa_enabled       = var.zpa_enabled
   gwlb_enabled      = var.gwlb_enabled
   gwlb_endpoint_ids = module.gwlb-endpoint.gwlbe
@@ -195,13 +199,15 @@ module "gwlb" {
 #    per Cloud Connector subnet/availability zone.
 ################################################################################
 module "gwlb-endpoint" {
-  source       = "../../modules/terraform-zscc-gwlbendpoint-aws"
-  name_prefix  = var.name_prefix
-  resource_tag = random_string.suffix.result
-  global_tags  = local.global_tags
-  vpc_id       = module.network.vpc_id
-  subnet_ids   = module.network.cc_subnet_ids
-  gwlb_arn     = module.gwlb.gwlb_arn
+  source              = "../../modules/terraform-zscc-gwlbendpoint-aws"
+  name_prefix         = var.name_prefix
+  resource_tag        = random_string.suffix.result
+  global_tags         = local.global_tags
+  vpc_id              = module.network.vpc_id
+  subnet_ids          = module.network.cc_subnet_ids
+  gwlb_arn            = module.gwlb.gwlb_arn
+  acceptance_required = var.acceptance_required
+  allowed_principals  = var.allowed_principals
 }
 
 

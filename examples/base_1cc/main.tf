@@ -58,6 +58,9 @@ module "network" {
   cc_service_enis   = module.cc-vm.service_eni_1
   az_count          = var.az_count
   vpc_cidr          = var.vpc_cidr
+  public_subnets    = var.public_subnets
+  workloads_subnets = var.workloads_subnets
+  cc_subnets        = var.cc_subnets
 }
 
 
@@ -172,7 +175,7 @@ resource "null_resource" "cc-error-checker" {
   count = local.valid_cc_create ? 0 : 1 # 0 means no error is thrown, else throw error
   provisioner "local-exec" {
     command = <<EOF
-      echo "Cloud Connector parameters were invalid. No appliances were created. Please check the documentation and cc_instance_size / ccvm_instance_type values that were chosen" >> ./errorlog.txt
+      echo "Cloud Connector parameters were invalid. No appliances were created. Please check the documentation and cc_instance_size / ccvm_instance_type values that were chosen" >> ../errorlog.txt
 EOF
   }
 }
