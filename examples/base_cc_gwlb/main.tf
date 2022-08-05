@@ -57,6 +57,9 @@ module "network" {
   workloads_enabled = true
   az_count          = var.az_count
   vpc_cidr          = var.vpc_cidr
+  public_subnets    = var.public_subnets
+  workloads_subnets = var.workloads_subnets
+  cc_subnets        = var.cc_subnets
   gwlb_enabled      = var.gwlb_enabled
   gwlb_endpoint_ids = module.gwlb-endpoint.gwlbe
 }
