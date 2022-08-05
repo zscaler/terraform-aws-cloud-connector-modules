@@ -62,7 +62,6 @@ module "network" {
   cc_subnets        = var.cc_subnets
   gwlb_enabled      = var.gwlb_enabled
   gwlb_endpoint_ids = module.gwlb-endpoint.gwlbe
-
 }
 
 
