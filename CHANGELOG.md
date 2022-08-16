@@ -14,3 +14,4 @@
 * added bastion source ssh security group option
 * moved all network infrastructure resources (vpc, IGW, NAT Gateway, subnets, route tables, etc.) to unique module terraform-zscc-network-aws
 * added custom subnet definition capabilities via variables cc_subnets, route53_subnets, public_subnets, and workloads_subnets should customer try to override vpc_cidr and the auto cidrsubnet selection becomes incompatible
+* workload and bastion modules changed to AL2 EC2 to enable SSM and require IMDSv2 metadata
