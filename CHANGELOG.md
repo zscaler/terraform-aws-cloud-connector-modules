@@ -12,6 +12,10 @@
 * renamed cc_custom to cc_ha
 * renamed cc_gwlb_custom to cc_gwlb
 * added bastion source ssh security group option
+* add auto acceptance and allowed_principals capability to terraform-zscc-gwlbendpoint-aws module. Default to auto accept restricting to user's Account ID
 * moved all network infrastructure resources (vpc, IGW, NAT Gateway, subnets, route tables, etc.) to unique module terraform-zscc-network-aws
 * added custom subnet definition capabilities via variables cc_subnets, route53_subnets, public_subnets, and workloads_subnets should customer try to override vpc_cidr and the auto cidrsubnet selection becomes incompatible
+<<<<<<< HEAD
 * workload and bastion modules changed to AL2 EC2 to enable SSM and require IMDSv2 metadata
+=======
+>>>>>>> 89c6bb14167bab0805b0021b996d1c5fbc000d62
