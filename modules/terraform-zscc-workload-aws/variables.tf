@@ -43,3 +43,8 @@ variable "workload_count" {
   default     = 1
 }
 
+variable "iam_role_policy_ssmcore" {
+  type        = string
+  description = "AWS EC2 Instance predefined IAM Role to access AWS SSM"
+  default     = "AmazonSSMManagedInstanceCore"
+}

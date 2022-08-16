@@ -48,3 +48,9 @@ variable "instance_key" {
   type        = string
   description = "SSH Key for instances"
 }
+
+variable "iam_role_policy_ssmcore" {
+  type        = string
+  description = "AWS EC2 Instance predefined IAM Role to access AWS SSM"
+  default     = "AmazonSSMManagedInstanceCore"
+}

@@ -54,6 +54,7 @@ From base_1cc directory execute:
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 4.7.0 |
 | <a name="provider_local"></a> [local](#provider\_local) | ~> 2.2.0 |
+| <a name="provider_null"></a> [null](#provider\_null) | ~> 3.1.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | ~> 3.3.0 |
 | <a name="provider_tls"></a> [tls](#provider\_tls) | ~> 3.4.0 |
 
@@ -63,6 +64,7 @@ From base_1cc directory execute:
 |------|--------|---------|
 | <a name="module_bastion"></a> [bastion](#module\_bastion) | ../../modules/terraform-zscc-bastion-aws | n/a |
 | <a name="module_cc-iam"></a> [cc-iam](#module\_cc-iam) | ../../modules/terraform-zscc-iam-aws | n/a |
+| <a name="module_cc-sg"></a> [cc-sg](#module\_cc-sg) | ../../modules/terraform-zscc-sg-aws | n/a |
 | <a name="module_cc-vm"></a> [cc-vm](#module\_cc-vm) | ../../modules/terraform-zscc-ccvm-aws | n/a |
 | <a name="module_network"></a> [network](#module\_network) | ../../modules/terraform-zscc-network-aws | n/a |
 | <a name="module_workload"></a> [workload](#module\_workload) | ../../modules/terraform-zscc-workload-aws | n/a |
@@ -75,6 +77,7 @@ From base_1cc directory execute:
 | [local_file.testbed](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.testbed_yml](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.user-data-file](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [null_resource.cc-error-checker](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [random_string.suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) | resource |
 | [tls_private_key.key](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
 

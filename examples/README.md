@@ -9,7 +9,7 @@
 2. AWS ACCESS KEY ID
 3. AWS SECRET ACCESS KEY
 4. AWS Region (E.g. us-west-2)
-5. Subscribe and accept terms of using CentOS 7 (for base deployments with workloads + bastion) at [this link](https://aws.amazon.com/marketplace/pp/B00O7WM7QW/)
+5. Subscribe and accept terms of using Amazon Linux 2 AMI (for base deployments with workloads + bastion) at [this link](https://aws.amazon.com/marketplace/pp/prodview-zc4x2k7vt6rpu)
 6. Subscribe and accept terms of using Zscaler Cloud Connector image at [this link](https://aws.amazon.com/marketplace/pp/prodview-cvzx4oiv7oljm)
 
 ### Zscaler requirements
