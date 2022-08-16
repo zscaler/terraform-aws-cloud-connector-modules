@@ -9,17 +9,15 @@ data "aws_vpc" "selected" {
 
 
 ################################################################################
-# Pull CentOS AMI for instance use
+# Pull Amazon Linux 2 AMI for instance use
 ################################################################################
-data "aws_ami" "centos" {
+data "aws_ami" "amazon-linux-2-kernel-5" {
   most_recent = true
-
+  owners      = ["amazon"]
   filter {
-    name   = "product-code"
-    values = ["aw0evgkw8e5c1q413zgy5pjce"]
+    name   = "name"
+    values = ["amzn2-ami-kernel-5*"]
   }
-
-  owners = ["aws-marketplace"]
 }
 
 
@@ -45,11 +43,19 @@ resource "aws_iam_role" "node-iam-role" {
 POLICY
 }
 
-resource "aws_iam_role_policy_attachment" "node-AmazonEC2ContainerRegistryReadOnly" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+
+################################################################################
+# Define AWS Managed SSM Manager Policy
+################################################################################
+resource "aws_iam_role_policy_attachment" "SSMManagedInstanceCore" {
+  policy_arn = "arn:aws:iam::aws:policy/${var.iam_role_policy_ssmcore}"
   role       = aws_iam_role.node-iam-role.name
 }
 
+
+################################################################################
+# Assign IAM Role to Instance Profile for Workload instance attachment
+################################################################################
 resource "aws_iam_instance_profile" "server_host_profile" {
   name = "${var.name_prefix}-server_host_profile-${var.resource_tag}"
   role = aws_iam_role.node-iam-role.name
@@ -102,12 +108,17 @@ resource "aws_security_group_rule" "server-node-ingress-ssh" {
 ################################################################################
 resource "aws_instance" "server_host" {
   count                  = var.workload_count
-  ami                    = data.aws_ami.centos.id
+  ami                    = data.aws_ami.amazon-linux-2-kernel-5.id
   instance_type          = var.instance_type
   key_name               = var.instance_key
   subnet_id              = element(var.subnet_id, count.index)
   iam_instance_profile   = aws_iam_instance_profile.server_host_profile.name
   vpc_security_group_ids = [aws_security_group.node-sg.id]
+
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
 
   tags = merge(var.global_tags,
     { Name = "${var.name_prefix}-server-node${count.index + 1}-${var.resource_tag}" }

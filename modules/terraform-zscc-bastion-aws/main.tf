@@ -8,19 +8,16 @@ data "aws_vpc" "selected" {
 
 
 ################################################################################
-# Pull CentOS AMI for instance use
+# Pull Amazon Linux 2 AMI for instance use
 ################################################################################
-data "aws_ami" "centos" {
+data "aws_ami" "amazon-linux-2-kernel-5" {
   most_recent = true
-
+  owners      = ["amazon"]
   filter {
-    name   = "product-code"
-    values = ["aw0evgkw8e5c1q413zgy5pjce"]
+    name   = "name"
+    values = ["amzn2-ami-kernel-5*"]
   }
-
-  owners = ["aws-marketplace"]
 }
-
 
 ################################################################################
 # Create pre-defined AWS Security Groups and rules for Bastion
@@ -68,14 +65,63 @@ resource "aws_security_group_rule" "intranet" {
 
 
 ################################################################################
+# Define AssumeRole access for EC2
+################################################################################
+data "aws_iam_policy_document" "bastion-instance-assume-role-policy" {
+  version = "2012-10-17"
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+
+################################################################################
+# Create Bastion IAM Role and Host/Instance Profile
+################################################################################
+resource "aws_iam_role" "bastion-iam-role" {
+  name               = "${var.name_prefix}-bastion-iam-role-${var.resource_tag}"
+  assume_role_policy = data.aws_iam_policy_document.bastion-instance-assume-role-policy.json
+
+  tags = merge(var.global_tags)
+}
+
+
+################################################################################
+# Define AWS Managed SSM Manager Policy
+################################################################################
+resource "aws_iam_role_policy_attachment" "SSMManagedInstanceCore" {
+  policy_arn = "arn:aws:iam::aws:policy/${var.iam_role_policy_ssmcore}"
+  role       = aws_iam_role.bastion-iam-role.name
+}
+
+
+################################################################################
+# Assign IAM Role to Instance Profile for Bastion instance attachment
+################################################################################
+resource "aws_iam_instance_profile" "bastion-host-profile" {
+  name = "${var.name_prefix}-bastion-host-profile-${var.resource_tag}"
+  role = aws_iam_role.bastion-iam-role.name
+
+  tags = merge(var.global_tags)
+}
+
+
+################################################################################
 # Create Bastion EC2 host with automatic public IP association
 ################################################################################
 resource "aws_instance" "bastion" {
-  ami                         = data.aws_ami.centos.id
+  ami                         = data.aws_ami.amazon-linux-2-kernel-5.id
   instance_type               = var.instance_type
   key_name                    = var.instance_key
   subnet_id                   = var.public_subnet
   vpc_security_group_ids      = [aws_security_group.bastion.id]
+  iam_instance_profile        = aws_iam_instance_profile.bastion-host-profile.name
   associate_public_ip_address = true
 
   root_block_device {
@@ -85,6 +131,11 @@ resource "aws_instance" "bastion" {
 
   lifecycle {
     ignore_changes = [ami]
+  }
+
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
   }
 
   tags = merge(var.global_tags,
