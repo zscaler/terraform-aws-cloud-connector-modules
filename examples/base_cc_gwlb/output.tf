@@ -49,6 +49,9 @@ ${join("\n", module.cc-vm.service_eni_1)}
 All NAT GW IPs:
 ${join("\n", module.network.nat_gateway_ips)}
 
+GWLB Endpoint Service Name:
+${module.gwlb-endpoint.vpce_service_name}
+
 All GWLB Endpoint IDs:
 ${join("\n", module.gwlb-endpoint.gwlbe)}
 
