@@ -17,7 +17,7 @@
 
 
 #####################################################################################################################
-##### Variables 1-15 are populated automically if terraform is ran via ZSEC bash script.   ##### 
+##### Variables 1-17 are populated automically if terraform is ran via ZSEC bash script.   ##### 
 ##### Modifying the variables in this file will override any inputs from ZSEC             #####
 #####################################################################################################################
 
@@ -150,3 +150,15 @@
 ##     Uncomment if you want to use the same IAM Role/Instance Profile for ALL Cloud Connectors (true or false. Default: false)
 
 #reuse_iam                                  = true
+
+
+## 16. By default, the VPC Endpoint Service created will auto accept any VPC Endpoint registration attempts.
+##     Uncomment if you want to require manual acceptance. (true or false. Default: false)
+
+#acceptance_required                        = true
+
+
+## 17. By default, the VPC Endpoint Service is configured to auto accept any VPC Endpoint registration attempts from any principal in the current AWS Account.
+##     Uncomment if you want to override this with more specific/restrictive principals. See https://docs.aws.amazon.com/vpc/latest/privatelink/configure-endpoint-service.html#accept-reject-connection-requests"
+
+#allowed_principals                         = [\"arn:aws:iam::1234567890:root\"]
