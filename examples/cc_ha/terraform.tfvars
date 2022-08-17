@@ -249,7 +249,7 @@
 
 #####################################################################################################################
 ##### Custom BYO variables. Only applicable for Lambda (non-GWLB) deployments without "base"       #####
-##### resource requirements for Workload Route Table swaps. E.g. "custom_ha"                       #####
+##### resource requirements for Workload Route Table swaps. E.g. "cc_ha"                       #####
 #####                                     **** Note ****                                           #####
 ##### Providing Private Workload and/or TGW Attachment Route Tables implies that the VPC and       #####
 ##### subnets already exist. Therefore, you must provide at least byo_vpc information              #####
