@@ -53,6 +53,7 @@ From cc_ha directory execute:
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 4.7.0 |
 | <a name="provider_local"></a> [local](#provider\_local) | ~> 2.2.0 |
+| <a name="provider_null"></a> [null](#provider\_null) | ~> 3.1.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | ~> 3.3.0 |
 | <a name="provider_tls"></a> [tls](#provider\_tls) | ~> 3.4.0 |
 
@@ -74,6 +75,7 @@ From cc_ha directory execute:
 | [aws_key_pair.deployer](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/key_pair) | resource |
 | [local_file.testbed](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.user-data-file](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [null_resource.cc-error-checker](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [random_string.suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) | resource |
 | [tls_private_key.key](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
 
