@@ -21,9 +21,9 @@ else
     esac
 fi
 
-if [[ "$oper" == "up" || "destroy" ]]; then
+if [[ "$oper" == "up" ]]; then
     # shellcheck disable=SC2153
-    if [ -z "$DTYPE" ]; then
+    if [ -z "$dtype" ]; then
     while true; do
      read -r -p "Deployment: ( greenfield | brownfield ): " deploy
 
@@ -68,7 +68,7 @@ if [[ "$oper" == "up" || "destroy" ]]; then
     esac
   done
     else
-      dtype=$DTYPE
+      dtype=$dtype
     fi
 fi
 
@@ -426,6 +426,18 @@ if ! grep -Fxq "export PATH=\${PATH}:\${PWD}/bin" .zsecrc; then
     echo 'export PATH=${PATH}:${PWD}/bin' >> .zsecrc
 fi
 
+# add deployment type to .zsecrc for future runs
+if [[ "$oper" == "up" ]]; then
+    # check if previous deployment has ever run
+    if [ -z "$dtype" ]; then
+    echo "export dtype=${dtype}" >> .zsecrc
+    else
+    echo "a previous zsec up operation has been identified. Updating dtype value..."
+    echo "Updating .zsecrc with dtype of $dtype"
+    sed -i '/dtype/d' .zsecrc
+    echo "export dtype=${dtype}" >> .zsecrc
+    fi 
+fi
 
 # initialize environment variables
 . ./.zsecrc
