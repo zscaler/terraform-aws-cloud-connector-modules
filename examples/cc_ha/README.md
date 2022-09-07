@@ -28,8 +28,6 @@ From cc_ha directory execute:
 ### Option 1 (guided):
 From the examples directory, run the zsec bash script that walks to all required inputs.
 - ./zsec destroy
-- enter "brownfield"
-- enter "cc_ha"
 
 ### Option 2 (manual):
 From cc_ha directory execute:

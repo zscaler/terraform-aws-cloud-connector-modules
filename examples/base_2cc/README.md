@@ -28,8 +28,6 @@ From base_2cc directory execute:
 ### Option 1 (guided):
 From the examples directory, run the zsec bash script that walks to all required inputs.
 - ./zsec destroy
-- enter "greenfield"
-- enter "base_2cc"
 
 ### Option 2 (manual):
 From base_2cc directory execute:
