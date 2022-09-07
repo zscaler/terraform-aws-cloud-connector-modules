@@ -28,8 +28,6 @@ From base_1cc_zpa directory execute:
 ### Option 1 (guided):
 From the examples directory, run the zsec bash script that walks to all required inputs.
 - ./zsec destroy
-- enter "greenfield"
-- enter "base_1cc_zpa"
 
 ### Option 2 (manual):
 From base_1cc_zpa directory execute:
