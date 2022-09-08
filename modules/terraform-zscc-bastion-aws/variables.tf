@@ -1,12 +1,12 @@
 variable "name_prefix" {
   type        = string
-  description = "A prefix to associate to all the Workload module resources"
+  description = "A prefix to associate to all the bastion module resources"
   default     = null
 }
 
 variable "resource_tag" {
   type        = string
-  description = "A tag to associate to all the Workload module resources"
+  description = "A tag to associate to all the bastion module resources"
   default     = null
 }
 
