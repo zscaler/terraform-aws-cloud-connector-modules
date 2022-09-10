@@ -7,6 +7,7 @@ This deployment type is intended for brownfield/production purposes. By default,
 ## How to deploy:
 
 ### Option 1 (guided):
+Optional - First edit examples/cc_ha/terraform.tfvars with any "byo" variable values that already exist in your environment and save the file.
 From the examples directory, run the zsec bash script that walks to all required inputs.
 - ./zsec up
 - enter "brownfield"
@@ -17,7 +18,7 @@ From the examples directory, run the zsec bash script that walks to all required
 - verify all resources that will be created/modified and enter "yes" to confirm
 
 ### Option 2 (manual):
-Modify/populate any required variable input values in cc_ha/terraform.tfvars file and save.
+Modify/populate any required variable input values in examples/cc_ha/terraform.tfvars file and save.
 
 From cc_ha directory execute:
 - terraform init
