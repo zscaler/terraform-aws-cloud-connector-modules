@@ -152,7 +152,7 @@ if [[ $dtype == "base" && ! -e ./.zsecrc ]]; then
     read -r -p "Enter AWS Secret Access Key: " aws_secret
     read -r -p "Enter AWS Region (e.g. us-west-2): " aws_region
     if [[ ${aws_regions[*]} =~ $aws_region ]]; then
-    echo "export TF_VAR_arm_location=${aws_region}" >> .zsecrc
+    echo "AWS Region entered is: $aws_region"
     else
     echo "Invalid AWS region name entered."
     echo "Delete .zsecrc file and re-run zsec up..."
@@ -234,7 +234,7 @@ if [[ "$oper" == "up" && "$dtype" != base && ! -e ./.zsecrc ]]; then
     read -r -p "Enter AWS Secret Access Key: " aws_secret
     read -r -p "Enter AWS Region (e.g. us-west-2): " aws_region
     if [[ ${aws_regions[*]} =~ $aws_region ]]; then
-    echo "export TF_VAR_arm_location=${aws_region}" >> .zsecrc
+    echo "AWS Region entered is: $aws_region"
     else
     echo "Invalid AWS region name entered."
     echo "Delete .zsecrc file and re-run zsec up..."
