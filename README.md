@@ -27,7 +27,7 @@ Our Deployment scripts are leveraging Terraform v1.1.9 that includes full binary
 7. A valid Zscaler Cloud Connector provisioning URL generated from the Cloud Connector Portal
 8. Zscaler Cloud Connector Credentials (api key, username, password) are stored in AWS Secrets Manager
 
-See: [Zscaler Cloud Cloud Connector AWS Deployment Guide](https://help.zscaler.com/cloud-connector/deploying-cloud-connector-amazon-web-services) for additional prerequisite provisioning steps.
+See: [Zscaler Cloud Connector AWS Deployment Guide](https://help.zscaler.com/cloud-connector/deploying-cloud-connector-amazon-web-services) for additional prerequisite provisioning steps.
 
 ## How to deploy
 Provisioning templates are available for customer use/reference to successfully deploy fully operational Cloud Connector appliances once the prerequisites have been completed. Please follow the instructions located in [examples](examples/README.md).
