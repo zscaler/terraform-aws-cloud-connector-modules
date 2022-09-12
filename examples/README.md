@@ -55,7 +55,7 @@ base_cc_gwlb_zpa: Everything from base_cc_gwlb + Creates 2 Route 53 subnets rout
 
 **2. Brownfield Deployments**
 
-(These templates would be most applicable for production deployments and have more customization options than a "base" deployments)
+(These templates would be most applicable for production deployments and have more customization options than a "base" deployments). They also do not include a bastion or workload hosts deployed.
 
 ```
 bash
