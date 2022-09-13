@@ -35,13 +35,12 @@ resource "tls_private_key" "key" {
 resource "aws_key_pair" "deployer" {
   key_name   = "${var.name_prefix}-key-${random_string.suffix.result}"
   public_key = tls_private_key.key.public_key_openssh
+}
 
-  provisioner "local-exec" {
-    command = <<EOF
-      echo "${tls_private_key.key.private_key_pem}" > ../${var.name_prefix}-key-${random_string.suffix.result}.pem
-      chmod 0600 ../${var.name_prefix}-key-${random_string.suffix.result}.pem
-EOF
-  }
+resource "local_file" "private_key" {
+  content         = tls_private_key.key.private_key_pem
+  filename        = "../${var.name_prefix}-key-${random_string.suffix.result}.pem"
+  file_permission = "0600"
 }
 
 
@@ -135,6 +134,11 @@ module "cc-vm" {
   iam_instance_profile      = module.cc-iam.iam_instance_profile_id
   mgmt_security_group_id    = module.cc-sg.mgmt_security_group_id
   service_security_group_id = module.cc-sg.service_security_group_id
+
+  depends_on = [
+    local_file.user-data-file,
+    null_resource.cc-error-checker,
+  ]
 }
 
 
@@ -229,11 +233,12 @@ module "route53" {
 
 ################################################################################
 # Validation for Cloud Connector instance size and EC2 Instance Type 
-# compatibilty. A file will get generated in the terraform working/root path 
-# if this error gets triggered.
+# compatibilty. Terraform does not have a good/native way to raise an error at 
+# the moment, so this will trigger off an invalid count value if there is an 
+# improper deployment configuration.
 ################################################################################
 resource "null_resource" "cc-error-checker" {
-  count = local.valid_cc_create ? 0 : 1 # 0 means no error is thrown, else throw error
+  count = local.valid_cc_create ? 0 : "Cloud Connector parameters were invalid. No appliances were created. Please check the documentation and cc_instance_size / ccvm_instance_type values that were chosen" # 0 means no error is thrown, else throw error
   provisioner "local-exec" {
     command = <<EOF
       echo "Cloud Connector parameters were invalid. No appliances were created. Please check the documentation and cc_instance_size / ccvm_instance_type values that were chosen" >> ../errorlog.txt

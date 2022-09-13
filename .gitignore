@@ -11,7 +11,7 @@ examples/**/*.tfstate.*
 # Local artifacts after running terraform
 *.pem
 *.pub
-.*rc
+examples/.*rc*
 **/bin/*
 user_data
 system-*.tar
