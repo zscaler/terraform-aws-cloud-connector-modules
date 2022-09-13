@@ -35,7 +35,6 @@ output "testbedconfig" {
   value = local.testbedconfig
 }
 
-
 resource "local_file" "testbed" {
   content  = local.testbedconfig
   filename = "../testbed.txt"

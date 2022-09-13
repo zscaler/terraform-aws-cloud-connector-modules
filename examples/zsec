@@ -21,9 +21,9 @@ else
     esac
 fi
 
-if [[ "$oper" == "up" || "destroy" ]]; then
+if [[ "$oper" == "up" ]]; then
     # shellcheck disable=SC2153
-    if [ -z "$DTYPE" ]; then
+    if [ -z "$dtype" ]; then
     while true; do
      read -r -p "Deployment: ( greenfield | brownfield ): " deploy
 
@@ -68,7 +68,7 @@ if [[ "$oper" == "up" || "destroy" ]]; then
     esac
   done
     else
-      dtype=$DTYPE
+      dtype=$dtype
     fi
 fi
 
@@ -152,7 +152,7 @@ if [[ $dtype == "base" && ! -e ./.zsecrc ]]; then
     read -r -p "Enter AWS Secret Access Key: " aws_secret
     read -r -p "Enter AWS Region (e.g. us-west-2): " aws_region
     if [[ ${aws_regions[*]} =~ $aws_region ]]; then
-    echo "export TF_VAR_arm_location=${aws_region}" >> .zsecrc
+    echo "AWS Region entered is: $aws_region"
     else
     echo "Invalid AWS region name entered."
     echo "Delete .zsecrc file and re-run zsec up..."
@@ -175,7 +175,6 @@ case $bastion_response in
     break
     ;;
 	no|n )
-    read -r -p "Lock SSH access to a different IP address or range? Default is open any [yes/no]: " changebastionip
     useclientip=false
     break
     ;;
@@ -185,23 +184,19 @@ done
 
 if [[ "$useclientip" == "false" ]]; then
 while true; do
+read -r -p "Lock SSH access to a different IP address or range? Default is open any [yes/no]: " changebastionip
 case $changebastionip in 
 	yes|y ) 
     read -r -p "Enter new IP Address/range w/ CIDR (e.g. 2.2.2.2/32): " bastionipinput
     echo "export TF_VAR_bastion_nsg_source_prefix='[\"${bastionipinput}\"]'" >> .zsecrc
 
-   
-if [[ $bastionipinput =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3} ]]
-then
-if [[ $bastionipinput =~ /[0-9]{1,2}$ ]]; then
-echo "$bastionipinput - IP/Netmask valid"
-else
-echo "netmask not present or invalid"
-exit 1
-fi
-else
-echo "$bastionipinput is not valid"
-exit 1
+if [[ $bastionipinput =~ ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(3[0-2]|[1-2][0-9]|[1-9]))$ ]]
+    then
+    echo "$bastionipinput - IP/Netmask valid"
+    else
+    echo "$bastionipinput is not valid IP CIDR format"
+    echo "Delete .zsecrc file and re-run zsec up..."
+    exit 1
 fi
     break
     ;;
@@ -239,7 +234,7 @@ if [[ "$oper" == "up" && "$dtype" != base && ! -e ./.zsecrc ]]; then
     read -r -p "Enter AWS Secret Access Key: " aws_secret
     read -r -p "Enter AWS Region (e.g. us-west-2): " aws_region
     if [[ ${aws_regions[*]} =~ $aws_region ]]; then
-    echo "export TF_VAR_arm_location=${aws_region}" >> .zsecrc
+    echo "AWS Region entered is: $aws_region"
     else
     echo "Invalid AWS region name entered."
     echo "Delete .zsecrc file and re-run zsec up..."
@@ -262,7 +257,6 @@ case $bastion_response in
     break
     ;;
 	no|n )
-    read -r -p "Lock SSH access to a different IP address or range? Default is open any [yes/no]: " changebastionip
     useclientip=false
     break
     ;;
@@ -272,23 +266,19 @@ done
 
 if [[ "$useclientip" == "false" ]]; then
 while true; do
+read -r -p "Lock SSH access to a different IP address or range? Default is open any [yes/no]: " changebastionip
 case $changebastionip in 
 	yes|y ) 
     read -r -p "Enter new IP Address/range w/ CIDR (e.g. 2.2.2.2/32): " bastionipinput
     echo "export TF_VAR_bastion_nsg_source_prefix='[\"${bastionipinput}\"]'" >> .zsecrc
 
-   
-if [[ $bastionipinput =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3} ]]
-then
-if [[ $bastionipinput =~ /[0-9]{1,2}$ ]]; then
-echo "$bastionipinput - IP/Netmask valid"
-else
-echo "netmask not present or invalid"
-exit 1
-fi
-else
-echo "$bastionipinput is not valid"
-exit 1
+if [[ $bastionipinput =~ ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(3[0-2]|[1-2][0-9]|[1-9]))$ ]]
+    then
+    echo "$bastionipinput - IP/Netmask valid"
+    else
+    echo "$bastionipinput is not valid IP CIDR format"
+    echo "Delete .zsecrc file and re-run zsec up..."
+    exit 1
 fi
     break
     ;;
@@ -436,6 +426,18 @@ if ! grep -Fxq "export PATH=\${PATH}:\${PWD}/bin" .zsecrc; then
     echo 'export PATH=${PATH}:${PWD}/bin' >> .zsecrc
 fi
 
+# add deployment type to .zsecrc for future runs
+if [[ "$oper" == "up" ]]; then
+    # check if previous deployment has ever run
+    if [ -z "$dtype" ]; then
+    echo "export dtype=${dtype}" >> .zsecrc
+    else
+    echo "a previous zsec up operation has been identified. Updating dtype value..."
+    echo "Updating .zsecrc with dtype of $dtype"
+    sed -i '/dtype/d' .zsecrc
+    echo "export dtype=${dtype}" >> .zsecrc
+    fi 
+fi
 
 # initialize environment variables
 . ./.zsecrc
