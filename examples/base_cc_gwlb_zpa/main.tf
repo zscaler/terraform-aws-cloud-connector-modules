@@ -35,13 +35,12 @@ resource "tls_private_key" "key" {
 resource "aws_key_pair" "deployer" {
   key_name   = "${var.name_prefix}-key-${random_string.suffix.result}"
   public_key = tls_private_key.key.public_key_openssh
+}
 
-  provisioner "local-exec" {
-    command = <<EOF
-      echo "${tls_private_key.key.private_key_pem}" > ../${var.name_prefix}-key-${random_string.suffix.result}.pem
-      chmod 0600 ../${var.name_prefix}-key-${random_string.suffix.result}.pem
-EOF
-  }
+resource "local_file" "private_key" {
+  content         = tls_private_key.key.private_key_pem
+  filename        = "../${var.name_prefix}-key-${random_string.suffix.result}.pem"
+  file_permission = "0600"
 }
 
 
