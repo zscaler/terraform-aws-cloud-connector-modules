@@ -1,12 +1,12 @@
 variable "name_prefix" {
   type        = string
-  description = "A prefix to associate to all the Workload module resources"
+  description = "A prefix to associate to all the bastion module resources"
   default     = null
 }
 
 variable "resource_tag" {
   type        = string
-  description = "A tag to associate to all the Workload module resources"
+  description = "A tag to associate to all the bastion module resources"
   default     = null
 }
 
@@ -47,4 +47,10 @@ variable "bastion_nsg_source_prefix" {
 variable "instance_key" {
   type        = string
   description = "SSH Key for instances"
+}
+
+variable "iam_role_policy_ssmcore" {
+  type        = string
+  description = "AWS EC2 Instance predefined IAM Role to access AWS SSM"
+  default     = "AmazonSSMManagedInstanceCore"
 }

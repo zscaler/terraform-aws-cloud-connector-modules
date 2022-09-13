@@ -5,6 +5,7 @@ This deployment type is intended for brownfield/production purposes. By default,
 ## How to deploy:
 
 ### Option 1 (guided):
+Optional - First edit examples/cc_gwlb/terraform.tfvars with any "byo" variable values that already exist in your environment and save the file.
 From the examples directory, run the zsec bash script that walks to all required inputs.
 - ./zsec up
 - enter "brownfield"
@@ -15,7 +16,7 @@ From the examples directory, run the zsec bash script that walks to all required
 - verify all resources that will be created/modified and enter "yes" to confirm
 
 ### Option 2 (manual):
-Modify/populate any required variable input values in cc_gwlb/terraform.tfvars file and save.
+Modify/populate any required variable input values in examples/cc_gwlb/terraform.tfvars file and save.
 
 From cc_gwlb directory execute:
 - terraform init
@@ -26,8 +27,6 @@ From cc_gwlb directory execute:
 ### Option 1 (guided):
 From the examples directory, run the zsec bash script that walks to all required inputs.
 - ./zsec destroy
-- enter "brownfield"
-- enter "cc_gwlb"
 
 ### Option 2 (manual):
 From cc_gwlb directory execute:
@@ -72,6 +71,7 @@ From cc_gwlb directory execute:
 | Name | Type |
 |------|------|
 | [aws_key_pair.deployer](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/key_pair) | resource |
+| [local_file.private_key](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.testbed](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.user-data-file](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [null_resource.cc-error-checker](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
