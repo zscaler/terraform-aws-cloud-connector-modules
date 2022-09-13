@@ -14,8 +14,7 @@ ssh -i ${var.name_prefix}-key-${random_string.suffix.result}.pem zsroot@${module
 All CC Management IPs. Replace private IP below with zsroot@"ip address" in ssh example command above.
 ${join("\n", module.cc-vm.private_ip)}
 
-
-4) SSH to the server host
+4) SSH to the workload host
 ssh -i ${var.name_prefix}-key-${random_string.suffix.result}.pem ec2-user@${module.workload.private_ip[0]} -o "proxycommand ssh -W %h:%p -i ${var.name_prefix}-key-${random_string.suffix.result}.pem ec2-user@${module.bastion.public_dns}"
 
 All Workload IPs. Replace private IP below with ec2-user@"ip address" in ssh example command above.
