@@ -428,15 +428,9 @@ fi
 
 # add deployment type to .zsecrc for future runs
 if [[ "$oper" == "up" ]]; then
-    # check if previous deployment has ever run
-    if [ -z "$dtype" ]; then
-    echo "export dtype=${dtype}" >> .zsecrc
-    else
-    echo "a previous zsec up operation has been identified. Updating dtype value..."
     echo "Updating .zsecrc with dtype of $dtype"
-    sed -i '/dtype/d' .zsecrc
+    sed -i'' -e '/dtype/d' .zsecrc
     echo "export dtype=${dtype}" >> .zsecrc
-    fi 
 fi
 
 # initialize environment variables
