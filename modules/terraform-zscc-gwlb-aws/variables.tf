@@ -100,4 +100,9 @@ variable "cc_instance_size" {
   }
 }
 
+variable "asg_enabled" {
+  type        = bool
+  description = "Determines whether to set gwlb target group target_type to 'instance' or 'ip'. If set to true, ASG uses 'instance' and no aws_lb_target_group_attachment resources need to be created"
+  default     = "false"
+}
 

@@ -6,7 +6,7 @@ resource "aws_lb_target_group" "gwlb-target-group" {
   port        = 6081
   protocol    = "GENEVE"
   vpc_id      = var.vpc_id
-  target_type = "ip"
+  target_type = var.asg_enabled == true ? "instance" : "ip"
 
   health_check {
     port                = var.http_probe_port
@@ -24,7 +24,7 @@ resource "aws_lb_target_group" "gwlb-target-group" {
 # This does not apply to "Medium" or "Large" Cloud Connector sizes
 ################################################################################
 resource "aws_lb_target_group_attachment" "gwlb-target-group-attachment-small" {
-  count            = var.cc_instance_size == "small" ? length(var.cc_small_service_ips) : 0
+  count            = var.cc_instance_size == "small" && var.asg_enabled == false ? length(var.cc_small_service_ips) : 0
   target_group_arn = aws_lb_target_group.gwlb-target-group.arn
   target_id        = element(var.cc_small_service_ips, count.index)
 
@@ -37,7 +37,7 @@ resource "aws_lb_target_group_attachment" "gwlb-target-group-attachment-small" {
 # to gwlb. This does not apply to "Small" Cloud Connector sizes
 ################################################################################
 resource "aws_lb_target_group_attachment" "gwlb-target-group-attachment-med-lrg-1" {
-  count            = var.cc_instance_size != "small" ? length(var.cc_med_lrg_service_1_ips) : 0
+  count            = var.cc_instance_size != "small" && var.asg_enabled == false ? length(var.cc_med_lrg_service_1_ips) : 0
   target_group_arn = aws_lb_target_group.gwlb-target-group.arn
   target_id        = element(var.cc_med_lrg_service_1_ips, count.index)
 
@@ -50,7 +50,7 @@ resource "aws_lb_target_group_attachment" "gwlb-target-group-attachment-med-lrg-
 # to gwlb. This does not apply to "Small" Cloud Connector sizes
 ################################################################################
 resource "aws_lb_target_group_attachment" "gwlb-target-group-attachment-med-lrg-2" {
-  count            = var.cc_instance_size != "small" ? length(var.cc_med_lrg_service_2_ips) : 0
+  count            = var.cc_instance_size != "small" && var.asg_enabled == false ? length(var.cc_med_lrg_service_2_ips) : 0
   target_group_arn = aws_lb_target_group.gwlb-target-group.arn
   target_id        = element(var.cc_med_lrg_service_2_ips, count.index)
 
