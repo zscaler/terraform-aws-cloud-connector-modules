@@ -11,13 +11,8 @@ data "aws_vpc" "selected" {
 ################################################################################
 # Pull Amazon Linux 2 AMI for instance use
 ################################################################################
-data "aws_ami" "amazon-linux-2-kernel-5" {
-  most_recent = true
-  owners      = ["amazon"]
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-kernel-5*"]
-  }
+data "aws_ssm_parameter" "amazon-linux-latest" {
+  name = "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
 }
 
 
@@ -108,7 +103,7 @@ resource "aws_security_group_rule" "server-node-ingress-ssh" {
 ################################################################################
 resource "aws_instance" "server_host" {
   count                  = var.workload_count
-  ami                    = data.aws_ami.amazon-linux-2-kernel-5.id
+  ami                    = data.aws_ssm_parameter.amazon-linux-latest.value
   instance_type          = var.instance_type
   key_name               = var.instance_key
   subnet_id              = element(var.subnet_id, count.index)
