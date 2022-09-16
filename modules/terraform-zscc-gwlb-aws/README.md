@@ -36,6 +36,7 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_asg_enabled"></a> [asg\_enabled](#input\_asg\_enabled) | Determines whether to set gwlb target group target\_type to 'instance' or 'ip'. If set to true, ASG uses 'instance' and no aws\_lb\_target\_group\_attachment resources need to be created | `bool` | `"false"` | no |
 | <a name="input_cc_instance_size"></a> [cc\_instance\_size](#input\_cc\_instance\_size) | Cloud Connector instance size as defined in the Connector portal provisioning template | `string` | `"small"` | no |
 | <a name="input_cc_lrg_service_3_ips"></a> [cc\_lrg\_service\_3\_ips](#input\_cc\_lrg\_service\_3\_ips) | Cloud Connector Large instance size service-3 IPs | `list(string)` | `[]` | no |
 | <a name="input_cc_med_lrg_service_1_ips"></a> [cc\_med\_lrg\_service\_1\_ips](#input\_cc\_med\_lrg\_service\_1\_ips) | Cloud Connector Medium/Large instance size service-1 IPs | `list(string)` | `[]` | no |
@@ -57,4 +58,5 @@ No modules.
 | Name | Description |
 |------|-------------|
 | <a name="output_gwlb_arn"></a> [gwlb\_arn](#output\_gwlb\_arn) | n/a |
+| <a name="output_target_group_arn"></a> [target\_group\_arn](#output\_target\_group\_arn) | n/a |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

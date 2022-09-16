@@ -17,3 +17,4 @@
 * added custom subnet definition capabilities via variables cc_subnets, route53_subnets, public_subnets, and workloads_subnets should customer try to override vpc_cidr and the auto cidrsubnet selection becomes incompatible
 * workload and bastion modules changed to AL2 EC2 to enable SSM and require IMDSv2 metadata
 * cc-error-checker changes to run first so errors thrown are less and clearer in the event of a CC deployment configuration error
+* ASG module + deployment types added
