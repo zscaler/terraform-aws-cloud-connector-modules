@@ -108,12 +108,11 @@
 #warm_pool_enabled                          = true
 
 
-## 16. Sets the instance state to transition to after the lifecycle hooks finish. Valid values are: Stopped (default), Running or Hibernated. Ignored when 'warm_pool_enabled' is false
+## 16. Sets the instance state to transition to after the lifecycle hooks finish. Valid values are: Stopped (default) or Running. Ignored when 'warm_pool_enabled' is false
 ##     Uncomment the desired value
 
 #warm_pool_state                            = "Stopped"
 #warm_pool_state                            = "Running"
-#warm_pool_state                            = "Hibernated"
 
 
 ## 17. Specifies the minimum number of instances to maintain in the warm pool. This helps you to ensure that there is always a certain number of warmed instances available to handle traffic spikes. Ignored when 'warm_pool_enabled' is false

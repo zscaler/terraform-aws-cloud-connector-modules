@@ -532,13 +532,13 @@ warm_pool_state_default=Stopped
     read -r -p "Enter the desired Warm Pool instance state to transition to after the lifecycle hooks finish [Default=$warm_pool_state_default]: " warm_pool_state_input
 warm_pool_state=${warm_pool_state_input:-$warm_pool_state_default}
     case $warm_pool_state in
-      Stopped|Running|Hibernated)
+      Stopped|Running)
           echo "Warm Pool State: ${warm_pool_state}"
           echo "export TF_VAR_warm_pool_state=${warm_pool_state}" >> .zsecrc
           break
       ;;
       *)
-          echo "Invalid Warm Pool State: ${warm_pool_state}. Enter either Stopped, Running, or Hibernated"
+          echo "Invalid Warm Pool State: ${warm_pool_state}. Enter either Stopped or Running"
       ;;
     esac
 done
