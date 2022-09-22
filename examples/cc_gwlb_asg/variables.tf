@@ -231,7 +231,7 @@ variable "warm_pool_enabled" {
 
 variable "warm_pool_state" {
   type        = string
-  description = "Sets the instance state to transition to after the lifecycle hooks finish. Valid values are: Stopped (default), Running or Hibernated. Ignored when 'warm_pool_enabled' is false"
+  description = "Sets the instance state to transition to after the lifecycle hooks finish. Valid values are: Stopped (default) or Running. Ignored when 'warm_pool_enabled' is false"
   default     = null
 }
 
