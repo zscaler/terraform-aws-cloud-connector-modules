@@ -58,12 +58,6 @@ variable "tls_key_algorithm" {
   default     = "RSA"
 }
 
-variable "bastion_nsg_source_prefix" {
-  type        = list(string)
-  description = "CIDR blocks of trusted networks for bastion host ssh access"
-  default     = ["0.0.0.0/0"]
-}
-
 variable "cc_count" {
   type        = number
   description = "Default number of Cloud Connector appliances to create"
@@ -127,6 +121,7 @@ variable "secret_name" {
 }
 
 variable "http_probe_port" {
+  type        = number
   description = "port for Cloud Connector cloud init to enable listener port for HTTP probe from LB"
   default     = 50000
   validation {

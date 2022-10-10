@@ -83,20 +83,8 @@ locals {
 }
 ENVIRONS
 }
-data "aws_security_group" "selected" {
-  vpc_id = var.vpc_id
-  name   = "default"
-}
 
-data "aws_instance" "cc-vm1" {
-  instance_id = var.cc_vm1_id
-}
-
-data "aws_instance" "cc-vm2" {
-  instance_id = var.cc_vm2_id
-}
-
-data "aws_subnet" "cc-subnets" {
+data "aws_subnet" "cc_subnets" {
   count = length(var.cc_subnet_ids)
   id    = element(var.cc_subnet_ids, count.index)
 }
@@ -105,7 +93,7 @@ data "aws_subnet" "cc-subnets" {
 ################################################################################
 # Create AWS Security Group and rules for Lambda
 ################################################################################
-resource "aws_security_group" "lambda-sg" {
+resource "aws_security_group" "lambda_sg" {
   name        = "${var.name_prefix}-port-probe-lambda-sg-${var.resource_tag}"
   description = "Allow HTTP GET access to the specified port on CC"
   vpc_id      = var.vpc_id
@@ -114,7 +102,7 @@ resource "aws_security_group" "lambda-sg" {
     from_port   = var.http_probe_port
     to_port     = var.http_probe_port
     protocol    = "tcp"
-    cidr_blocks = data.aws_subnet.cc-subnets.*.cidr_block
+    cidr_blocks = data.aws_subnet.cc_subnets.*.cidr_block
   }
 
   egress {
@@ -157,9 +145,8 @@ resource "aws_lambda_function" "cc_route_updater_lambda" {
 
   vpc_config {
     # Every CC subnet that must be reachable
-    subnet_ids = [data.aws_subnet.cc-subnets[0].id, try(data.aws_subnet.cc-subnets[1].id, data.aws_subnet.cc-subnets[0].id)] ## try is a catch-all in case only a single CC subnet ID is inputted to failback to the first
-    #security_group_ids = [data.aws_security_group.selected.id]
-    security_group_ids = [aws_security_group.lambda-sg.id]
+    subnet_ids         = [data.aws_subnet.cc_subnets[0].id, try(data.aws_subnet.cc_subnets[1].id, data.aws_subnet.cc_subnets[0].id)] ## try is a catch-all in case only a single CC subnet ID is inputted to failback to the first
+    security_group_ids = [aws_security_group.lambda_sg.id]
   }
 
   timeout = 60
@@ -233,5 +220,3 @@ resource "aws_lambda_permission" "allow_state_checker_to_call_cc_checker_lambda"
 resource "aws_cloudwatch_log_group" "checker_log_group" {
   name = "/aws/lambda/${var.vpc_id}_cc_route_updater_fn"
 }
-
-

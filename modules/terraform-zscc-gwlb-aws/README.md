@@ -25,12 +25,12 @@ No modules.
 | Name | Type |
 |------|------|
 | [aws_lb.gwlb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb) | resource |
-| [aws_lb_listener.gwlb-listener](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener) | resource |
-| [aws_lb_target_group.gwlb-target-group](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group) | resource |
-| [aws_lb_target_group_attachment.gwlb-target-group-attachment-lrg-3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group_attachment) | resource |
-| [aws_lb_target_group_attachment.gwlb-target-group-attachment-med-lrg-1](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group_attachment) | resource |
-| [aws_lb_target_group_attachment.gwlb-target-group-attachment-med-lrg-2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group_attachment) | resource |
-| [aws_lb_target_group_attachment.gwlb-target-group-attachment-small](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group_attachment) | resource |
+| [aws_lb_listener.gwlb_listener](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener) | resource |
+| [aws_lb_target_group.gwlb_target_group](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group) | resource |
+| [aws_lb_target_group_attachment.gwlb_target_group_attachment_lrg_3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group_attachment) | resource |
+| [aws_lb_target_group_attachment.gwlb_target_group_attachment_med_lrg_1](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group_attachment) | resource |
+| [aws_lb_target_group_attachment.gwlb_target_group_attachment_med_lrg_2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group_attachment) | resource |
+| [aws_lb_target_group_attachment.gwlb_target_group_attachment_small](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group_attachment) | resource |
 
 ## Inputs
 
@@ -56,5 +56,5 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_gwlb_arn"></a> [gwlb\_arn](#output\_gwlb\_arn) | n/a |
+| <a name="output_gwlb_arn"></a> [gwlb\_arn](#output\_gwlb\_arn) | GWLB ARN |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

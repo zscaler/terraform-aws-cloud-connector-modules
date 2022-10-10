@@ -24,12 +24,12 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [aws_security_group.cc-mgmt-sg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
-| [aws_security_group.cc-service-sg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
-| [aws_security_group_rule.all-vpc-ingress-cc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
-| [aws_security_group_rule.cc-mgmt-ingress-ssh](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
-| [aws_security_group.cc-mgmt-sg-selected](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/security_group) | data source |
-| [aws_security_group.cc-service-sg-selected](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/security_group) | data source |
+| [aws_security_group.cc_mgmt_sg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
+| [aws_security_group.cc_service_sg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
+| [aws_security_group_rule.all_vpc_ingress_cc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
+| [aws_security_group_rule.cc_mgmt_ingress_ssh](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
+| [aws_security_group.cc_mgmt_sg_selected](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/security_group) | data source |
+| [aws_security_group.cc_service_sg_selected](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/security_group) | data source |
 | [aws_vpc.selected](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/vpc) | data source |
 
 ## Inputs
@@ -49,8 +49,8 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_mgmt_security_group_arn"></a> [mgmt\_security\_group\_arn](#output\_mgmt\_security\_group\_arn) | n/a |
-| <a name="output_mgmt_security_group_id"></a> [mgmt\_security\_group\_id](#output\_mgmt\_security\_group\_id) | n/a |
-| <a name="output_service_security_group_arn"></a> [service\_security\_group\_arn](#output\_service\_security\_group\_arn) | n/a |
-| <a name="output_service_security_group_id"></a> [service\_security\_group\_id](#output\_service\_security\_group\_id) | n/a |
+| <a name="output_mgmt_security_group_arn"></a> [mgmt\_security\_group\_arn](#output\_mgmt\_security\_group\_arn) | Instance Management Security Group ARN |
+| <a name="output_mgmt_security_group_id"></a> [mgmt\_security\_group\_id](#output\_mgmt\_security\_group\_id) | Instance Management Security Group ID |
+| <a name="output_service_security_group_arn"></a> [service\_security\_group\_arn](#output\_service\_security\_group\_arn) | Instance Service Security Group ARN |
+| <a name="output_service_security_group_id"></a> [service\_security\_group\_id](#output\_service\_security\_group\_id) | Instance Service Security Group ID |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

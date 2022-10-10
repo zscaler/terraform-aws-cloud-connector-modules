@@ -133,6 +133,7 @@ variable "secret_name" {
 }
 
 variable "http_probe_port" {
+  type        = number
   description = "port for Cloud Connector cloud init to enable listener port for HTTP probe from LB"
   default     = 0
   validation {
@@ -161,10 +162,4 @@ variable "reuse_iam" {
   type        = bool
   description = "Specifies whether the SG module should create 1:1 IAM per instance or 1 IAM for all instances"
   default     = false
-}
-
-variable "zpa_enabled" {
-  type        = bool
-  default     = false
-  description = "Configure Route 53 Subnets, Route Tables, and Resolvers for ZPA DNS redirection"
 }
