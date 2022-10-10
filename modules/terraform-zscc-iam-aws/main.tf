@@ -62,11 +62,33 @@ resource "aws_iam_role_policy_attachment" "secrets_manager_read_write" {
 
 
 ################################################################################
-# Define AWS Managed SSM Manager Policy
+# Define AWS Managed SSM Session Manager Policy
 ################################################################################
-resource "aws_iam_role_policy_attachment" "ssm_managed_instance_core" {
+data "aws_iam_policy_document" "cc_session_manager_policy_document" {
+  version = "2012-10-17"
+  statement {
+    sid    = "CCPermitSSMSessionManager"
+    effect = "Allow"
+    actions = ["ssm:UpdateInstanceInformation",
+      "ssmmessages:CreateControlChannel",
+      "ssmmessages:CreateDataChannel",
+      "ssmmessages:OpenControlChannel",
+      "ssmmessages:OpenDataChannel"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "cc_session_manager_policy" {
+  count       = var.byo_iam == false ? var.iam_count : 0
+  description = "Policy which permits CCs to register to SSM Manager for Console Connect functionality"
+  name        = "${var.name_prefix}-cc-${count.index + 1}-ssm-${var.resource_tag}"
+  policy      = data.aws_iam_policy_document.cc_session_manager_policy_document.json
+}
+
+resource "aws_iam_role_policy_attachment" "cc_session_manager_attachment" {
   count      = var.byo_iam == false ? var.iam_count : 0
-  policy_arn = "arn:aws:iam::aws:policy/${var.iam_role_policy_ssmcore}"
+  policy_arn = aws_iam_policy.cc_session_manager_policy.*.arn[count.index]
   role       = aws_iam_role.cc_node_iam_role.*.name[count.index]
 }
 
