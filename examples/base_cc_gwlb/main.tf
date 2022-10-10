@@ -60,7 +60,7 @@ module "network" {
   workloads_subnets = var.workloads_subnets
   cc_subnets        = var.cc_subnets
   gwlb_enabled      = var.gwlb_enabled
-  gwlb_endpoint_ids = module.gwlb-endpoint.gwlbe
+  gwlb_endpoint_ids = module.gwlb_endpoint.gwlbe
 }
 
 
@@ -110,13 +110,13 @@ USERDATA
 }
 
 # Write the file to local filesystem for storage/reference
-resource "local_file" "user-data-file" {
+resource "local_file" "user_data_file" {
   content  = local.userdata
   filename = "../user_data"
 }
 
 # Create specified number of CC appliances
-module "cc-vm" {
+module "cc_vm" {
   source                    = "../../modules/terraform-zscc-ccvm-aws"
   cc_count                  = var.cc_count
   name_prefix               = var.name_prefix
@@ -128,13 +128,13 @@ module "cc-vm" {
   user_data                 = local.userdata
   ccvm_instance_type        = var.ccvm_instance_type
   cc_instance_size          = var.cc_instance_size
-  iam_instance_profile      = module.cc-iam.iam_instance_profile_id
-  mgmt_security_group_id    = module.cc-sg.mgmt_security_group_id
-  service_security_group_id = module.cc-sg.service_security_group_id
+  iam_instance_profile      = module.cc_iam.iam_instance_profile_id
+  mgmt_security_group_id    = module.cc_sg.mgmt_security_group_id
+  service_security_group_id = module.cc_sg.service_security_group_id
 
   depends_on = [
-    local_file.user-data-file,
-    null_resource.cc-error-checker,
+    local_file.user_data_file,
+    null_resource.cc_error_checker,
   ]
 }
 
@@ -145,7 +145,7 @@ module "cc-vm" {
 #    "reuse_iam" to true if you would like a single IAM profile created and 
 #    assigned to ALL Cloud Connectors instead.
 ################################################################################
-module "cc-iam" {
+module "cc_iam" {
   source              = "../../modules/terraform-zscc-iam-aws"
   iam_count           = var.reuse_iam == false ? var.cc_count : 1
   name_prefix         = var.name_prefix
@@ -161,7 +161,7 @@ module "cc-iam" {
 #    Set variable "reuse_security_group" to true if you would like a single 
 #    security group created and assigned to ALL Cloud Connectors instead.
 ################################################################################
-module "cc-sg" {
+module "cc_sg" {
   source       = "../../modules/terraform-zscc-sg-aws"
   sg_count     = var.reuse_security_group == false ? var.cc_count : 1
   name_prefix  = var.name_prefix
@@ -182,10 +182,10 @@ module "gwlb" {
   global_tags              = local.global_tags
   vpc_id                   = module.network.vpc_id
   cc_subnet_ids            = module.network.cc_subnet_ids
-  cc_small_service_ips     = module.cc-vm.cc_service_private_ip
-  cc_med_lrg_service_1_ips = module.cc-vm.cc_med_lrg_service_1_private_ip
-  cc_med_lrg_service_2_ips = module.cc-vm.cc_med_lrg_service_2_private_ip
-  cc_lrg_service_3_ips     = module.cc-vm.cc_lrg_service_3_private_ip
+  cc_small_service_ips     = module.cc_vm.cc_service_private_ip
+  cc_med_lrg_service_1_ips = module.cc_vm.cc_med_lrg_service_1_private_ip
+  cc_med_lrg_service_2_ips = module.cc_vm.cc_med_lrg_service_2_private_ip
+  cc_lrg_service_3_ips     = module.cc_vm.cc_lrg_service_3_private_ip
   cc_instance_size         = var.cc_instance_size
   http_probe_port          = var.http_probe_port
   health_check_interval    = var.health_check_interval
@@ -199,7 +199,7 @@ module "gwlb" {
 # 8. Create a VPC Endpoint Service associated with GWLB and 1x GWLB Endpoint 
 #    per Cloud Connector subnet/availability zone.
 ################################################################################
-module "gwlb-endpoint" {
+module "gwlb_endpoint" {
   source              = "../../modules/terraform-zscc-gwlbendpoint-aws"
   name_prefix         = var.name_prefix
   resource_tag        = random_string.suffix.result
@@ -218,7 +218,7 @@ module "gwlb-endpoint" {
 # the moment, so this will trigger off an invalid count value if there is an 
 # improper deployment configuration.
 ################################################################################
-resource "null_resource" "cc-error-checker" {
+resource "null_resource" "cc_error_checker" {
   count = local.valid_cc_create ? 0 : "Cloud Connector parameters were invalid. No appliances were created. Please check the documentation and cc_instance_size / ccvm_instance_type values that were chosen" # 0 means no error is thrown, else throw error
   provisioner "local-exec" {
     command = <<EOF

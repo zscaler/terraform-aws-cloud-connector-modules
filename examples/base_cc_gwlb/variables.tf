@@ -133,6 +133,7 @@ variable "secret_name" {
 }
 
 variable "http_probe_port" {
+  type        = number
   description = "port for Cloud Connector cloud init to enable listener port for HTTP probe from LB"
   default     = 50000
   validation {
@@ -184,12 +185,6 @@ variable "cross_zone_lb_enabled" {
   type        = bool
   description = "Determines whether GWLB cross zone load balancing should be enabled or not"
   default     = false
-}
-
-variable "zpa_enabled" {
-  type        = bool
-  default     = false
-  description = "Configure Route 53 Subnets, Route Tables, and Resolvers for ZPA DNS redirection"
 }
 
 variable "gwlb_enabled" {

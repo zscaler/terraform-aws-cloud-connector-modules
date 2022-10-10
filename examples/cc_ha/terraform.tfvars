@@ -270,7 +270,3 @@
 #workload_route_table_ids_to_cc_1           = ["rtb-1-az1","rtb-2-az1"]
 
 #workload_route_table_ids_to_cc_2           = ["rtb-1-az2","rtb-2-az2"]
-
-
-
-
