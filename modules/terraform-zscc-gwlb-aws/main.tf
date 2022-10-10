@@ -1,7 +1,7 @@
 ################################################################################
 # Configure target group
 ################################################################################
-resource "aws_lb_target_group" "gwlb-target-group" {
+resource "aws_lb_target_group" "gwlb_target_group" {
   name        = "${var.name_prefix}-cc-target-${var.resource_tag}"
   port        = 6081
   protocol    = "GENEVE"
@@ -23,9 +23,9 @@ resource "aws_lb_target_group" "gwlb-target-group" {
 # Register all Small Cloud Connector Service Interface IPs as targets to gwlb. 
 # This does not apply to "Medium" or "Large" Cloud Connector sizes
 ################################################################################
-resource "aws_lb_target_group_attachment" "gwlb-target-group-attachment-small" {
+resource "aws_lb_target_group_attachment" "gwlb_target_group_attachment_small" {
   count            = var.cc_instance_size == "small" ? length(var.cc_small_service_ips) : 0
-  target_group_arn = aws_lb_target_group.gwlb-target-group.arn
+  target_group_arn = aws_lb_target_group.gwlb_target_group.arn
   target_id        = element(var.cc_small_service_ips, count.index)
 
   depends_on = [var.cc_small_service_ips]
@@ -36,9 +36,9 @@ resource "aws_lb_target_group_attachment" "gwlb-target-group-attachment-small" {
 # Register all Medium/Large Cloud Connector Service Interface-1 IPs as targets 
 # to gwlb. This does not apply to "Small" Cloud Connector sizes
 ################################################################################
-resource "aws_lb_target_group_attachment" "gwlb-target-group-attachment-med-lrg-1" {
+resource "aws_lb_target_group_attachment" "gwlb_target_group_attachment_med_lrg_1" {
   count            = var.cc_instance_size != "small" ? length(var.cc_med_lrg_service_1_ips) : 0
-  target_group_arn = aws_lb_target_group.gwlb-target-group.arn
+  target_group_arn = aws_lb_target_group.gwlb_target_group.arn
   target_id        = element(var.cc_med_lrg_service_1_ips, count.index)
 
   depends_on = [var.cc_med_lrg_service_1_ips]
@@ -49,9 +49,9 @@ resource "aws_lb_target_group_attachment" "gwlb-target-group-attachment-med-lrg-
 # Register all Medium/Large Cloud Connector Service Interface-2 IPs as targets 
 # to gwlb. This does not apply to "Small" Cloud Connector sizes
 ################################################################################
-resource "aws_lb_target_group_attachment" "gwlb-target-group-attachment-med-lrg-2" {
+resource "aws_lb_target_group_attachment" "gwlb_target_group_attachment_med_lrg_2" {
   count            = var.cc_instance_size != "small" ? length(var.cc_med_lrg_service_2_ips) : 0
-  target_group_arn = aws_lb_target_group.gwlb-target-group.arn
+  target_group_arn = aws_lb_target_group.gwlb_target_group.arn
   target_id        = element(var.cc_med_lrg_service_2_ips, count.index)
 
   depends_on = [var.cc_med_lrg_service_2_ips]
@@ -62,9 +62,9 @@ resource "aws_lb_target_group_attachment" "gwlb-target-group-attachment-med-lrg-
 # Register all Large Cloud Connector Service Interface-3 IPs as targets to gwlb. 
 # This does not apply to "Small" Cloud Connector sizes
 ################################################################################
-resource "aws_lb_target_group_attachment" "gwlb-target-group-attachment-lrg-3" {
+resource "aws_lb_target_group_attachment" "gwlb_target_group_attachment_lrg_3" {
   count            = var.cc_instance_size == "large" ? length(var.cc_lrg_service_3_ips) : 0
-  target_group_arn = aws_lb_target_group.gwlb-target-group.arn
+  target_group_arn = aws_lb_target_group.gwlb_target_group.arn
   target_id        = element(var.cc_lrg_service_3_ips, count.index)
 
   depends_on = [var.cc_lrg_service_3_ips]
@@ -86,11 +86,11 @@ resource "aws_lb" "gwlb" {
   )
 }
 
-resource "aws_lb_listener" "gwlb-listener" {
+resource "aws_lb_listener" "gwlb_listener" {
   load_balancer_arn = aws_lb.gwlb.id
 
   default_action {
-    target_group_arn = aws_lb_target_group.gwlb-target-group.id
+    target_group_arn = aws_lb_target_group.gwlb_target_group.id
     type             = "forward"
   }
 }

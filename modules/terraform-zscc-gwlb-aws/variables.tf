@@ -99,5 +99,3 @@ variable "cc_instance_size" {
     error_message = "Input cc_instance_size must be set to an approved cc instance type."
   }
 }
-
-

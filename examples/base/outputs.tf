@@ -24,7 +24,8 @@ TB
 }
 
 output "testbedconfig" {
-  value = local.testbedconfig
+  description = "AWS Testbed results"
+  value       = local.testbedconfig
 }
 
 resource "local_file" "testbed" {
