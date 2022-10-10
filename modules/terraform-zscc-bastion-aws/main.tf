@@ -9,13 +9,8 @@ data "aws_vpc" "selected" {
 ################################################################################
 # Pull Amazon Linux 2 AMI for instance use
 ################################################################################
-data "aws_ami" "amazon_linux_2_kernel_5" {
-  most_recent = true
-  owners      = ["amazon"]
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-kernel-5*"]
-  }
+data "aws_ssm_parameter" "amazon_linux_latest" {
+  name = "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
 }
 
 ################################################################################
@@ -115,7 +110,7 @@ resource "aws_iam_instance_profile" "bastion_host_profile" {
 # Create Bastion EC2 host with automatic public IP association
 ################################################################################
 resource "aws_instance" "bastion" {
-  ami                         = data.aws_ami.amazon_linux_2_kernel_5.id
+  ami                         = data.aws_ssm_parameter.amazon_linux_latest.value
   instance_type               = var.instance_type
   key_name                    = var.instance_key
   subnet_id                   = var.public_subnet
