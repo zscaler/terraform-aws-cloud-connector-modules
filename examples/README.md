@@ -5,7 +5,7 @@
 ## Prerequisites (You will be prompted for AWS keys and region during deployment)
 
 ### AWS requirements
-1. A valid AWS account
+1. A valid AWS account with Administrator Access to deploy required resources
 2. AWS ACCESS KEY ID
 3. AWS SECRET ACCESS KEY
 4. AWS Region (E.g. us-west-2)
@@ -43,7 +43,7 @@ Optional: Edit the terraform.tfvars file under your desired deployment type (ie:
 
 ```
 Deployment Type: (base | base_1cc | base_1cc_zpa | base_2cc | base_2cc_zpa | base_cc_gwlb | base_cc_gwlb_zpa):
-base: Creates 1 new VPC with 1 public subnet and 1 private/workload subnet; 1 IGW; 1 NAT Gateway; 1 Centos server workload in the private subnet routing to NAT Gateway;
+base: Creates 1 new VPC with 1 public subnet and 1 private/workload subnet; 1 IGW; 1 NAT Gateway; 1 Centos server workload in the private subnet routing to NAT Gateway; This does NOT deploy any actual Cloud Connectors.
 1 Bastion Host in the public subnet assigned an Elastic IP and routing to the IGW; generates local key pair .pem file for ssh access
 base_1cc: Base Deployment Type + Creates 1 Cloud Connector private subnet; 1 Cloud Connector VM routing to NAT Gateway; workload private subnet route repointed to service ENI of Cloud Connector
 base_1cc_zpa: Everything from base_1cc Deployment Type + Creates 2 Route 53 subnets routing to service ENI of Cloud Connector; Route 53 outbound resolver endpoint; Route 53 resolver rules for ZPA
