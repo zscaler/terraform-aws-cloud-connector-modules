@@ -59,8 +59,9 @@ module "network" {
   public_subnets    = var.public_subnets
   workloads_subnets = var.workloads_subnets
   cc_subnets        = var.cc_subnets
+  route53_subnets   = var.route53_subnets
   gwlb_enabled      = var.gwlb_enabled
-  gwlb_endpoint_ids = module.gwlb-endpoint.gwlbe
+  gwlb_endpoint_ids = module.gwlb_endpoint.gwlbe
   zpa_enabled       = var.zpa_enabled
 }
 
@@ -111,13 +112,13 @@ USERDATA
 }
 
 # Write the file to local filesystem for storage/reference
-resource "local_file" "user-data-file" {
+resource "local_file" "user_data_file" {
   content  = local.userdata
   filename = "../user_data"
 }
 
 # Create the specified CC VMs via Launch Template and Autoscaling Group
-module "cc-asg" {
+module "cc_asg" {
   source                    = "../../modules/terraform-zscc-asg-aws"
   name_prefix               = var.name_prefix
   resource_tag              = random_string.suffix.result
@@ -127,9 +128,9 @@ module "cc-asg" {
   cc_instance_size          = var.cc_instance_size
   instance_key              = aws_key_pair.deployer.key_name
   user_data                 = local.userdata
-  iam_instance_profile      = module.cc-iam.iam_instance_profile_id
-  mgmt_security_group_id    = module.cc-sg.mgmt_security_group_id
-  service_security_group_id = module.cc-sg.service_security_group_id
+  iam_instance_profile      = module.cc_iam.iam_instance_profile_id
+  mgmt_security_group_id    = module.cc_sg.mgmt_security_group_id
+  service_security_group_id = module.cc_sg.service_security_group_id
 
   max_size                  = var.max_size
   min_size                  = var.min_size
@@ -148,8 +149,8 @@ module "cc-asg" {
   ### only utilzed if warm_pool_enabled set to true ###
 
   depends_on = [
-    local_file.user-data-file,
-    null_resource.cc-error-checker,
+    local_file.user_data_file,
+    null_resource.cc_error_checker,
   ]
 }
 
@@ -160,7 +161,7 @@ module "cc-asg" {
 #    "reuse_iam" to true if you would like a single IAM profile created and 
 #    assigned to ALL Cloud Connectors instead.
 ################################################################################
-module "cc-iam" {
+module "cc_iam" {
   source              = "../../modules/terraform-zscc-iam-aws"
   iam_count           = 1
   name_prefix         = var.name_prefix
@@ -176,7 +177,7 @@ module "cc-iam" {
 #    Set variable "reuse_security_group" to true if you would like a single 
 #    security group created and assigned to ALL Cloud Connectors instead.
 ################################################################################
-module "cc-sg" {
+module "cc_sg" {
   source       = "../../modules/terraform-zscc-sg-aws"
   sg_count     = 1
   name_prefix  = var.name_prefix
@@ -188,7 +189,7 @@ module "cc-sg" {
 
 ################################################################################
 # 7. Create GWLB in all CC subnets/availability zones. Create a Target Group 
-#    used by cc-asg module to auto associate instances
+#    used by cc_asg module to auto associate instances
 ################################################################################
 module "gwlb" {
   source                = "../../modules/terraform-zscc-gwlb-aws"
@@ -210,7 +211,7 @@ module "gwlb" {
 # 8. Create a VPC Endpoint Service associated with GWLB and 1x GWLB Endpoint 
 #    per Cloud Connector subnet/availability zone.
 ################################################################################
-module "gwlb-endpoint" {
+module "gwlb_endpoint" {
   source              = "../../modules/terraform-zscc-gwlbendpoint-aws"
   name_prefix         = var.name_prefix
   resource_tag        = random_string.suffix.result
@@ -245,7 +246,7 @@ module "route53" {
 # the moment, so this will trigger off an invalid count value if there is an 
 # improper deployment configuration.
 ################################################################################
-resource "null_resource" "cc-error-checker" {
+resource "null_resource" "cc_error_checker" {
   count = local.valid_cc_create ? 0 : "Cloud Connector parameters were invalid. No appliances were created. Please check the documentation and cc_instance_size / ccvm_instance_type values that were chosen" # 0 means no error is thrown, else throw error
   provisioner "local-exec" {
     command = <<EOF
