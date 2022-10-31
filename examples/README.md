@@ -43,7 +43,7 @@ Optional: Edit the terraform.tfvars file under your desired deployment type (ie:
 
 ```
 Deployment Type: (base | base_1cc | base_1cc_zpa | base_2cc | base_2cc_zpa | base_cc_gwlb | base_cc_gwlb_zpa | base_cc_gwlb_asg | base_cc_gwlb_asg_zpa):
-base: Creates 1 new VPC with 1 public subnet and 1 private/workload subnet; 1 IGW; 1 NAT Gateway; 1 Centos server workload in the private subnet routing to NAT Gateway;
+base: Creates 1 new VPC with 1 public subnet and 1 private/workload subnet; 1 IGW; 1 NAT Gateway; 1 Centos server workload in the private subnet routing to NAT Gateway; This does NOT deploy any actual Cloud Connectors.
 1 Bastion Host in the public subnet assigned an Elastic IP and routing to the IGW; generates local key pair .pem file for ssh access
 base_1cc: Base Deployment Type + Creates 1 Cloud Connector private subnet; 1 Cloud Connector VM routing to NAT Gateway; workload private subnet route repointed to service ENI of Cloud Connector
 base_1cc_zpa: Everything from base_1cc Deployment Type + Creates 2 Route 53 subnets routing to service ENI of Cloud Connector; Route 53 outbound resolver endpoint; Route 53 resolver rules for ZPA
@@ -78,7 +78,7 @@ Optional: Edit the terraform.tfvars file under your desired deployment type (ie:
 Deployment Type: (cc_ha | cc_gwlb | cc_gwlb_asg):
 cc_ha: Creates 1 new VPC with 2 public subnets and 2 Cloud Connector private subnets; 1 IGW; 2 NAT Gateways; 2 Cloud Connector VMs (1 per subnet/AZ) routing to the NAT Gateway in their same AZ; generates local key pair .pem file for ssh access; Number of Cloud Connectors and subnets deployed, ability to use existing resources (VPC, subnets, IGW, NAT Gateways), and toggle ZPA/R53 and Lambda HA failover features; generates local key pair .pem file for ssh access
 cc_gwlb: All options from cc_ha + replace lambda with Gateway Load Balancer auto registering service ips to target group with health checks; VPC Endpoint Service; 1 GWLB Endpoints per Cloud Connector subnet
-cc_gwlb_asg: All options from cc_gwlb except replace cc-vm module with cc-asg module containing Launch Template and Autoscaling Groups resources
+cc_gwlb_asg: All options from cc_gwlb except replace cc_vm module with cc_asg module containing Launch Template and Autoscaling Groups resources
 ```
 
 ## Destroying the cluster
