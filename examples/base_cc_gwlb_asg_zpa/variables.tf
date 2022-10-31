@@ -276,6 +276,18 @@ variable "target_cpu_util_value" {
   default     = 70
 }
 
+variable "lifecyclehook_instance_launch_wait_time" {
+  type        = number
+  description = "The maximum amount of time to wait in pending:wait state on instance launch in warmpool"
+  default     = 600
+}
+
+variable "lifecyclehook_instance_terminate_wait_time" {
+  type        = number
+  description = "The maximum amount of time to wait in terminating:wait state on instance termination"
+  default     = 600
+}
+
 # ZPA/Route53 specific variables
 variable "domain_names" {
   type        = map(map(string))
