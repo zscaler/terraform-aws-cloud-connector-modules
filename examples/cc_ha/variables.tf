@@ -58,12 +58,6 @@ variable "tls_key_algorithm" {
   default     = "RSA"
 }
 
-variable "bastion_nsg_source_prefix" {
-  type        = list(string)
-  description = "CIDR blocks of trusted networks for bastion host ssh access"
-  default     = ["0.0.0.0/0"]
-}
-
 variable "cc_count" {
   type        = number
   description = "Default number of Cloud Connector appliances to create"
@@ -127,7 +121,8 @@ variable "secret_name" {
 }
 
 variable "http_probe_port" {
-  description = "port for Cloud Connector cloud init to enable listener port for HTTP probe from LB"
+  type        = number
+  description = "Port number for Cloud Connector cloud init to enable listener port for HTTP probe from GWLB Target Group"
   default     = 50000
   validation {
     condition = (
@@ -153,30 +148,6 @@ variable "reuse_security_group" {
 variable "reuse_iam" {
   type        = bool
   description = "Specifies whether the SG module should create 1:1 IAM per instance or 1 IAM for all instances"
-  default     = false
-}
-
-variable "health_check_interval" {
-  type        = number
-  description = "Interval for GWLB target group health check probing, in seconds, of Cloud Connector targets. Minimum 5 and maximum 300 seconds"
-  default     = 10
-}
-
-variable "healthy_threshold" {
-  type        = number
-  description = "The number of successful health checks required before an unhealthy target becomes healthy. Minimum 2 and maximum 10"
-  default     = 3
-}
-
-variable "unhealthy_threshold" {
-  type        = number
-  description = "The number of unsuccessful health checks required before an healthy target becomes unhealthy. Minimum 2 and maximum 10"
-  default     = 3
-}
-
-variable "cross_zone_lb_enabled" {
-  type        = bool
-  description = "Determines whether GWLB cross zone load balancing should be enabled or not"
   default     = false
 }
 

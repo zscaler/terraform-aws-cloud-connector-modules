@@ -21,7 +21,7 @@
 #secret_name                                =  "ZS/CC/credentials/aws_cc_secret_name"
 
 ## 3. Cloud Connector cloud init provisioning listener port. This is required for GWLB and Health Probe deployments. 
-## Uncomment and set custom probe port to a single value of 80 or any number between 1024-65535. Default is 0/null.
+## Uncomment and set custom probe port to a single value of 80 or any number between 1024-65535. Default is 50000.
 
 #http_probe_port                            = 50000
 
@@ -270,7 +270,3 @@
 #workload_route_table_ids_to_cc_1           = ["rtb-1-az1","rtb-2-az1"]
 
 #workload_route_table_ids_to_cc_2           = ["rtb-1-az2","rtb-2-az2"]
-
-
-
-

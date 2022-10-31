@@ -5,7 +5,7 @@
 ## Prerequisites (You will be prompted for AWS keys and region during deployment)
 
 ### AWS requirements
-1. A valid AWS account
+1. A valid AWS account with Administrator Access to deploy required resources
 2. AWS ACCESS KEY ID
 3. AWS SECRET ACCESS KEY
 4. AWS Region (E.g. us-west-2)

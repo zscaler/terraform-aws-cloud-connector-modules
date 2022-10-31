@@ -596,7 +596,6 @@ fi
 if [[ $mfa_enabled == true ]]; then
     if [ -z "$AWS_SESSION_TOKEN" ]; then
     echo "export AWS_SESSION_TOKEN=${aws_session_token}" >> .zsecrc 
-    echo "export AWS_SESSION_TOKEN=${aws_session_token}"
 else
     echo "zsecrc file has existing session token. Resetting to ensure credentials are refreshed"
     echo "unsetting existing AWS Environment variables (unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)"
@@ -614,7 +613,6 @@ else
  
     read -r -p "Enter AWS Session Token: " aws_session_token
     echo "export AWS_SESSION_TOKEN=${aws_session_token}" >> .zsecrc
-    echo "export AWS_SESSION_TOKEN=${aws_session_token}"
     read -r -p "Enter AWS Access Key ID: " aws_key
     read -r -p "Enter AWS Secret Access Key: " aws_secret
     echo "export AWS_ACCESS_KEY_ID=${aws_key}" >> .zsecrc

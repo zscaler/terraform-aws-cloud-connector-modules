@@ -24,8 +24,8 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [aws_vpc_endpoint.gwlb-vpce](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint) | resource |
-| [aws_vpc_endpoint_service.gwlb-vpce-service](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint_service) | resource |
+| [aws_vpc_endpoint.gwlb_vpce](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint) | resource |
+| [aws_vpc_endpoint_service.gwlb_vpce_service](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint_service) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 
 ## Inputs
@@ -45,6 +45,6 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_gwlbe"></a> [gwlbe](#output\_gwlbe) | n/a |
-| <a name="output_vpce_service_name"></a> [vpce\_service\_name](#output\_vpce\_service\_name) | n/a |
+| <a name="output_gwlbe"></a> [gwlbe](#output\_gwlbe) | GWLB Endpoint ID |
+| <a name="output_vpce_service_name"></a> [vpce\_service\_name](#output\_vpce\_service\_name) | VPC Endpoint Service Name |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
