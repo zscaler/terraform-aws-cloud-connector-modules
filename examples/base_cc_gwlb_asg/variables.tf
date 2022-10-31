@@ -262,3 +262,15 @@ variable "target_cpu_util_value" {
   description = "Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number"
   default     = 70
 }
+
+variable "lifecyclehook_instance_launch_wait_time" {
+  type        = number
+  description = "The maximum amount of time to wait in pending:wait state on instance launch in warmpool"
+  default     = 600
+}
+
+variable "lifecyclehook_instance_terminate_wait_time" {
+  type        = number
+  description = "The maximum amount of time to wait in terminating:wait state on instance termination"
+  default     = 600
+}
