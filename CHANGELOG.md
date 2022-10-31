@@ -18,3 +18,5 @@
 * workload and bastion modules changed to AL2 EC2 to enable SSM and require IMDSv2 metadata
 * cc-error-checker changes to run first so errors thrown are less and clearer in the event of a CC deployment configuration error
 * ASG module + deployment types added
+* Support for M/L CC GWLB non-ASG
+* SSM policy modified for least privilege

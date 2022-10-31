@@ -16,7 +16,7 @@ Our Deployment scripts are leveraging Terraform v1.1.9 that includes full binary
 - provider registry.terraform.io/providers/hashicorp/tls v3.4.x
 
 ### AWS requirements
-1. A valid AWS account
+1. A valid AWS account with Administrator Access to deploy required resources
 2. AWS ACCESS KEY ID
 3. AWS SECRET ACCESS KEY
 4. AWS Region (E.g. us-west-2)

@@ -1,9 +1,7 @@
 ################################################################################
-# Pull region information
+# Module VM creation validation
 ################################################################################
-data "aws_region" "current" {}
-
-resource "null_resource" "error-checker" {
+resource "null_resource" "error_checker" {
   count = local.valid_cc_create ? 0 : 1 # 0 means no error is thrown, else throw error
   provisioner "local-exec" {
     command = <<EOF
@@ -31,7 +29,7 @@ data "aws_ami" "cloudconnector" {
 ################################################################################
 # Create Cloud Connector VM
 ################################################################################
-resource "aws_instance" "cc-vm" {
+resource "aws_instance" "cc_vm" {
   count                       = local.valid_cc_create ? var.cc_count : 0
   ami                         = data.aws_ami.cloudconnector.id
   instance_type               = var.ccvm_instance_type
@@ -52,7 +50,7 @@ resource "aws_instance" "cc-vm" {
 # Create Cloud Connector Service Interface for Small CC. 
 # This interface becomes LB0 interface for Medium/Large size CCs
 ################################################################################
-resource "aws_network_interface" "cc-vm-nic-index-1" {
+resource "aws_network_interface" "cc_vm_nic_index_1" {
   count             = local.valid_cc_create ? var.cc_count : 0
   description       = var.cc_instance_size == "small" ? "Primary Interface for service traffic" : "CC Med/Lrg LB interface"
   subnet_id         = element(var.service_subnet_id, count.index)
@@ -60,7 +58,7 @@ resource "aws_network_interface" "cc-vm-nic-index-1" {
   source_dest_check = false
   private_ips_count = 1
   attachment {
-    instance     = aws_instance.cc-vm[count.index].id
+    instance     = aws_instance.cc_vm[count.index].id
     device_index = 1
   }
 
@@ -70,9 +68,9 @@ resource "aws_network_interface" "cc-vm-nic-index-1" {
 }
 
 # Get Data info of NIC to be able to output private IP values
-data "aws_network_interface" "cc-vm-nic-index-1-eni" {
+data "aws_network_interface" "cc_vm_nic_index_1_eni" {
   count = local.valid_cc_create ? var.cc_count : 0
-  id    = element(aws_network_interface.cc-vm-nic-index-1.*.id, count.index)
+  id    = element(aws_network_interface.cc_vm_nic_index_1.*.id, count.index)
 }
 
 
@@ -80,14 +78,14 @@ data "aws_network_interface" "cc-vm-nic-index-1-eni" {
 # Create Cloud Connector Service Interface #1 for Medium/Large CC. 
 # This resource will not be created for "small" CC instances.
 ################################################################################
-resource "aws_network_interface" "cc-vm-nic-index-2" {
+resource "aws_network_interface" "cc_vm_nic_index_2" {
   count             = local.valid_cc_create && var.cc_instance_size != "small" ? var.cc_count : 0
   description       = "CC Service 1 interface"
   subnet_id         = element(var.service_subnet_id, count.index)
   security_groups   = [element(var.service_security_group_id, count.index)]
   source_dest_check = false
   attachment {
-    instance     = aws_instance.cc-vm[count.index].id
+    instance     = aws_instance.cc_vm[count.index].id
     device_index = 2
   }
 
@@ -97,9 +95,9 @@ resource "aws_network_interface" "cc-vm-nic-index-2" {
 }
 
 # Get Data info of NIC to be able to output private IP values
-data "aws_network_interface" "cc-vm-nic-index-2-eni" {
+data "aws_network_interface" "cc_vm_nic_index_2_eni" {
   count = local.valid_cc_create && var.cc_instance_size != "small" ? var.cc_count : 0
-  id    = element(aws_network_interface.cc-vm-nic-index-2.*.id, count.index)
+  id    = element(aws_network_interface.cc_vm_nic_index_2.*.id, count.index)
 }
 
 
@@ -107,14 +105,14 @@ data "aws_network_interface" "cc-vm-nic-index-2-eni" {
 # Create Cloud Connector Service Interface #2 for Medium/Large CC. 
 # This resource will not be created for "small" CC instances.
 ################################################################################
-resource "aws_network_interface" "cc-vm-nic-index-3" {
+resource "aws_network_interface" "cc_vm_nic_index_3" {
   count             = local.valid_cc_create && var.cc_instance_size != "small" ? var.cc_count : 0
   description       = "CC Service 2 interface"
   subnet_id         = element(var.service_subnet_id, count.index)
   security_groups   = [element(var.service_security_group_id, count.index)]
   source_dest_check = false
   attachment {
-    instance     = aws_instance.cc-vm[count.index].id
+    instance     = aws_instance.cc_vm[count.index].id
     device_index = 3
   }
 
@@ -124,9 +122,9 @@ resource "aws_network_interface" "cc-vm-nic-index-3" {
 }
 
 # Get Data info of NIC to be able to output private IP values
-data "aws_network_interface" "cc-vm-nic-index-3-eni" {
+data "aws_network_interface" "cc_vm_nic_index_3_eni" {
   count = local.valid_cc_create && var.cc_instance_size != "small" ? var.cc_count : 0
-  id    = element(aws_network_interface.cc-vm-nic-index-3.*.id, count.index)
+  id    = element(aws_network_interface.cc_vm_nic_index_3.*.id, count.index)
 }
 
 
@@ -134,14 +132,14 @@ data "aws_network_interface" "cc-vm-nic-index-3-eni" {
 # Create Cloud Connector Service Interface #3 for Large CC. This resource will 
 # not be created for "small" or "medium" CC instances
 ################################################################################
-resource "aws_network_interface" "cc-vm-nic-index-4" {
+resource "aws_network_interface" "cc_vm_nic_index_4" {
   count             = local.valid_cc_create && var.cc_instance_size == "large" ? var.cc_count : 0
   description       = "CC Service 3 interface"
   subnet_id         = element(var.service_subnet_id, count.index)
   security_groups   = [element(var.service_security_group_id, count.index)]
   source_dest_check = false
   attachment {
-    instance     = aws_instance.cc-vm[count.index].id
+    instance     = aws_instance.cc_vm[count.index].id
     device_index = 4
   }
 
@@ -151,7 +149,7 @@ resource "aws_network_interface" "cc-vm-nic-index-4" {
 }
 
 # Get Data info of NIC to be able to output private IP values
-data "aws_network_interface" "cc-vm-nic-index-4-eni" {
+data "aws_network_interface" "cc_vm_nic_index_4_eni" {
   count = local.valid_cc_create && var.cc_instance_size == "large" ? var.cc_count : 0
-  id    = element(aws_network_interface.cc-vm-nic-index-4.*.id, count.index)
+  id    = element(aws_network_interface.cc_vm_nic_index_4.*.id, count.index)
 }

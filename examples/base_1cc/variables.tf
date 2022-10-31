@@ -133,11 +133,11 @@ variable "secret_name" {
 }
 
 variable "http_probe_port" {
-  description = "port for Cloud Connector cloud init to enable listener port for HTTP probe from LB"
-  default     = 0
+  type        = number
+  description = "Port number for Cloud Connector cloud init to enable listener port for HTTP probe from GWLB Target Group"
+  default     = 50000
   validation {
     condition = (
-      var.http_probe_port == 0 ||
       var.http_probe_port == 80 ||
       (var.http_probe_port >= 1024 && var.http_probe_port <= 65535)
     )
@@ -161,10 +161,4 @@ variable "reuse_iam" {
   type        = bool
   description = "Specifies whether the SG module should create 1:1 IAM per instance or 1 IAM for all instances"
   default     = false
-}
-
-variable "zpa_enabled" {
-  type        = bool
-  default     = false
-  description = "Configure Route 53 Subnets, Route Tables, and Resolvers for ZPA DNS redirection"
 }
