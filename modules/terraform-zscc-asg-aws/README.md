@@ -29,6 +29,8 @@ No modules.
 |------|------|
 | [aws_autoscaling_attachment.cc_asg_attachment_gwlb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_attachment) | resource |
 | [aws_autoscaling_group.cc_asg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group) | resource |
+| [aws_autoscaling_lifecycle_hook.cc_asg_lifecyclehook_launch](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_lifecycle_hook) | resource |
+| [aws_autoscaling_lifecycle_hook.cc_asg_lifecyclehook_terminate](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_lifecycle_hook) | resource |
 | [aws_autoscaling_policy.cc_asg_target_tracking_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_policy) | resource |
 | [aws_launch_template.cc_launch_template](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template) | resource |
 | [null_resource.error_checker](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
@@ -46,6 +48,8 @@ No modules.
 | <a name="input_iam_instance_profile"></a> [iam\_instance\_profile](#input\_iam\_instance\_profile) | IAM instance profile ID assigned to Cloud Connector | `list(string)` | n/a | yes |
 | <a name="input_instance_key"></a> [instance\_key](#input\_instance\_key) | SSH Key for instances | `string` | n/a | yes |
 | <a name="input_launch_template_version"></a> [launch\_template\_version](#input\_launch\_template\_version) | Launch template version. Can be version number, `$Latest` or `$Default` | `string` | `"$Latest"` | no |
+| <a name="input_lifecyclehook_instance_launch_wait_time"></a> [lifecyclehook\_instance\_launch\_wait\_time](#input\_lifecyclehook\_instance\_launch\_wait\_time) | The maximum amount of time to wait in pending:wait state on instance launch in warmpool | `number` | `600` | no |
+| <a name="input_lifecyclehook_instance_terminate_wait_time"></a> [lifecyclehook\_instance\_terminate\_wait\_time](#input\_lifecyclehook\_instance\_terminate\_wait\_time) | The maximum amount of time to wait in terminating:wait state on instance termination | `number` | `600` | no |
 | <a name="input_max_size"></a> [max\_size](#input\_max\_size) | Maxinum number of Cloud Connectors to maintain in Autoscaling group | `number` | `4` | no |
 | <a name="input_mgmt_security_group_id"></a> [mgmt\_security\_group\_id](#input\_mgmt\_security\_group\_id) | Cloud Connector EC2 Instance management subnet id | `list(string)` | n/a | yes |
 | <a name="input_min_size"></a> [min\_size](#input\_min\_size) | Mininum number of Cloud Connectors to maintain in Autoscaling group | `number` | `2` | no |

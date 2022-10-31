@@ -142,10 +142,12 @@ module "cc_asg" {
 
   warm_pool_enabled = var.warm_pool_enabled
   ### only utilzed if warm_pool_enabled set to true ###
-  warm_pool_state                       = var.warm_pool_state
-  warm_pool_min_size                    = var.warm_pool_min_size
-  warm_pool_max_group_prepared_capacity = var.warm_pool_max_group_prepared_capacity
-  reuse_on_scale_in                     = var.reuse_on_scale_in
+  warm_pool_state                            = var.warm_pool_state
+  warm_pool_min_size                         = var.warm_pool_min_size
+  warm_pool_max_group_prepared_capacity      = var.warm_pool_max_group_prepared_capacity
+  reuse_on_scale_in                          = var.reuse_on_scale_in
+  lifecyclehook_instance_launch_wait_time    = var.lifecyclehook_instance_launch_wait_time
+  lifecyclehook_instance_terminate_wait_time = var.lifecyclehook_instance_terminate_wait_time
   ### only utilzed if warm_pool_enabled set to true ###
 
   depends_on = [
