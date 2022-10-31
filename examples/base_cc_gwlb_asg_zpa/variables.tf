@@ -133,7 +133,8 @@ variable "secret_name" {
 }
 
 variable "http_probe_port" {
-  description = "port for Cloud Connector cloud init to enable listener port for HTTP probe from LB"
+  type        = number
+  description = "Port number for Cloud Connector cloud init to enable listener port for HTTP probe from GWLB Target Group"
   default     = 50000
   validation {
     condition = (

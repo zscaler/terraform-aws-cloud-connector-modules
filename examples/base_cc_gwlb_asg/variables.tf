@@ -127,7 +127,8 @@ variable "secret_name" {
 }
 
 variable "http_probe_port" {
-  description = "port for Cloud Connector cloud init to enable listener port for HTTP probe from LB"
+  type        = number
+  description = "Port number for Cloud Connector cloud init to enable listener port for HTTP probe from GWLB Target Group"
   default     = 50000
   validation {
     condition = (
@@ -142,12 +143,6 @@ variable "cc_callhome_enabled" {
   type        = bool
   description = "determine whether or not to create the cc-callhome-policy IAM Policy and attach it to the CC IAM Role"
   default     = true
-}
-
-variable "zpa_enabled" {
-  type        = bool
-  default     = false
-  description = "Configure Route 53 Subnets, Route Tables, and Resolvers for ZPA DNS redirection"
 }
 
 variable "gwlb_enabled" {
