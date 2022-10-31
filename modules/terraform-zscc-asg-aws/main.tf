@@ -1,9 +1,7 @@
 ################################################################################
-# Pull region information
+# Module VM creation validation
 ################################################################################
-data "aws_region" "current" {}
-
-resource "null_resource" "error-checker" {
+resource "null_resource" "error_checker" {
   count = local.valid_cc_create ? 0 : 1 # 0 means no error is thrown, else throw error
   provisioner "local-exec" {
     command = <<EOF
@@ -33,7 +31,7 @@ data "aws_ami" "cloudconnector" {
 # Mgmt and service interface device indexes are swapped to support ASG + GWLB 
 # instance association
 ################################################################################
-resource "aws_launch_template" "cc-launch-template" {
+resource "aws_launch_template" "cc_launch_template" {
   count         = local.valid_cc_create && var.cc_instance_size == "small" ? 1 : 0
   name          = "${var.name_prefix}-cc-launch-template-${var.resource_tag}"
   image_id      = data.aws_ami.cloudconnector.id
@@ -78,7 +76,7 @@ resource "aws_launch_template" "cc-launch-template" {
 ################################################################################
 # Create Cloud Connector autoscaling group
 ################################################################################
-resource "aws_autoscaling_group" "cc-asg" {
+resource "aws_autoscaling_group" "cc_asg" {
   name                      = "${var.name_prefix}-cc-asg-${var.resource_tag}"
   vpc_zone_identifier       = distinct(var.cc_subnet_ids)
   max_size                  = var.max_size
@@ -87,7 +85,7 @@ resource "aws_autoscaling_group" "cc-asg" {
   health_check_grace_period = var.health_check_grace_period
 
   launch_template {
-    id      = aws_launch_template.cc-launch-template.*.id[0]
+    id      = aws_launch_template.cc_launch_template.*.id[0]
     version = var.launch_template_version
   }
 
@@ -124,8 +122,8 @@ resource "aws_autoscaling_group" "cc-asg" {
 # Automatically associate all Cloud Connector instances created by autoscaling 
 # group to GWLB Target Group
 ################################################################################
-resource "aws_autoscaling_attachment" "cc-asg-attachment-gwlb" {
-  autoscaling_group_name = aws_autoscaling_group.cc-asg.id
+resource "aws_autoscaling_attachment" "cc_asg_attachment_gwlb" {
+  autoscaling_group_name = aws_autoscaling_group.cc_asg.id
   lb_target_group_arn    = var.target_group_arn
 }
 
@@ -134,9 +132,9 @@ resource "aws_autoscaling_attachment" "cc-asg-attachment-gwlb" {
 # Create autoscaling group policy based on dynamic Target Tracking Scaling on 
 # average CPU
 ################################################################################
-resource "aws_autoscaling_policy" "cc-asg-target-tracking-policy" {
+resource "aws_autoscaling_policy" "cc_asg_target_tracking_policy" {
   name                   = "${var.name_prefix}-cc-asg-target-policy-${var.resource_tag}"
-  autoscaling_group_name = aws_autoscaling_group.cc-asg.name
+  autoscaling_group_name = aws_autoscaling_group.cc_asg.name
   policy_type            = "TargetTrackingScaling"
 
   target_tracking_configuration {

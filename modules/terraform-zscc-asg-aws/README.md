@@ -27,13 +27,12 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [aws_autoscaling_attachment.cc-asg-attachment-gwlb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_attachment) | resource |
-| [aws_autoscaling_group.cc-asg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group) | resource |
-| [aws_autoscaling_policy.cc-asg-target-tracking-policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_policy) | resource |
-| [aws_launch_template.cc-launch-template](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template) | resource |
-| [null_resource.error-checker](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
+| [aws_autoscaling_attachment.cc_asg_attachment_gwlb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_attachment) | resource |
+| [aws_autoscaling_group.cc_asg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group) | resource |
+| [aws_autoscaling_policy.cc_asg_target_tracking_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_policy) | resource |
+| [aws_launch_template.cc_launch_template](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template) | resource |
+| [null_resource.error_checker](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [aws_ami.cloudconnector](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
-| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 
 ## Inputs
 
@@ -67,5 +66,5 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_availability_zone"></a> [availability\_zone](#output\_availability\_zone) | n/a |
+| <a name="output_availability_zone"></a> [availability\_zone](#output\_availability\_zone) | Availability zones used for ASG |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
