@@ -37,9 +37,9 @@ resource "aws_route53_resolver_endpoint" "zpa_r53_ep" {
 # Create Route 53 resolver rule to steer ZPA desired domain requests to 
 # Cloud Connector per map for variable "domain_names"
 ################################################################################
-resource "aws_route53_resolver_rule" "fwd" {
+resource "aws_route53_resolver_rule" "fwd_to_cc" {
   for_each             = var.domain_names
-  domain_name          = each.value.domain_name
+  domain_name          = each.value
   name                 = "${var.name_prefix}-r53-rule-${each.key}-${var.resource_tag}"
   rule_type            = "FORWARD"
   resolver_endpoint_id = aws_route53_resolver_endpoint.zpa_r53_ep.id
@@ -58,9 +58,9 @@ resource "aws_route53_resolver_rule" "fwd" {
 }
 
 # Associate Route 53 Forward Resolver rules to VPC
-resource "aws_route53_resolver_rule_association" "r53_rule_association_fwd" {
+resource "aws_route53_resolver_rule_association" "r53_rule_association_to_cc" {
   for_each         = var.domain_names
-  resolver_rule_id = aws_route53_resolver_rule.fwd[each.key].id
+  resolver_rule_id = aws_route53_resolver_rule.fwd_to_cc[each.key].id
   vpc_id           = var.vpc_id
 }
 
@@ -71,7 +71,7 @@ resource "aws_route53_resolver_rule_association" "r53_rule_association_fwd" {
 ################################################################################
 resource "aws_route53_resolver_rule" "system" {
   for_each    = var.zscaler_domains
-  domain_name = each.value.domain_name
+  domain_name = each.value
   name        = "${var.name_prefix}-r53-system-rule-${each.key}-${var.resource_tag}"
   rule_type   = "SYSTEM"
 
