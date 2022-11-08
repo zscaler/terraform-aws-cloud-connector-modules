@@ -27,11 +27,8 @@ variable "r53_subnet_ids" {
 }
 
 variable "domain_names" {
-  type        = map(map(string))
+  type        = map(any)
   description = "Domain names fqdn/wildcard to have Route 53 redirect DNS requests to Cloud Connector for ZPA. Refer to terraform.tfvars step 10"
-  default = {
-    appseg01 = { domain_name = "example.com" }
-  }
 }
 
 variable "target_address" {
@@ -41,22 +38,22 @@ variable "target_address" {
 }
 
 variable "zscaler_domains" {
-  type        = map(map(string))
+  type        = map(any)
   description = "Domains that Route 53 should not forward to Cloud Connector"
 
   default = {
-    ZS-FreeBSD      = { domain_name = "freebsd.org" }
-    ZS-NTP          = { domain_name = "ntp.org" }
-    ZS-Zscaler      = { domain_name = "zscaler.com" }
-    ZS-Zpath        = { domain_name = "zpath.net" }
-    ZS-ZPAGov       = { domain_name = "zpagov.net" }
-    ZS-ZPABeta      = { domain_name = "zpabeta.net" }
-    ZS-ZscalerBeta  = { domain_name = "zscalerbeta.net" }
-    ZS-ZsNet        = { domain_name = "zscaler.net" }
-    ZS-ZscalerOne   = { domain_name = "zscalerone.net" }
-    ZS-ZscalerTwo   = { domain_name = "zscalertwo.net" }
-    ZS-ZscalerThree = { domain_name = "zscalerthree.net" }
-    ZS-ZsCloud      = { domain_name = "zscloud.net" }
-    ZS-ZscalerGov   = { domain_name = "zscalergov.net" }
+    ZS-FreeBSD      = "freebsd.org"
+    ZS-NTP          = "ntp.org"
+    ZS-Zscaler      = "zscaler.com"
+    ZS-Zpath        = "zpath.net"
+    ZS-ZPAGov       = "zpagov.net"
+    ZS-ZPABeta      = "zpabeta.net"
+    ZS-ZscalerBeta  = "zscalerbeta.net"
+    ZS-ZsNet        = "zscaler.net"
+    ZS-ZscalerOne   = "zscalerone.net"
+    ZS-ZscalerTwo   = "zscalertwo.net"
+    ZS-ZscalerThree = "zscalerthree.net"
+    ZS-ZsCloud      = "zscloud.net"
+    ZS-ZscalerGov   = "zscalergov.net"
   }
 }

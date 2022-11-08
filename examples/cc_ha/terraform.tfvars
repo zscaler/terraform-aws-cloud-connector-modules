@@ -133,8 +133,8 @@
 ##     add any additional appsegXX mappings as needed.
 
 #domain_names = {
-#  appseg01 = { domain_name = "app1.com" }
-#  appseg02 = { domain_name = "app2.com" }
+#  appseg1 = "app1.com"
+#  appseg2 = "app2.com"
 #}
 
 
@@ -239,7 +239,7 @@
 #byo_security_group                         = true
 
 
-## 26. Provide your existing Security Group resource names. Only uncomment and modify if you set byo_nsg to true
+## 26. Provide your existing Security Group resource names. Only uncomment and modify if you set byo_security_group to true
 
 ##    Example: byo_mgmt_security_group_id     = ["mgmt-sg-1","mgmt-sg-2"]
 ##    Example: byo_service_security_group_id  = ["service-sg-1","service-sg-2"]
