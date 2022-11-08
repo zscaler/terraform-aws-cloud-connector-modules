@@ -194,11 +194,8 @@ variable "cross_zone_lb_enabled" {
 }
 
 variable "domain_names" {
-  type        = map(map(string))
-  description = "Domain names fqdn/wildcard to have Route 53 redirect DNS requests to Cloud Connector for ZPA. Refer to terraform.tfvars step 10"
-  default = {
-    appseg01 = { domain_name = "example.com" }
-  }
+  type        = map(any)
+  description = "Domain names fqdn/wildcard to have Route 53 redirect DNS requests to Cloud Connector for ZPA. Refer to terraform.tfvars ZPA/Route 53 specific variables"
 }
 
 variable "target_address" {

@@ -213,7 +213,7 @@ fi
 
 
 
-echo "Checking AWS Environment Variables and Cloud Connector bootstrap requirements... For ZPA or brownfield/byo deployments, please stop and refer to the README and terraform.tfvars file instructions"
+echo "Checking AWS Environment Variables and Cloud Connector bootstrap requirements... For brownfield/byo deployments, please stop and refer to the README and terraform.tfvars file instructions"
 # if .zsecrc is not present we'll assume that AWS env was never set
 if [[ "$oper" == "up" && "$dtype" != base && ! -e ./.zsecrc ]]; then
     # Get MFA session token
@@ -560,6 +560,46 @@ case $reuse_on_scale_in_response in
     esac
 done 
 fi
+
+if [[ "$dtype" == "cc"* ]]; then
+   while true; do
+    read -r -p "Enable Route 53 configuration for ZPA? (yes/no): " zpa_response
+case $zpa_response in 
+	yes|y ) 
+    echo "Enabling Route 53 module..."
+    zpa_enabled=true
+    echo "export TF_VAR_zpa_enabled=$zpa_enabled" >> .zsecrc
+    break
+    ;;
+	no|n )
+    echo "No ZPA enablement..."
+    zpa_enabled=false
+    echo "export TF_VAR_zpa_enabled=$zpa_enabled" >> .zsecrc
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done 
+fi
+
+if [[ "$zpa_enabled" == "true" || "$dtype" == *"zpa" ]]; then
+array=()
+domain_names_map="'{ "
+counter=0
+echo "Enter each ZPA Application Segment Domain/FQDN for Route 53 Resolver Rule..."
+while IFS= read -r -p "Enter a single ZPA Domain/FQDN. (Hit Enter when finished to continue): " domain_name; do
+    [[ $domain_name ]] || break  # break if line is empty
+    if [[ $domain_name = *" "* ]]; then
+  echo "Spaces not allowed. Please enter only one domain at a time. Delete .zsecrc file and re-run zsec up..."
+  exit 1
+    fi
+    array+=("$domain_name")
+    counter=$(( $counter + 1 ))
+    domain_names_map+="appseg$counter: \"$domain_name\", "
+done
+domain_names_map+="}'"
+echo "export TF_VAR_domain_names=${domain_names_map}" >> .zsecrc
+fi
 fi
 
 
@@ -652,6 +692,7 @@ elif [[ "$oper" == "destroy" ]]; then
     else
       TF_DATA_DIR=../.terraform ./$dir/terraform -chdir="$dtype" destroy -compact-warnings
     fi
+    echo "Removing Terraform files and directories..."
     rm -rf bin 
     rm -rf **/.terraform/* && rm -rf **/.terraform*
 	find . -type f -name '.terraform.lock.hcl' -delete
@@ -661,4 +702,8 @@ elif [[ "$oper" == "destroy" ]]; then
     rm -rf user.key user.crt
     rm -rf systems.json setup-*.tar
     rm -rf **/errorlog.txt
+now=$(date +'%Y-%m-%d-%H_%M_%S')
+    echo "archiving .zsecrc file to .zsecrc-${now}"
+    cp .zsecrc .zsecrc-${now}
+    rm -rf .zsecrc && rm -rf .zsecrc.bak
 fi
