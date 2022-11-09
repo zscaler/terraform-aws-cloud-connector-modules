@@ -445,8 +445,9 @@ domain_names_map="'{ "
 counter=0
 while true; do
 read -r -p "How many Domain/FQDN application segments to add to Route 53 Resolver Rule? " domain_number
-if [[ $domain_number =~ ^[0-9]+$ ]]
-then
+if [[ $domain_number == 0 ]]; then
+    echo "Invalid input. Please enter a whole number for the number of domains you will be adding..."
+elif [[ $domain_number =~ ^[0-9]+$ ]]; then
    echo "$domain_number domains to enter..."
    break
 else
