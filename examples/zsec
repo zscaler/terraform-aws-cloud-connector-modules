@@ -586,14 +586,27 @@ if [[ "$zpa_enabled" == "true" || "$dtype" == *"zpa" ]]; then
 array=()
 domain_names_map="'{ "
 counter=0
-echo "Enter each ZPA Application Segment Domain/FQDN for Route 53 Resolver Rule..."
-while IFS= read -r -p "Enter a single ZPA Domain/FQDN. (Hit Enter when finished to continue): " domain_name; do
-    [[ $domain_name ]] || break  # break if line is empty
+while true; do
+read -r -p "How many Domain/FQDN application segments to add to Route 53 Resolver Rule? " domain_number
+if [[ $domain_number == 0 ]]; then
+    echo "Invalid input. Please enter a whole number for the number of domains you will be adding..."
+elif [[ $domain_number =~ ^[0-9]+$ ]]; then
+   echo "$domain_number domains to enter..."
+   break
+else
+   echo "Invalid input. Please enter a whole number for the number of domains you will be adding..."
+fi
+done
+for i in $(seq $domain_number); do
+read -r -p "Enter a single ZPA Domain/FQDN: " domain_name
     if [[ $domain_name = *" "* ]]; then
-  echo "Spaces not allowed. Please enter only one domain at a time. Delete .zsecrc file and re-run zsec up..."
-  exit 1
+        echo "Spaces not allowed. Please enter only one domain at a time. Delete .zsecrc file and re-run zsec up..."
+        exit 1
+    elif [[ $domain_name == '' ]]; then
+        echo "Empty entries are not allowed. Delete .zsecrc file and re-run zsec up..."
+        exit 1
     fi
-    array+=("$domain_name")
+array+=("$domain_name")
     counter=$(( $counter + 1 ))
     domain_names_map+="appseg$counter: \"$domain_name\", "
 done
