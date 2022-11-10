@@ -85,7 +85,7 @@ resource "aws_autoscaling_group" "cc_asg" {
   health_check_grace_period = var.health_check_grace_period
 
   launch_template {
-    id      = aws_launch_template.cc_launch_template.*.id[0]
+    id      = aws_launch_template.cc_launch_template[0].id
     version = var.launch_template_version
   }
 
