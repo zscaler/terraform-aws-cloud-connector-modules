@@ -102,7 +102,7 @@ resource "aws_security_group" "lambda_sg" {
     from_port   = var.http_probe_port
     to_port     = var.http_probe_port
     protocol    = "tcp"
-    cidr_blocks = data.aws_subnet.cc_subnets.*.cidr_block
+    cidr_blocks = data.aws_subnet.cc_subnets[*].cidr_block
   }
 
   egress {
