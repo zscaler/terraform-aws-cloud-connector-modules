@@ -1,6 +1,6 @@
 output "gwlbe" {
   description = "GWLB Endpoint ID"
-  value       = aws_vpc_endpoint.gwlb_vpce.*.id
+  value       = aws_vpc_endpoint.gwlb_vpce[*].id
 }
 
 output "vpce_service_name" {
