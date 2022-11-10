@@ -70,7 +70,7 @@ resource "aws_network_interface" "cc_vm_nic_index_1" {
 # Get Data info of NIC to be able to output private IP values
 data "aws_network_interface" "cc_vm_nic_index_1_eni" {
   count = local.valid_cc_create ? var.cc_count : 0
-  id    = element(aws_network_interface.cc_vm_nic_index_1.*.id, count.index)
+  id    = element(aws_network_interface.cc_vm_nic_index_1[*].id, count.index)
 }
 
 
@@ -97,7 +97,7 @@ resource "aws_network_interface" "cc_vm_nic_index_2" {
 # Get Data info of NIC to be able to output private IP values
 data "aws_network_interface" "cc_vm_nic_index_2_eni" {
   count = local.valid_cc_create && var.cc_instance_size != "small" ? var.cc_count : 0
-  id    = element(aws_network_interface.cc_vm_nic_index_2.*.id, count.index)
+  id    = element(aws_network_interface.cc_vm_nic_index_2[*].id, count.index)
 }
 
 
@@ -124,7 +124,7 @@ resource "aws_network_interface" "cc_vm_nic_index_3" {
 # Get Data info of NIC to be able to output private IP values
 data "aws_network_interface" "cc_vm_nic_index_3_eni" {
   count = local.valid_cc_create && var.cc_instance_size != "small" ? var.cc_count : 0
-  id    = element(aws_network_interface.cc_vm_nic_index_3.*.id, count.index)
+  id    = element(aws_network_interface.cc_vm_nic_index_3[*].id, count.index)
 }
 
 
@@ -151,5 +151,5 @@ resource "aws_network_interface" "cc_vm_nic_index_4" {
 # Get Data info of NIC to be able to output private IP values
 data "aws_network_interface" "cc_vm_nic_index_4_eni" {
   count = local.valid_cc_create && var.cc_instance_size == "large" ? var.cc_count : 0
-  id    = element(aws_network_interface.cc_vm_nic_index_4.*.id, count.index)
+  id    = element(aws_network_interface.cc_vm_nic_index_4[*].id, count.index)
 }
