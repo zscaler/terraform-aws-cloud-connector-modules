@@ -46,8 +46,8 @@ resource "aws_iam_policy" "cc_callhome_policy" {
 # Attach CC callhome policy to CC IAM Role
 resource "aws_iam_role_policy_attachment" "cc_callhome_policy_attachment" {
   count      = var.byo_iam == false && var.cc_callhome_enabled ? var.iam_count : 0
-  policy_arn = aws_iam_policy.cc_callhome_policy.*.arn[count.index]
-  role       = aws_iam_role.cc_node_iam_role.*.name[count.index]
+  policy_arn = aws_iam_policy.cc_callhome_policy[count.index].arn
+  role       = aws_iam_role.cc_node_iam_role[count.index].name
 }
 
 
@@ -57,7 +57,7 @@ resource "aws_iam_role_policy_attachment" "cc_callhome_policy_attachment" {
 resource "aws_iam_role_policy_attachment" "secrets_manager_read_write" {
   count      = var.byo_iam == false ? var.iam_count : 0
   policy_arn = "arn:aws:iam::aws:policy/${var.iam_role_policy_smrw}"
-  role       = aws_iam_role.cc_node_iam_role.*.name[count.index]
+  role       = aws_iam_role.cc_node_iam_role[count.index].name
 }
 
 
@@ -88,8 +88,8 @@ resource "aws_iam_policy" "cc_session_manager_policy" {
 
 resource "aws_iam_role_policy_attachment" "cc_session_manager_attachment" {
   count      = var.byo_iam == false ? var.iam_count : 0
-  policy_arn = aws_iam_policy.cc_session_manager_policy.*.arn[count.index]
-  role       = aws_iam_role.cc_node_iam_role.*.name[count.index]
+  policy_arn = aws_iam_policy.cc_session_manager_policy[count.index].arn
+  role       = aws_iam_role.cc_node_iam_role[count.index].name
 }
 
 
@@ -108,13 +108,13 @@ resource "aws_iam_role" "cc_node_iam_role" {
 resource "aws_iam_instance_profile" "cc_host_profile" {
   count = var.byo_iam == false ? var.iam_count : 0
   name  = var.iam_count > 1 ? "${var.name_prefix}-cc-${count.index + 1}-host-profile-${var.resource_tag}" : "${var.name_prefix}-cc-host-profile-${var.resource_tag}"
-  role  = aws_iam_role.cc_node_iam_role.*.name[count.index]
+  role  = aws_iam_role.cc_node_iam_role[count.index].name
 
   tags = merge(var.global_tags)
 }
 
 # Or use existing IAM Instance Profile if specified in byo_iam
 data "aws_iam_instance_profile" "cc_host_profile_selected" {
-  count = var.byo_iam == false ? length(aws_iam_instance_profile.cc_host_profile.*.id) : length(var.byo_iam_instance_profile_id)
-  name  = var.byo_iam == false ? element(aws_iam_instance_profile.cc_host_profile.*.name, count.index) : element(var.byo_iam_instance_profile_id, count.index)
+  count = var.byo_iam == false ? length(aws_iam_instance_profile.cc_host_profile[*].id) : length(var.byo_iam_instance_profile_id)
+  name  = var.byo_iam == false ? element(aws_iam_instance_profile.cc_host_profile[*].name, count.index) : element(var.byo_iam_instance_profile_id, count.index)
 }
