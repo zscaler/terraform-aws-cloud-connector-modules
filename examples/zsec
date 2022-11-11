@@ -462,6 +462,14 @@ read -r -p "Enter a single ZPA Domain/FQDN: " domain_name
     elif [[ $domain_name == '' ]]; then
         echo "Empty entries are not allowed. Delete .zsecrc file and re-run zsec up..."
         exit 1
+    elif [[ $domain_name == "." ]]; then
+        echo "You entered '.' dot. While AWS does support this to forward all domain requests, this could have unintended consequences/compatibility issues with AWS services"
+    elif [[ $domain_name == "."* ]]; then
+        echo "Invalid format. Domains cannot start with a dot (.). Delete .zsecrc file and re-run zsec up..."
+        exit 1
+    elif [[ $domain_name == "*"* ]]; then
+        echo "Invalid format. Domains cannot start with a star/wildcard (*). Delete .zsecrc file and re-run zsec up..."
+        exit 1
     fi
 array+=("$domain_name")
     counter=$(( $counter + 1 ))
