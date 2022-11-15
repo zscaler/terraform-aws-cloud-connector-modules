@@ -1,0 +1,137 @@
+name: Terraform checks
+on: [push, pull_request]
+
+jobs:
+  terraform-linter:
+    runs-on: ubuntu-latest
+
+    steps:      
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init
+        id: init-bastion
+        run: |
+          cd modules/terraform-zscc-bastion-aws
+          terraform init   
+
+      - name: Terraform Validate
+        id: validate-bastion
+        run: |
+          cd modules/terraform-zscc-bastion-aws
+          terraform validate -no-color
+
+      - name: Terraform Init
+        id: init-zscc-ccvm
+        run: |
+          cd modules/terraform-zscc-ccvm-aws
+          terraform init   
+
+      - name: Terraform Validate
+        id: validate-zscc-ccvm
+        run: |
+          cd modules/terraform-zscc-ccvm-aws
+          terraform validate -no-color
+
+      - name: Terraform Init
+        id: init-zscc-gwlb-aws
+        run: |
+          cd modules/terraform-zscc-gwlb-aws
+          terraform init   
+
+      - name: Terraform Validate
+        id: validate-zscc-gwlb-aws
+        run: |
+          cd modules/terraform-zscc-gwlb-aws
+          terraform validate -no-color
+
+      - name: Terraform Init
+        id: init-zscc-gwlbendpoint-aws
+        run: |
+          cd modules/terraform-zscc-gwlbendpoint-aws
+          terraform init   
+
+      - name: Terraform Validate
+        id: validate-zscc-gwlbendpoint-aws
+        run: |
+          cd modules/terraform-zscc-gwlbendpoint-aws
+          terraform validate -no-color
+
+      - name: Terraform Init
+        id: init-zscc-iam-aws
+        run: |
+          cd modules/terraform-zscc-iam-aws
+          terraform init   
+
+      - name: Terraform Validate
+        id: validate-zscc-iam-aws
+        run: |
+          cd modules/terraform-zscc-iam-aws
+          terraform validate -no-color
+
+      - name: Terraform Init
+        id: init-zscc-lambda-aws
+        run: |
+          cd modules/terraform-zscc-lambda-aws
+          terraform init   
+
+      - name: Terraform Validate
+        id: validate-zscc-lambda-aws
+        run: |
+          cd modules/terraform-zscc-lambda-aws
+          terraform validate -no-color
+
+      - name: Terraform Init
+        id: init-zscc-network-aws
+        run: |
+          cd modules/terraform-zscc-network-aws
+          terraform init   
+
+      - name: Terraform Validate
+        id: validate-zscc-network-aws
+        run: |
+          cd modules/terraform-zscc-network-aws
+          terraform validate -no-color
+
+      - name: Terraform Init
+        id: init-zscc-route53-aws
+        run: |
+          cd modules/terraform-zscc-route53-aws
+          terraform init   
+
+      - name: Terraform Validate
+        id: validate-zscc-route53-aws
+        run: |
+          cd modules/terraform-zscc-route53-aws
+          terraform validate -no-color
+
+      - name: Terraform Init
+        id: init-zscc-sg-aws
+        run: |
+          cd modules/terraform-zscc-sg-aws
+          terraform init   
+
+      - name: Terraform Validate
+        id: validate-zscc-sg-aws
+        run: |
+          cd modules/terraform-zscc-sg-aws
+          terraform validate -no-color
+
+      - name: Terraform Init
+        id: init-zscc-workload-aws
+        run: |
+          cd modules/terraform-zscc-workload-aws
+          terraform init   
+
+      - name: Terraform Validate
+        id: validate-zscc-workload-aws
+        run: |
+          cd modules/terraform-zscc-workload-aws
+          terraform validate -no-color
