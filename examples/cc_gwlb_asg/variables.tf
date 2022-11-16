@@ -120,8 +120,8 @@ variable "http_probe_port" {
   default     = 50000
   validation {
     condition = (
-      var.http_probe_port == 80 ||
-      (var.http_probe_port >= 1024 && var.http_probe_port <= 65535)
+      tonumber(var.http_probe_port) == 80 ||
+      (tonumber(var.http_probe_port) >= 1024 && tonumber(var.http_probe_port) <= 65535)
     )
     error_message = "Input http_probe_port must be set to a single value of 80 or any number between 1024-65535."
   }
