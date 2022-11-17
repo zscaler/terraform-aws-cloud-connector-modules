@@ -11,8 +11,8 @@
 ##     add any additional appsegXX mappings as needed.
 
 #domain_names = {
-#  appseg01 = { domain_name = "app1.com" }
-#  appseg02 = { domain_name = "app2.com" }
+#  appseg1 = "app1.com"
+#  appseg2 = "app2.com"
 #}
 
 
