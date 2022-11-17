@@ -20,3 +20,4 @@
 * ASG module + deployment types added
 * Support for M/L CC GWLB non-ASG
 * SSM policy modified for least privilege
+* IAM policy for ASG Lifecycle completion
