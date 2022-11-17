@@ -170,6 +170,7 @@ module "cc_iam" {
   resource_tag        = random_string.suffix.result
   global_tags         = local.global_tags
   cc_callhome_enabled = var.cc_callhome_enabled
+  asg_enabled         = var.asg_enabled
 }
 
 
@@ -205,7 +206,7 @@ module "gwlb" {
   healthy_threshold     = var.healthy_threshold
   unhealthy_threshold   = var.unhealthy_threshold
   cross_zone_lb_enabled = var.cross_zone_lb_enabled
-  asg_enabled           = true
+  asg_enabled           = var.asg_enabled
 }
 
 

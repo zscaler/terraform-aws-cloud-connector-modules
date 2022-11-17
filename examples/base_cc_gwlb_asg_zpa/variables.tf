@@ -288,6 +288,13 @@ variable "lifecyclehook_instance_terminate_wait_time" {
   default     = 600
 }
 
+variable "asg_enabled" {
+  type        = bool
+  description = "Determines whether or not to create the cc_autoscale_lifecycle_policy IAM Policy and attach it to the CC IAM Role"
+  default     = true
+}
+
+
 # ZPA/Route53 specific variables
 variable "domain_names" {
   type        = map(map(string))
