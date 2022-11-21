@@ -146,10 +146,10 @@ if [[ $dtype == "base" && ! -e ./.zsecrc ]]; then
     echo "getting session token (aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
     aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}  
 
-    read -r -p "Enter AWS Session Token: " aws_session_token
     fi
     read -r -p "Enter AWS Access Key ID: " aws_key
     read -r -p "Enter AWS Secret Access Key: " aws_secret
+    read -r -p "Enter AWS Session Token (if applicable): " aws_session_token
     read -r -p "Enter AWS Region (e.g. us-west-2): " aws_region
     if [[ ${aws_regions[*]} =~ $aws_region ]]; then
     echo "AWS Region entered is: $aws_region"
@@ -162,6 +162,13 @@ if [[ $dtype == "base" && ! -e ./.zsecrc ]]; then
     echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsecrc
     echo "export AWS_DEFAULT_REGION=${aws_region}" >> .zsecrc
     echo "export TF_VAR_aws_region=${aws_region}" >> .zsecrc
+    if [[ $aws_session_token == "" ]]; then
+    echo "No AWS Session Token entered..."
+    else
+    echo "AWS Session token entered..."
+    echo "export AWS_SESSION_TOKEN=${aws_session_token}" >> .zsecrc 
+    fi
+
 
     while [[ "$dtype" == "base" && "$oper" == "up" ]]; do
 clientpublicip=$(curl -s ifconfig.me)
@@ -228,10 +235,10 @@ if [[ "$oper" == "up" && "$dtype" != base && ! -e ./.zsecrc ]]; then
     echo "getting session token (aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
     aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}
  
-    read -r -p "Enter AWS Session Token: " aws_session_token
     fi
     read -r -p "Enter AWS Access Key ID: " aws_key
     read -r -p "Enter AWS Secret Access Key: " aws_secret
+    read -r -p "Enter AWS Session Token (if applicable): " aws_session_token
     read -r -p "Enter AWS Region (e.g. us-west-2): " aws_region
     if [[ ${aws_regions[*]} =~ $aws_region ]]; then
     echo "AWS Region entered is: $aws_region"
@@ -244,6 +251,12 @@ if [[ "$oper" == "up" && "$dtype" != base && ! -e ./.zsecrc ]]; then
     echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsecrc
     echo "export AWS_DEFAULT_REGION=${aws_region}" >> .zsecrc
     echo "export TF_VAR_aws_region=${aws_region}" >> .zsecrc
+    if [[ $aws_session_token == "" ]]; then
+    echo "No AWS Session Token entered..."
+    else
+    echo "AWS Session token entered..."
+    echo "export AWS_SESSION_TOKEN=${aws_session_token}" >> .zsecrc
+    fi
     
     while [[ "$dtype" == "base"* && "$oper" == "up" ]]; do
 clientpublicip=$(curl -s ifconfig.me)
@@ -529,12 +542,12 @@ else
     echo "getting session token (aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
     aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}
  
-    read -r -p "Enter AWS Session Token: " aws_session_token
-    echo "export AWS_SESSION_TOKEN=${aws_session_token}" >> .zsecrc
     read -r -p "Enter AWS Access Key ID: " aws_key
     read -r -p "Enter AWS Secret Access Key: " aws_secret
+    read -r -p "Enter AWS Session Token: " aws_session_token
     echo "export AWS_ACCESS_KEY_ID=${aws_key}" >> .zsecrc
     echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsecrc
+    echo "export AWS_SESSION_TOKEN=${aws_session_token}" >> .zsecrc
 fi    
     # Reinitialize environment variables
 . ./.zsecrc
