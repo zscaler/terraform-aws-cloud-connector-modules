@@ -55,7 +55,7 @@ variable "http_probe_port" {
 variable "health_check_interval" {
   type        = number
   description = "Interval for GWLB target group health check probing, in seconds, of Cloud Connector targets. Minimum 5 and maximum 300 seconds"
-  default     = 10
+  default     = 20
 }
 
 variable "healthy_threshold" {

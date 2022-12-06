@@ -166,7 +166,7 @@ variable "target_tracking_metric" {
 variable "target_cpu_util_value" {
   type        = number
   description = "Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number"
-  default     = 70
+  default     = 20
 }
 
 variable "lifecyclehook_instance_launch_wait_time" {
@@ -179,4 +179,16 @@ variable "lifecyclehook_instance_terminate_wait_time" {
   type        = number
   description = "The maximum amount of time to wait in terminating:wait state on instance termination"
   default     = 600
+}
+
+variable "private_amis" {
+  type        = map(any)
+  description = "Map of Zscaler Cloud Connector Private AMIs"
+  default = {
+    "us-west-2"    = "ami-0f3dfa57203b38e81"
+    "us-east-1"    = "ami-0c65ee5c52372f8fc"
+    "us-east-2"    = "ami-0e0c0ecd08b6d1abd"
+    "eu-central-1" = "ami-00fdd9a35e268bfdf"
+    "eu-west-1"    = "ami-0386414112742b530"
+  }
 }

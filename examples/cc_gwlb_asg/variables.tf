@@ -162,7 +162,7 @@ variable "allowed_principals" {
 variable "health_check_interval" {
   type        = number
   description = "Interval for GWLB target group health check probing, in seconds, of Cloud Connector targets. Minimum 5 and maximum 300 seconds"
-  default     = 10
+  default     = 20
 }
 
 variable "healthy_threshold" {
@@ -275,7 +275,7 @@ variable "target_tracking_metric" {
 variable "target_cpu_util_value" {
   type        = number
   description = "Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number"
-  default     = 70
+  default     = 20
 }
 
 variable "lifecyclehook_instance_launch_wait_time" {
