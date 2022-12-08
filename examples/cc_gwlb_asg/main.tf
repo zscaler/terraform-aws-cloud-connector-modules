@@ -128,6 +128,11 @@ module "cc_asg" {
   lifecyclehook_instance_terminate_wait_time = var.lifecyclehook_instance_terminate_wait_time
   ### only utilzed if warm_pool_enabled set to true ###
 
+  sns_enabled        = var.sns_enabled
+  sns_email_list     = var.sns_email_list
+  byo_sns_topic      = var.byo_sns_topic
+  byo_sns_topic_name = var.byo_sns_topic_name
+
   depends_on = [
     local_file.user_data_file,
     null_resource.cc_error_checker,

@@ -155,7 +155,7 @@ variable "gwlb_enabled" {
 variable "health_check_interval" {
   type        = number
   description = "Interval for GWLB target group health check probing, in seconds, of Cloud Connector targets. Minimum 5 and maximum 300 seconds"
-  default     = 10
+  default     = 20
 }
 
 variable "healthy_threshold" {
@@ -210,7 +210,7 @@ variable "health_check_grace_period" {
 variable "warm_pool_enabled" {
   type        = bool
   description = "If set to true, add a warm pool to the specified Auto Scaling group. See [warm_pool](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group#warm_pool)."
-  default     = "false"
+  default     = false
 }
 
 variable "warm_pool_state" {
@@ -234,7 +234,7 @@ variable "warm_pool_max_group_prepared_capacity" {
 variable "reuse_on_scale_in" {
   type        = bool
   description = "Specifies whether instances in the Auto Scaling group can be returned to the warm pool on scale in."
-  default     = "false"
+  default     = false
 }
 
 variable "launch_template_version" {
@@ -260,7 +260,7 @@ variable "target_tracking_metric" {
 variable "target_cpu_util_value" {
   type        = number
   description = "Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number"
-  default     = 70
+  default     = 20
 }
 
 variable "lifecyclehook_instance_launch_wait_time" {
@@ -279,4 +279,28 @@ variable "asg_enabled" {
   type        = bool
   description = "Determines whether or not to create the cc_autoscale_lifecycle_policy IAM Policy and attach it to the CC IAM Role"
   default     = true
+}
+
+variable "sns_enabled" {
+  type        = bool
+  description = "Determine whether or not to create autoscaling group notifications. Default is false. If setting this value to true, terraform will also create a new sns topic and topic subscription"
+  default     = false
+}
+
+variable "sns_email_list" {
+  type        = list(string)
+  description = "List of email addresses to input for sns topic subscriptions for autoscaling group notifications. Required if sns_enabled variable is true and byo_sns_topic false"
+  default     = [""]
+}
+
+variable "byo_sns_topic" {
+  type        = bool
+  description = "Determine whether or not to create an AWS SNS topic and topic subscription for email alerts. Setting this variable to true implies you should also set variable sns_enabled to true"
+  default     = false
+}
+
+variable "byo_sns_topic_name" {
+  type        = string
+  description = "Existing SNS Topic friendly name to be used for autoscaling group notifications"
+  default     = ""
 }

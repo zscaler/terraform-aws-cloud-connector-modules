@@ -456,7 +456,7 @@ case $cross_zone_lb_enabled in
 done 
 fi
 
-target_cpu_util_value_default=70
+target_cpu_util_value_default=20
 while [[ "$dtype" == *"asg"* ]]; do
     read -r -p "Enter desired ASG Target Tracking CPU Utilization target [Default=$target_cpu_util_value_default]: " target_cpu_util_value_input
 target_cpu_util_value=${target_cpu_util_value_input:-$target_cpu_util_value_default}
@@ -559,6 +559,82 @@ case $reuse_on_scale_in_response in
 	* ) echo "invalid response. Please enter yes or no";;
     esac
 done 
+fi
+
+
+if [[ "$dtype" == *"asg"* ]]; then
+ while true; do
+    read -r -p "Do you want enable ASG notifications? (yes/no): " asg_notification_response
+case $asg_notification_response in 
+	yes|y ) 
+    echo "Enabling ASG notifications..."
+    echo "export TF_VAR_sns_enabled=true" >> .zsecrc 
+        while true; do
+            read -r -p "Do you have an existing SNS Topic configured to use for ASG notifications? (yes/no): " byo_topic_response
+            case $byo_topic_response in
+            yes|y )
+            echo "export TF_VAR_byo_sns_topic=true" >> .zsecrc 
+            read -r -p "Enter the SNS Topic name: " byo_topic_name
+            echo "export TF_VAR_byo_sns_topic_name=$byo_topic_name" >> .zsecrc
+            break
+            ;;
+	        no|n )
+            echo "Terraform will create a new sns topic and topic subscription for ASG email notification..."
+            email_input=true
+            break
+            ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+            esac
+        done 
+    break
+    ;;
+	no|n )
+    echo "Skipping ASG notifications..."
+    echo "export TF_VAR_sns_enabled=false" >> .zsecrc 
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done 
+
+if [[ "$email_input" == "true" ]]; then
+array=()
+email_list="'["
+counter=0
+while true; do
+read -r -p "How many email addresses do you need to configure for ASG Notifications? " email_list_number
+if [[ $email_list_number == 0 ]]; then
+    echo "Invalid input. Please enter a whole number for the number of email addresses you will be adding..."
+elif [[ $email_list_number =~ ^[0-9]+$ ]]; then
+    echo "$email_list_number email addresses to enter..."
+    break
+else
+    echo "Invalid input. Please enter a whole number for the number of email addresses you will be adding..."
+fi
+done
+    echo "Warning: each email address entered must manually accept the AWS SNS email received after resource creation"
+for i in $(seq $email_list_number); do
+read -r -p "Enter a single email address: " email_address
+    if [[ $email_address = *" "* ]]; then
+        echo "Spaces not allowed. Please enter only one email at a time. Delete .zsecrc file and re-run zsec up..."
+        exit 1
+    elif [[ $email_address == '' ]]; then
+        echo "Empty entries are not allowed. Delete .zsecrc file and re-run zsec up..."
+        exit 1
+    elif [[ $email_address != *"@"* ]]; then
+        echo "Invalid email address format. Missing @ symbol. Delete .zsecrc file and re-run zsec up..."
+        exit 1
+    elif [[ $email_address == "*"* ]]; then
+        echo "Invalid format. Email addresses cannot start with a star/wildcard (*). Delete .zsecrc file and re-run zsec up..."
+        exit 1
+    fi
+array+=("$email_address")
+    counter=$(( $counter + 1 ))
+    email_list+="\"$email_address\","
+done
+email_list+="]'"
+echo "export TF_VAR_sns_email_list=${email_list}" >> .zsecrc
+fi
 fi
 
 if [[ "$dtype" == "cc"* ]]; then

@@ -166,3 +166,43 @@ resource "aws_autoscaling_lifecycle_hook" "cc_asg_lifecyclehook_terminate" {
   heartbeat_timeout      = var.lifecyclehook_instance_terminate_wait_time
   lifecycle_transition   = "autoscaling:EC2_INSTANCE_TERMINATING"
 }
+
+
+################################################################################
+# Create autoscaling sns notifications
+################################################################################
+resource "aws_autoscaling_notification" "cc_asg_notifications" {
+  count = var.sns_enabled == true ? 1 : 0
+  group_names = [
+    aws_autoscaling_group.cc_asg.name,
+  ]
+
+  notifications = [
+    "autoscaling:EC2_INSTANCE_LAUNCH",
+    "autoscaling:EC2_INSTANCE_TERMINATE",
+    "autoscaling:EC2_INSTANCE_LAUNCH_ERROR",
+    "autoscaling:EC2_INSTANCE_TERMINATE_ERROR",
+  ]
+
+  topic_arn = data.aws_sns_topic.cc_asg_topic_selected[0].arn
+}
+
+################################################################################
+# Create a new sns topic and subscriptions per list of email address endpoints
+################################################################################
+resource "aws_sns_topic" "cc_asg_topic" {
+  count = var.sns_enabled == true && var.byo_sns_topic == false ? 1 : 0
+  name  = "${var.name_prefix}-cc-topic-${var.resource_tag}"
+}
+
+data "aws_sns_topic" "cc_asg_topic_selected" {
+  count = var.sns_enabled == true ? 1 : 0
+  name  = var.byo_sns_topic == false ? aws_sns_topic.cc_asg_topic[0].name : var.byo_sns_topic_name
+}
+
+resource "aws_sns_topic_subscription" "cc_asg_topic_email_subscription" {
+  count     = var.byo_sns_topic == false && var.sns_enabled == true ? length(var.sns_email_list) : 0
+  topic_arn = data.aws_sns_topic.cc_asg_topic_selected[0].arn
+  protocol  = "email"
+  endpoint  = var.sns_email_list[count.index]
+}
