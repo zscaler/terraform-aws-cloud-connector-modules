@@ -204,3 +204,15 @@ variable "byo_sns_topic_name" {
   description = "Existing SNS Topic friendly name to be used for autoscaling group notifications"
   default     = ""
 }
+
+variable "private_amis" {
+  type        = map(any)
+  description = "Map of Zscaler Cloud Connector Private AMIs"
+  default = {
+    "us-west-2"    = "ami-0f3dfa57203b38e81"
+    "us-east-1"    = "ami-0c65ee5c52372f8fc"
+    "us-east-2"    = "ami-0e0c0ecd08b6d1abd"
+    "eu-central-1" = "ami-00fdd9a35e268bfdf"
+    "eu-west-1"    = "ami-0386414112742b530"
+  }
+}

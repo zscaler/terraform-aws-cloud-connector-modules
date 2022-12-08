@@ -10,20 +10,8 @@ EOF
   }
 }
 
-
-################################################################################
-# Locate Latest CC AMI by product code
-################################################################################
-data "aws_ami" "cloudconnector" {
-  most_recent = true
-
-  filter {
-    name   = "product-code"
-    values = ["2l8tfysndbav4tv2nfjwak3cu"]
-  }
-
-  owners = ["aws-marketplace"]
-}
+# Collect current region name for AMI selection
+data "aws_region" "current" {}
 
 
 ################################################################################
@@ -34,7 +22,7 @@ data "aws_ami" "cloudconnector" {
 resource "aws_launch_template" "cc_launch_template" {
   count         = local.valid_cc_create && var.cc_instance_size == "small" ? 1 : 0
   name          = "${var.name_prefix}-cc-launch-template-${var.resource_tag}"
-  image_id      = data.aws_ami.cloudconnector.id
+  image_id      = var.private_amis[data.aws_region.current.name]
   instance_type = var.ccvm_instance_type
   key_name      = var.instance_key
   user_data     = base64encode(var.user_data)

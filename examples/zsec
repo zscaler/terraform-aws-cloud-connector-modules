@@ -486,24 +486,24 @@ target_cpu_util_value=${target_cpu_util_value_input:-$target_cpu_util_value_defa
     fi
 done
 
-while [[ "$dtype" == *"asg"* ]]; do
-    read -r -p "Do you want Warm Pool enabled on the Autoscaling Group? (yes/no): " warm_pool_response
-case $warm_pool_response in 
-	yes|y ) 
-    echo "Warm Pool enabled. Proceeding with configurations..."
-    echo "export TF_VAR_warm_pool_enabled=true" >> .zsecrc 
-    warm_pool_enabled=true
-    break
-    ;;
-	no|n )
-    echo "Warm Pool not enabled. Proceeding..."
-    echo "export TF_VAR_warm_pool_enabled=false" >> .zsecrc 
-    warm_pool_enabled=false
-    break
-    ;;
-	* ) echo "invalid response. Please enter yes or no";;
-    esac
-done
+#while [[ "$dtype" == *"asg"* ]]; do
+#    read -r -p "Do you want Warm Pool enabled on the Autoscaling Group? (yes/no): " warm_pool_response
+#case $warm_pool_response in 
+#	yes|y ) 
+#    echo "Warm Pool enabled. Proceeding with configurations..."
+#    echo "export TF_VAR_warm_pool_enabled=true" >> .zsecrc 
+#    warm_pool_enabled=true
+#    break
+#    ;;
+#	no|n )
+#    echo "Warm Pool not enabled. Proceeding..."
+#    echo "export TF_VAR_warm_pool_enabled=false" >> .zsecrc 
+#    warm_pool_enabled=false
+#    break
+#    ;;
+#	* ) echo "invalid response. Please enter yes or no";;
+#    esac
+#done
 
 if [[ "$dtype" == *"asg"* && "$warm_pool_enabled" == "true" ]]; then
 warm_pool_min_size_default=1
