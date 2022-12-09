@@ -102,3 +102,9 @@ variable "iam_instance_profile" {
   type        = list(string)
   description = "IAM instance profile ID assigned to Cloud Connector"
 }
+
+variable "ebs_volume_type" {
+  type        = string
+  description = "(Optional) Type of volume. Valid values include standard, gp2, gp3, io1, io2, sc1, or st1. Defaults to gp3"
+  default     = "gp3"
+}

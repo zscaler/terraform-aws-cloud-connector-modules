@@ -180,3 +180,9 @@ variable "lifecyclehook_instance_terminate_wait_time" {
   description = "The maximum amount of time to wait in terminating:wait state on instance termination"
   default     = 600
 }
+
+variable "ebs_volume_type" {
+  type        = string
+  description = "(Optional) Type of volume. Valid values include standard, gp2, gp3, io1, io2, sc1, or st1. Defaults to gp3"
+  default     = "gp3"
+}

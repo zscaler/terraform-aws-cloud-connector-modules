@@ -27,6 +27,19 @@ data "aws_ami" "cloudconnector" {
 
 
 ################################################################################
+# Retrieve the default AWS KMS key in the current region for EBS encryption
+################################################################################
+data "aws_ebs_default_kms_key" "current_kms_key" {
+}
+
+################################################################################
+# Retrieve an alias for the KMS key for EBS encryption
+################################################################################
+data "aws_kms_alias" "current_kms_arn" {
+  name = data.aws_ebs_default_kms_key.current_kms_key.key_arn
+}
+
+################################################################################
 # Create Cloud Connector VM
 ################################################################################
 resource "aws_instance" "cc_vm" {
@@ -39,6 +52,17 @@ resource "aws_instance" "cc_vm" {
   key_name                    = var.instance_key
   associate_public_ip_address = false
   user_data                   = base64encode(var.user_data)
+  ebs_optimized               = true
+
+  root_block_device {
+    delete_on_termination = true
+    encrypted             = true
+    kms_key_id            = data.aws_kms_alias.current_kms_arn.target_key_arn
+    volume_type           = var.ebs_volume_type
+    tags = merge(var.global_tags,
+      { Name = "${var.name_prefix}-cc-vm-${count.index + 1}-ebs-${var.resource_tag}" }
+    )
+  }
 
   tags = merge(var.global_tags,
     { Name = "${var.name_prefix}-cc-vm-${count.index + 1}-${var.resource_tag}" }
