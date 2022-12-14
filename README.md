@@ -15,12 +15,11 @@ the resources created when deploying Cloud Connector with Terraform, see [Deploy
 ## **AWS Deployment Scripts for Terraform**
 
 Use this repository to create the deployment resources required to deploy and operate Cloud Connector in a new or existing virtual private
-cloud (VPC). The examples directory contains complete automation scripts for both greenfield/POV and brownfield/production use.
+cloud (VPC). The [examples](examples/) directory contains complete automation scripts for both greenfield/POV and brownfield/production use.
 
 ## **Prerequisites**
 
-The AWS Terraform scripts leverage Terraform v1.1.9 which includes full
-binary and provider support for macOS M1 chips, but any Terraform
+The AWS Terraform scripts leverage Terraform v1.1.9 which includes full binary and provider support for macOS M1 chips, but any Terraform
 version 0.13.7 should be generally supported.
 
 -   provider registry.terraform.io/hashicorp/aws v4.7.x
@@ -45,7 +44,7 @@ version 0.13.7 should be generally supported.
 
 ## **Greenfield Deployments** 
 
-### Use this if you are building an entire cluster from the ground up. These templates include a bastion host and test workloads and are designed for greenfield/POV testing. 
+Use this if you are building an entire cluster from the ground up. These templates include a bastion host and test workloads and are designed for greenfield/POV testing. 
 
 ###  **Starter Deployment Template**
 
@@ -61,7 +60,7 @@ Use the [**Starter Deployment Template with ZPA and High Availability**](example
 
 ### **Starter Deployment Template with Gateway Load Balancer (GWLB)**
 
-Use the [**Starter Deployment Template with GWLB**](examples/cc_gwlb) to deploy your Cloud Connector in a new VPC and to load balance traffic across multiple
+Use the [**Starter Deployment Template with GWLB**](examples/base_cc_gwlb) to deploy your Cloud Connector in a new VPC and to load balance traffic across multiple
 Cloud Connectors. Zscaler\'s recommended deployment method is Gateway Load Balancer (GWLB). GWLB distributes traffic across multiple Cloud
 Connectors and achieves high availability.
 
@@ -72,6 +71,6 @@ deployment. They also do not include a bastion or workload hosts deployed. See [
 
 ### **Custom Deployment Template with Gateway Load Balancer (GWLB)**
 
-Use the Custom Deployment template with GWLB to deploy your Cloud Connector in a new or existing VPC and load balance traffic across
+Use the [**Custom Deployment template with GWLB**](examples/cc_gwlb) to deploy your Cloud Connector in a new or existing VPC and load balance traffic across
 multiple Cloud Connectors. Zscaler\'s recommended deployment method is Gateway Load Balancer (GWLB). GWLB distributes traffic across multiple
 Cloud Connectors and achieves high availability. Optional ZPA/Route53 add-on capabilities.
