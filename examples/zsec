@@ -666,6 +666,50 @@ if [[ $dtype != "base" ]]; then
   fi
 fi
 
+# Only check for existing aws session token if user has not already been prompted for it in zsec up sequence
+if [[ -z $aws_session_token ]]; then
+
+# Prompt user to refresh AWS credentials on up or destroy if there is a previous session token in .zsecrc
+if [[ $mfa_enabled == false ]]; then
+    if [ -z "$AWS_SESSION_TOKEN" ]; then
+    echo "No session token found. Proceeding with existing AWS credentials..."
+    else
+        while true; do
+        read -r -p "An existing AWS session token has been identified with Access Key $AWS_ACCESS_KEY_ID. Is this still valid? (yes/no): " valid_key_response
+        case $valid_key_response in 
+	    yes|y ) 
+        echo "Terraform will use existing AWS credentials stored in .zsecrc..."
+        break
+        ;;
+	    no|n )
+        echo "Refreshing AWS credentials prior to Terraform apply"
+        read -r -p "Enter AWS Access Key ID: " aws_key
+        read -r -p "Enter AWS Secret Access Key: " aws_secret
+        read -r -p "Enter AWS Session Token (if applicable): " aws_session_token
+
+        # remove existing aws credentials from .zsecrc
+        sed -i'' -e '/AWS_ACCESS_KEY_ID/d' .zsecrc
+        sed -i'' -e '/AWS_SECRET_ACCESS_KEY/d' .zsecrc
+        sed -i'' -e '/AWS_SESSION_TOKEN/d' .zsecrc
+        echo "export AWS_ACCESS_KEY_ID=${aws_key}" >> .zsecrc
+        echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsecrc
+            if [[ $aws_session_token == "" ]]; then
+            echo "No AWS Session Token entered..."
+            echo "export AWS_SESSION_TOKEN=bad_input" >> .zsecrc 
+            else
+            echo "AWS Session token entered..."
+            echo "export AWS_SESSION_TOKEN=${aws_session_token}" >> .zsecrc 
+            fi
+        break
+        ;;
+	    * ) echo "invalid response. Please enter yes or no";;
+        esac
+        done
+    fi
+# Reinitialize environment variables
+. ./.zsecrc
+fi 
+
 # Get new MFA session token
 if [[ $mfa_enabled == true ]]; then
     if [ -z "$AWS_SESSION_TOKEN" ]; then
@@ -694,6 +738,10 @@ else
 fi    
     # Reinitialize environment variables
 . ./.zsecrc
+fi
+
+else
+    echo "Proceeding..."
 fi
 
 
