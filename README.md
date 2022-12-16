@@ -54,15 +54,21 @@ Use the [**Starter Deployment Template**](examples/base_1cc/) to deploy your Clo
 
 Use the [**Starter Deployment Template with ZPA**](examples/base_1cc_zpa) to deploy your Cloud Connector in a new VPC with ZPA DNS resolver capability.
 
-### **Starter Deployment Template with ZPA and High Availability**
+### **Starter Deployment Template with High Availability (deprecated)**
 
-Use the [**Starter Deployment Template with ZPA and High Availability**](examples/base_2cc) to deploy your Cloud Connector in a new VPC with ZPA DNS resolver capability. This template achieves high availability between two Cloud Connectors and sets up data traffic across multiple TCP connections. 
+Use the [**Starter Deployment Template with High Availability**](examples/base_2cc) to deploy your Cloud Connector in a new VPC with lambda health monitoring for failover. This template achieves high availability between two Cloud Connectors and sets up data traffic across multiple TCP connections.
+
+- **Note** This is only available as reference for legacy users. Zscaler's recommended deployment method is Gateway Load Balancer (GWLB), which distributes traffic across multiple Cloud Connectors and achieves high availability.
+
+### **Starter Deployment Template with ZPA and High Availability (deprecated)**
+
+Use the [**Starter Deployment Template with High Availability**](examples/base_2cc_zpa) to deploy your Cloud Connector in a new VPC with lambda health monitoring for failover and ZPA DNS resolver capability. This template achieves high availability between two Cloud Connectors and sets up data traffic across multiple TCP connections.
+
+- **Note** This is only available as reference for legacy users. Zscaler's recommended deployment method is Gateway Load Balancer (GWLB), which distributes traffic across multiple Cloud Connectors and achieves high availability.
 
 ### **Starter Deployment Template with Gateway Load Balancer (GWLB)**
 
-Use the [**Starter Deployment Template with GWLB**](examples/base_cc_gwlb) to deploy your Cloud Connector in a new VPC and to load balance traffic across multiple
-Cloud Connectors. Zscaler\'s recommended deployment method is Gateway Load Balancer (GWLB). GWLB distributes traffic across multiple Cloud
-Connectors and achieves high availability.
+Use the [**Starter Deployment Template with GWLB**](examples/base_cc_gwlb) to deploy your Cloud Connector in a new VPC and to load balance traffic across multiple Cloud Connectors. Zscaler\'s recommended deployment method is Gateway Load Balancer (GWLB). GWLB distributes traffic across multiple Cloud Connectors and achieves high availability.
 
 ## **Brownfield Deployment**
 
@@ -71,6 +77,5 @@ deployment. They also do not include a bastion or workload hosts deployed. See [
 
 ### **Custom Deployment Template with Gateway Load Balancer (GWLB)**
 
-Use the [**Custom Deployment template with GWLB**](examples/cc_gwlb) to deploy your Cloud Connector in a new or existing VPC and load balance traffic across
-multiple Cloud Connectors. Zscaler\'s recommended deployment method is Gateway Load Balancer (GWLB). GWLB distributes traffic across multiple
+Use the [**Custom Deployment template with GWLB**](examples/cc_gwlb) to deploy your Cloud Connector in a new or existing VPC and load balance traffic across multiple Cloud Connectors. Zscaler\'s recommended deployment method is Gateway Load Balancer (GWLB). GWLB distributes traffic across multiple
 Cloud Connectors and achieves high availability. Optional ZPA/Route53 add-on capabilities.
