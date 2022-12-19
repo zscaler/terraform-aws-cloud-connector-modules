@@ -210,6 +210,8 @@ module "gwlb" {
   unhealthy_threshold   = var.unhealthy_threshold
   cross_zone_lb_enabled = var.cross_zone_lb_enabled
   asg_enabled           = var.asg_enabled
+  flow_stickiness       = var.flow_stickiness
+  rebalance_enabled     = var.rebalance_enabled
 }
 
 
