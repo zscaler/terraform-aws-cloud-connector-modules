@@ -168,7 +168,7 @@ variable "health_check_interval" {
 variable "healthy_threshold" {
   type        = number
   description = "The number of successful health checks required before an unhealthy target becomes healthy. Minimum 2 and maximum 10"
-  default     = 3
+  default     = 2
 }
 
 variable "unhealthy_threshold" {
