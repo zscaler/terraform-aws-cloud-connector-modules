@@ -1,5 +1,5 @@
-## 0.1.0 (July 25, 2022) 
-* github release refactor
+## v0.1.0 (December 15, 2022) 
+* github release refactor from Cloud Connector Portal
 * zsec update for terraform support up to 1.1.9 and aws provider 4.7.x
 * zsec updated with mac m1 option for terraform arm64 version download
 * modules renamed for granularity and consistency
