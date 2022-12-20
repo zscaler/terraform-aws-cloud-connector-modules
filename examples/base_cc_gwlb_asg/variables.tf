@@ -209,6 +209,12 @@ variable "rebalance_enabled" {
   default     = true
 }
 
+variable "deregistration_delay" {
+  type        = number
+  description = "Amount time for Elastic Load Balancing to wait before changing the state of a deregistering target from draining to unused. The range is 0-3600 seconds."
+  default     = 0
+}
+
 # ASG specific variables
 variable "min_size" {
   type        = number

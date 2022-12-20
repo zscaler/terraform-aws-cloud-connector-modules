@@ -212,6 +212,7 @@ module "gwlb" {
   asg_enabled           = var.asg_enabled
   flow_stickiness       = var.flow_stickiness
   rebalance_enabled     = var.rebalance_enabled
+  deregistration_delay  = var.deregistration_delay
 }
 
 
