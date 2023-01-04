@@ -199,8 +199,8 @@ module "cc_sg" {
 ################################################################################
 module "gwlb" {
   source                = "../../modules/terraform-zscc-gwlb-aws"
-  name_prefix           = var.name_prefix
-  resource_tag          = random_string.suffix.result
+  gwlb_name             = "${var.name_prefix}-cc-gwlb-${random_string.suffix.result}"
+  target_group_name     = "${var.name_prefix}-cc-target-${random_string.suffix.result}"
   global_tags           = local.global_tags
   vpc_id                = module.network.vpc_id
   cc_subnet_ids         = module.network.cc_subnet_ids
