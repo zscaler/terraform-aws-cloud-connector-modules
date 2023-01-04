@@ -1,15 +1,3 @@
-variable "name_prefix" {
-  type        = string
-  description = "A prefix to associate to all the GWLB module resources"
-  default     = null
-}
-
-variable "resource_tag" {
-  type        = string
-  description = "A tag to associate to all the GWLB module resources"
-  default     = null
-}
-
 variable "vpc_id" {
   type        = string
   description = "Cloud Connector VPC ID"
@@ -104,4 +92,18 @@ variable "asg_enabled" {
   type        = bool
   description = "Determines whether to set gwlb target group target_type to 'instance' or 'ip'. If set to true, ASG uses 'instance' and no aws_lb_target_group_attachment resources need to be created"
   default     = false
+}
+
+variable "gwlb_name" {
+  type        = string
+  description = "GWLB resource and tag name"
+}
+
+variable "target_group_name" {
+  type        = string
+  description = "GWLB Target Group resource name"
+  validation {
+    condition     = length(var.target_group_name) <= 32
+    error_message = "Variable target_group_name must be 32 or less characters."
+  }
 }
