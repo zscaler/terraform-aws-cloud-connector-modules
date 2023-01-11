@@ -102,3 +102,9 @@ variable "iam_instance_profile" {
   type        = list(string)
   description = "IAM instance profile ID assigned to Cloud Connector"
 }
+
+variable "imdsv2_enabled" {
+  type        = bool
+  description = "true/false whether to force IMDSv2 only for instance bring up"
+  default     = true
+}

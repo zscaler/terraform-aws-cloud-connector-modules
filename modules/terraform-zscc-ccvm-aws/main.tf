@@ -40,6 +40,11 @@ resource "aws_instance" "cc_vm" {
   associate_public_ip_address = false
   user_data                   = base64encode(var.user_data)
 
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = var.imdsv2_enabled ? "required" : "optional"
+  }
+
   tags = merge(var.global_tags,
     { Name = "${var.name_prefix}-cc-vm-${count.index + 1}-${var.resource_tag}" }
   )

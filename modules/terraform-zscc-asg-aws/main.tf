@@ -67,6 +67,11 @@ resource "aws_launch_template" "cc_launch_template" {
     associate_public_ip_address = false
   }
 
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = var.imdsv2_enabled ? "required" : "optional"
+  }
+
   lifecycle {
     create_before_destroy = true
   }

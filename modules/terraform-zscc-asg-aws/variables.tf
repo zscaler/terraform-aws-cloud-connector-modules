@@ -204,3 +204,9 @@ variable "byo_sns_topic_name" {
   description = "Existing SNS Topic friendly name to be used for autoscaling group notifications"
   default     = ""
 }
+
+variable "imdsv2_enabled" {
+  type        = bool
+  description = "true/false whether to force IMDSv2 only for instance bring up"
+  default     = true
+}
