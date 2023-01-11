@@ -210,3 +210,14 @@ variable "imdsv2_enabled" {
   description = "true/false whether to force IMDSv2 only for instance bring up"
   default     = true
 }
+
+variable "private_amis" {
+  type        = map(any)
+  description = "Map of Zscaler Cloud Connector Stage AMIs"
+  default = {
+    "us-west-2"  = "ami-0dbe00aaaacb9b216"
+    "us-east-2"  = "ami-0421d63e7b4364717"
+    "eu-north-1" = "ami-0ec9c57a060cfa058"
+    "eu-west-1"  = "ami-08baa02e61799c056"
+  }
+}

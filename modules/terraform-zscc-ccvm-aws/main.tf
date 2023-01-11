@@ -10,7 +10,10 @@ EOF
   }
 }
 
+# Collect current region name for AMI selection
+data "aws_region" "current" {}
 
+/*
 ################################################################################
 # Locate Latest CC AMI by product code
 ################################################################################
@@ -24,14 +27,14 @@ data "aws_ami" "cloudconnector" {
 
   owners = ["aws-marketplace"]
 }
-
+*/
 
 ################################################################################
 # Create Cloud Connector VM
 ################################################################################
 resource "aws_instance" "cc_vm" {
   count                       = local.valid_cc_create ? var.cc_count : 0
-  ami                         = data.aws_ami.cloudconnector.id
+  ami                         = var.private_amis[data.aws_region.current.name]
   instance_type               = var.ccvm_instance_type
   iam_instance_profile        = element(var.iam_instance_profile, count.index)
   vpc_security_group_ids      = [element(var.mgmt_security_group_id, count.index)]
