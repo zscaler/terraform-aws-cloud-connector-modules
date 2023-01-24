@@ -1,6 +1,6 @@
 output "vpc_id" {
   description = "VPC ID"
-  value       = data.aws_vpc.vpc_selected.id
+  value       = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
 }
 
 output "cc_subnet_ids" {
