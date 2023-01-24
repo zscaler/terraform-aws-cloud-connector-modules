@@ -23,7 +23,8 @@ resource "aws_vpc" "vpc" {
 
 # Or reference an existing VPC
 data "aws_vpc" "vpc_selected" {
-  id = var.byo_vpc == false ? aws_vpc.vpc[0].id : var.byo_vpc_id
+  count = var.byo_vpc ? 1 : 0
+  id    = var.byo_vpc_id
 }
 
 
@@ -33,7 +34,7 @@ data "aws_vpc" "vpc_selected" {
 # Create an Internet Gateway
 resource "aws_internet_gateway" "igw" {
   count  = var.byo_igw == false ? 1 : 0
-  vpc_id = data.aws_vpc.vpc_selected.id
+  vpc_id = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
 
   tags = merge(var.global_tags,
     { Name = "${var.name_prefix}-igw-${var.resource_tag}" }
@@ -86,8 +87,8 @@ data "aws_nat_gateway" "ngw_selected" {
 resource "aws_subnet" "public_subnet" {
   count             = var.byo_ngw == false ? length(data.aws_subnet.cc_subnet_selected[*].id) : 0
   availability_zone = data.aws_availability_zones.available.names[count.index]
-  cidr_block        = var.public_subnets != null ? element(var.public_subnets, count.index) : cidrsubnet(data.aws_vpc.vpc_selected.cidr_block, 8, count.index + 101)
-  vpc_id            = data.aws_vpc.vpc_selected.id
+  cidr_block        = var.public_subnets != null ? element(var.public_subnets, count.index) : cidrsubnet(try(data.aws_vpc.vpc_selected[0].cidr_block, aws_vpc.vpc[0].cidr_block), 8, count.index + 101)
+  vpc_id            = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
 
   tags = merge(var.global_tags,
     { Name = "${var.name_prefix}-public-subnet-${count.index + 1}-${var.resource_tag}" }
@@ -98,7 +99,7 @@ resource "aws_subnet" "public_subnet" {
 # Create a public Route Table towards IGW. This will not be created if var.byo_ngw is set to True
 resource "aws_route_table" "public_rt" {
   count  = var.byo_ngw == false ? 1 : 0
-  vpc_id = data.aws_vpc.vpc_selected.id
+  vpc_id = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
 
   route {
     cidr_block = "0.0.0.0/0"
@@ -126,8 +127,8 @@ resource "aws_route_table_association" "public_rt_association" {
 resource "aws_subnet" "workload_subnet" {
   count             = var.workloads_enabled == true ? length(aws_subnet.cc_subnet[*].id) : 0
   availability_zone = data.aws_availability_zones.available.names[count.index]
-  cidr_block        = var.workloads_subnets != null ? element(var.workloads_subnets, count.index) : cidrsubnet(data.aws_vpc.vpc_selected.cidr_block, 8, count.index + 1)
-  vpc_id            = data.aws_vpc.vpc_selected.id
+  cidr_block        = var.workloads_subnets != null ? element(var.workloads_subnets, count.index) : cidrsubnet(try(data.aws_vpc.vpc_selected[0].cidr_block, aws_vpc.vpc[0].cidr_block), 8, count.index + 1)
+  vpc_id            = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
 
   tags = merge(var.global_tags,
     { Name = "${var.name_prefix}-workload-subnet-${count.index + 1}-${var.resource_tag}" }
@@ -137,7 +138,7 @@ resource "aws_subnet" "workload_subnet" {
 # Create Route Table for private subnets (workload servers) towards CC Service ENI or GWLB Endpoint depending on deployment type
 resource "aws_route_table" "workload_rt" {
   count  = length(aws_subnet.workload_subnet[*].id)
-  vpc_id = data.aws_vpc.vpc_selected.id
+  vpc_id = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
   route {
     cidr_block           = "0.0.0.0/0"
     vpc_endpoint_id      = var.gwlb_enabled == true ? element(var.gwlb_endpoint_ids, count.index) : null
@@ -166,8 +167,8 @@ resource "aws_subnet" "cc_subnet" {
   count = var.byo_subnets == false ? var.az_count : 0
 
   availability_zone = data.aws_availability_zones.available.names[count.index]
-  cidr_block        = var.cc_subnets != null ? element(var.cc_subnets, count.index) : cidrsubnet(data.aws_vpc.vpc_selected.cidr_block, 8, count.index + 200)
-  vpc_id            = data.aws_vpc.vpc_selected.id
+  cidr_block        = var.cc_subnets != null ? element(var.cc_subnets, count.index) : cidrsubnet(try(data.aws_vpc.vpc_selected[0].cidr_block, aws_vpc.vpc[0].cidr_block), 8, count.index + 200)
+  vpc_id            = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
 
   tags = merge(var.global_tags,
     { Name = "${var.name_prefix}-cc-subnet-${count.index + 1}-${var.resource_tag}" }
@@ -184,7 +185,7 @@ data "aws_subnet" "cc_subnet_selected" {
 # Create Route Tables for CC subnets pointing to NAT Gateway resource in each AZ or however many were specified. Optionally, point directly to IGW for public deployments
 resource "aws_route_table" "cc_rt" {
   count  = length(data.aws_subnet.cc_subnet_selected[*].id)
-  vpc_id = data.aws_vpc.vpc_selected.id
+  vpc_id = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
   route {
     cidr_block     = "0.0.0.0/0"
     nat_gateway_id = element(data.aws_nat_gateway.ngw_selected[*].id, count.index)
@@ -211,8 +212,8 @@ resource "aws_route_table_association" "cc_rt_asssociation" {
 resource "aws_subnet" "route53_subnet" {
   count             = var.zpa_enabled == true ? 2 : 0
   availability_zone = data.aws_availability_zones.available.names[count.index]
-  cidr_block        = var.route53_subnets != null ? element(var.route53_subnets, count.index) : cidrsubnet(data.aws_vpc.vpc_selected.cidr_block, 12, (64 + count.index * 16))
-  vpc_id            = data.aws_vpc.vpc_selected.id
+  cidr_block        = var.route53_subnets != null ? element(var.route53_subnets, count.index) : cidrsubnet(try(data.aws_vpc.vpc_selected[0].cidr_block, aws_vpc.vpc[0].cidr_block), 12, (64 + count.index * 16))
+  vpc_id            = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
 
   tags = merge(var.global_tags,
     { Name = "${var.name_prefix}-route53-subnet-${count.index + 1}-${var.resource_tag}" }
@@ -222,7 +223,7 @@ resource "aws_subnet" "route53_subnet" {
 # Create Route Table for Route53 routing to GWLB Endpoint in the same AZ for DNS redirection
 resource "aws_route_table" "route53_rt" {
   count  = var.zpa_enabled == true ? length(aws_subnet.route53_subnet[*].id) : 0
-  vpc_id = data.aws_vpc.vpc_selected.id
+  vpc_id = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
   route {
     cidr_block           = "0.0.0.0/0"
     vpc_endpoint_id      = var.gwlb_enabled == true ? element(var.gwlb_endpoint_ids, count.index) : null
