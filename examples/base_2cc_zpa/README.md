@@ -1,4 +1,6 @@
-# Zscaler "Base_2cc_zpa" deployment type
+# Zscaler "Base_2cc_zpa" deployment type (deprecated)
+
+- **Note** This is only available as reference for legacy users. Zscaler's recommended deployment method is Gateway Load Balancer (GWLB), which distributes traffic across multiple Cloud Connectors and achieves high availability. Please refer to [**Starter Deployment Template with GWLB and ZPA**](../base_cc_gwlb_zpa).
 
 This deployment type is intended for greenfield/pov/lab purposes. It will deploy a fully functioning sandbox environment in a new VPC with test workload VMs. Full set of resources provisioned listed below, but this will effectively create all network infrastructure dependencies for an AWS environment. Everything from "Base_1cc" deployment type (Creates 1 new VPC with 1 public subnet and 1 private/workload subnet; 1 IGW; 1 NAT Gateway; 1 Centos server workload in the private subnet routing to NAT Gateway; 1 Bastion Host in the public subnet assigned an Elastic IP and routing to the IGW; generates local key pair .pem file for ssh access; Creates 1 Cloud Connector private subnet; 1 Cloud Connector VM routing to NAT Gateway; workload private subnet route repointed to service ENI of Cloud Connector; Creates a second Cloud Connector in a new subnet/Availability Zone wwith Lambda configured for HA failover of workload route tables between the two Cloud Connectors)<br>
 
@@ -39,7 +41,7 @@ From base_2cc_zpa directory execute:
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 4.7.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 4.52.0 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.2.0 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.1.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.3.0 |
@@ -49,7 +51,7 @@ From base_2cc_zpa directory execute:
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 4.7.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 4.52.0 |
 | <a name="provider_local"></a> [local](#provider\_local) | ~> 2.2.0 |
 | <a name="provider_null"></a> [null](#provider\_null) | ~> 3.1.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | ~> 3.3.0 |
@@ -95,7 +97,7 @@ From base_2cc_zpa directory execute:
 | <a name="input_ccvm_instance_type"></a> [ccvm\_instance\_type](#input\_ccvm\_instance\_type) | Cloud Connector Instance Type | `string` | `"m5.large"` | no |
 | <a name="input_domain_names"></a> [domain\_names](#input\_domain\_names) | Domain names fqdn/wildcard to have Route 53 redirect DNS requests to Cloud Connector for ZPA. Refer to terraform.tfvars ZPA/Route 53 specific variables | `map(any)` | n/a | yes |
 | <a name="input_http_probe_port"></a> [http\_probe\_port](#input\_http\_probe\_port) | Port number for Cloud Connector cloud init to enable listener port for HTTP probe from GWLB Target Group | `number` | `50000` | no |
-| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | The name prefix for all your resources | `string` | `"zsdemo"` | no |
+| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | The name prefix for all your resources | `string` | `"zscc"` | no |
 | <a name="input_owner_tag"></a> [owner\_tag](#input\_owner\_tag) | populate custom owner tag attribute | `string` | `"zscc-admin"` | no |
 | <a name="input_public_subnets"></a> [public\_subnets](#input\_public\_subnets) | Public/NAT GW Subnets to create in VPC. This is only required if you want to override the default subnets that this code creates via vpc\_cidr variable. | `list(string)` | `null` | no |
 | <a name="input_reuse_iam"></a> [reuse\_iam](#input\_reuse\_iam) | Specifies whether the SG module should create 1:1 IAM per instance or 1 IAM for all instances | `bool` | `false` | no |

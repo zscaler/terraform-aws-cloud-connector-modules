@@ -2,7 +2,7 @@
 # Configure target group
 ################################################################################
 resource "aws_lb_target_group" "gwlb_target_group" {
-  name        = "${var.name_prefix}-cc-target-${var.resource_tag}"
+  name        = var.target_group_name
   port        = 6081
   protocol    = "GENEVE"
   vpc_id      = var.vpc_id
@@ -76,13 +76,13 @@ resource "aws_lb_target_group_attachment" "gwlb_target_group_attachment_lrg_3" {
 ################################################################################
 resource "aws_lb" "gwlb" {
   load_balancer_type               = "gateway"
-  name                             = "${var.name_prefix}-cc-gwlb-${var.resource_tag}"
+  name                             = var.gwlb_name
   enable_cross_zone_load_balancing = var.cross_zone_lb_enabled
 
   subnets = var.cc_subnet_ids
 
   tags = merge(var.global_tags,
-    { Name = "${var.name_prefix}-gwlb-${var.resource_tag}" }
+    { Name = var.gwlb_name }
   )
 }
 

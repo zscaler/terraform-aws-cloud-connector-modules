@@ -1,5 +1,7 @@
 # Zscaler Cloud Connector / AWS Lambda Module
 
+- **Note** This is only available as reference for legacy users. Zscaler's recommended deployment method is Gateway Load Balancer (GWLB), which distributes traffic across multiple Cloud Connectors and achieves high availability. Please refer to GWLB modules: [**GWLB**](../terraform-zscc-gwlb-aws) and [**GWLB Endpoint**](../terraform-zscc-gwlbendpoint-aws).
+
 This module creates all the necessary IAM Roles/Polices, Lambda Functions/Permissions, and Cloudwatch Events required for a successful Cloud Connector HA/Lambda deployment. The intent of this module is to provide inputs for a pair of Cloud Connectors as well as private/workload route tables currently forwarding default route traffic to each respectively. Lambda monitors the health status of both Cloud Connectors and automatically updates the workload route tables to forward traffic to the healthy Cloud Connector in the event one goes down.<br> 
 
 *** For production deployments and better scaling/resliency, we highly advise leveraging Gateway Load Balancer (GWLB) rather than this Lambda.
@@ -10,14 +12,14 @@ This module creates all the necessary IAM Roles/Polices, Lambda Functions/Permis
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 4.7.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 4.52.0 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.2.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 4.7.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 4.52.0 |
 
 ## Modules
 
