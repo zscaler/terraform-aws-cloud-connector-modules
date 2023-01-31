@@ -1,5 +1,12 @@
-## 0.1.0 (July 25, 2022) 
-* github release refactor
+## UNRELEASED
+* AWS Provider updated to 4.52.x for all example templates and child modules
+* terraform-zscc-gwlb-aws custom gwlb_name and target_group_name variables added
+* name_prefix variable default string changed from zsdemo to zscc
+* validation length constraint added to name_prefix variable
+* dependency fixes for vpc/subnet data resource selection when vpc was originally created with example templates
+
+## v0.1.0 (December 15, 2022) 
+* github release refactor from Cloud Connector Portal
 * zsec update for terraform support up to 1.1.9 and aws provider 4.7.x
 * zsec updated with mac m1 option for terraform arm64 version download
 * modules renamed for granularity and consistency

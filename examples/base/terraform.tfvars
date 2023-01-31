@@ -5,13 +5,16 @@
 ##### Custom variables. Only change if required for your environment  #####
 #####################################################################################################################
 
-## 1. AWS region where Cloud Connector resources will be deployed. This environment variable is automatically populated if running ZSEC script
+## 1. The name string for all Cloud Connector resources created by Terraform for Tag/Name attributes. (Default: zscc)
+
+#name_prefix                                = "zscc"
+
+## 2. AWS region where Cloud Connector resources will be deployed. This environment variable is automatically populated if running ZSEC script
 ##    and thus will override any value set here. Only uncomment and set this value if you are deploying terraform standalone. (Default: us-west-2)
 
 #aws_region                                 = "us-west-2"
 
-
-## 2. Network Configuration:
+## 3. Network Configuration:
 
 ##    IPv4 CIDR configured with VPC creation. All Subnet resources (Workload, Public, Cloud Connector, Route 53) will be created based off this prefix
 ##    /24 subnets are created assuming this cidr is a /16. If you require creating a VPC smaller than /16, you may need to explicitly define all other 
@@ -34,13 +37,11 @@
 #public_subnets                             = ["10.x.y.z/24","10.x.y.z/24"]
 #workloads_subnets                          = ["10.x.y.z/24","10.x.y.z/24"]
 
-
-## 3. Number of Workload VMs to be provisioned in the workload subnet. Only limitation is available IP space
+## 4. Number of Workload VMs to be provisioned in the workload subnet. Only limitation is available IP space
 ##    in subnet configuration. Only applicable for "base" deployment types. Default workload subnet is /24 so 250 max
 
 #workload_count                             = 2
 
-
-## 4. Tag attribute "Owner" assigned to all resoure creation. (Default: "zscc-admin")
+## 5. Tag attribute "Owner" assigned to all resoure creation. (Default: "zscc-admin")
 
 #owner_tag                                  = "username@company.com"
