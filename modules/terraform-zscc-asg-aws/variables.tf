@@ -113,6 +113,19 @@ variable "health_check_grace_period" {
   default     = 900
 }
 
+variable "health_check_type" {
+  type        = string
+  description = "EC2 or ELB. Controls how health checking is done"
+  default     = "EC2"
+  validation {
+    condition = (
+      var.health_check_type == "EC2" ||
+      var.health_check_type == "ELB"
+    )
+    error_message = "Input health_check_type must be set to an approved predefined metric."
+  }
+}
+
 variable "warm_pool_enabled" {
   type        = bool
   description = "If set to true, add a warm pool to the specified Auto Scaling group. See [warm_pool](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group#warm_pool)."

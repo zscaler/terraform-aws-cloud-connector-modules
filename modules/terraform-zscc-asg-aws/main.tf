@@ -69,7 +69,7 @@ resource "aws_autoscaling_group" "cc_asg" {
   vpc_zone_identifier       = distinct(var.cc_subnet_ids)
   max_size                  = var.max_size
   min_size                  = var.min_size
-  health_check_type         = "ELB"
+  health_check_type         = var.health_check_type
   health_check_grace_period = var.health_check_grace_period
 
   launch_template {
