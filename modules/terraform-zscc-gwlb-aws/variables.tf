@@ -1,15 +1,3 @@
-variable "name_prefix" {
-  type        = string
-  description = "A prefix to associate to all the GWLB module resources"
-  default     = null
-}
-
-variable "resource_tag" {
-  type        = string
-  description = "A tag to associate to all the GWLB module resources"
-  default     = null
-}
-
 variable "vpc_id" {
   type        = string
   description = "Cloud Connector VPC ID"
@@ -97,5 +85,19 @@ variable "cc_instance_size" {
       var.cc_instance_size == "large"
     )
     error_message = "Input cc_instance_size must be set to an approved cc instance type."
+  }
+}
+
+variable "gwlb_name" {
+  type        = string
+  description = "GWLB resource and tag name"
+}
+
+variable "target_group_name" {
+  type        = string
+  description = "GWLB Target Group resource name"
+  validation {
+    condition     = length(var.target_group_name) <= 32
+    error_message = "Variable target_group_name must be 32 or less characters."
   }
 }
