@@ -35,3 +35,4 @@ repos:
     rev:  v1.4.0
     hooks:
     -   id: detect-secrets
+        args: ['--exclude-lines', 'secret_name'] #don't flag the Secrets Manager secret_name variable as senstive
