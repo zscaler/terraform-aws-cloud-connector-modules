@@ -279,7 +279,7 @@ variable "target_tracking_metric" {
 variable "target_cpu_util_value" {
   type        = number
   description = "Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number"
-  default     = 20
+  default     = 40
 }
 
 variable "lifecyclehook_instance_launch_wait_time" {
