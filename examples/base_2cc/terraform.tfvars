@@ -29,13 +29,18 @@
 ##### Custom variables. Only change if required for your environment  #####
 #####################################################################################################################
 
-## 4. AWS region where Cloud Connector resources will be deployed. This environment variable is automatically populated if running ZSEC script
+## 4. The name string for all Cloud Connector resources created by Terraform for Tag/Name attributes. (Default: zscc)
+
+#name_prefix                                = "zscc"
+
+
+## 5. AWS region where Cloud Connector resources will be deployed. This environment variable is automatically populated if running ZSEC script
 ##    and thus will override any value set here. Only uncomment and set this value if you are deploying terraform standalone. (Default: us-west-2)
 
 #aws_region                                 = "us-west-2"
 
 
-## 5. Cloud Connector AWS EC2 Instance size selection. Uncomment ccvm_instance_type line with desired vm size to change.
+## 6. Cloud Connector AWS EC2 Instance size selection. Uncomment ccvm_instance_type line with desired vm size to change.
 ##    (Default: m5.large)
 
 #ccvm_instance_type                         = "t3.medium"
@@ -48,7 +53,7 @@
 #ccvm_instance_type                         = "c5.4xlarge"
 
 
-## 6. Cloud Connector Instance size selection. Uncomment cc_instance_size line with desired vm size to change
+## 7. Cloud Connector Instance size selection. Uncomment cc_instance_size line with desired vm size to change
 ##    (Default: "small") 
 ##    **** NOTE - There is a dependency between ccvm_instance_type and cc_instance_size selections ****
 ##    If size = "small" any supported EC2 instance type can be deployed, but "m5/c5.large" is ideal
@@ -61,38 +66,38 @@
 #cc_instance_size                           = "large" 
 
 
-## 7. IPv4 CIDR configured with VPC creation. Workload, Public, and Cloud Connector Subnets will be created based off this prefix
+## 8. IPv4 CIDR configured with VPC creation. Workload, Public, and Cloud Connector Subnets will be created based off this prefix
 ##    /24 subnets are created assuming this cidr is a /16. You may need to edit cidr_block values for subnet creations if
 ##    desired for smaller or larger subnets. (Default: "10.1.0.0/16")
 
 #vpc_cidr                                   = "10.1.0.0/16"
 
 
-## 8. Number of Workload VMs to be provisioned in the workload subnet. Only limitation is available IP space
+## 9. Number of Workload VMs to be provisioned in the workload subnet. Only limitation is available IP space
 ##    in subnet configuration. Only applicable for "base" deployment types. Default workload subnet is /24 so 250 max
 
 #workload_count                             = 2
 
 
-## 9. Tag attribute "Owner" assigned to all resoure creation. (Default: "zscc-admin")
+## 10. Tag attribute "Owner" assigned to all resoure creation. (Default: "zscc-admin")
 
 #owner_tag                                  = "username@company.com"
 
 
-## 10. By default, Cloud Connectors are configured with a callhome IAM policy enabled. This is recommended for production deployments
+## 11. By default, Cloud Connectors are configured with a callhome IAM policy enabled. This is recommended for production deployments
 ##     The policy creation itself does not provide any authentication/authorization access. IAM details are still required to be provided
 ##     to Zscaler in order to establish a trust relationship. Uncomment if you do not want this policy created. (Default: true)
 
 #cc_callhome_enabled                        = false
 
 
-## 11. By default, this script will apply 1 Security Group per Cloud Connector instance. 
+## 12. By default, this script will apply 1 Security Group per Cloud Connector instance. 
 ##     Uncomment if you want to use the same Security Group for ALL Cloud Connectors (true or false. Default: false)
 
 #reuse_security_group                       = true
 
 
-## 12. By default, this script will apply 1 IAM Role/Instance Profile per Cloud Connector instance. 
+## 13. By default, this script will apply 1 IAM Role/Instance Profile per Cloud Connector instance. 
 ##     Uncomment if you want to use the same IAM Role/Instance Profile for ALL Cloud Connectors (true or false. Default: false)
 
 #reuse_iam                                  = true
