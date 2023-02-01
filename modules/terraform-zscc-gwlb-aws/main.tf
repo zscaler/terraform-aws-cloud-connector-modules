@@ -2,11 +2,12 @@
 # Configure target group
 ################################################################################
 resource "aws_lb_target_group" "gwlb_target_group" {
-  name        = var.target_group_name
-  port        = 6081
-  protocol    = "GENEVE"
-  vpc_id      = var.vpc_id
-  target_type = "ip"
+  name                 = var.target_group_name
+  port                 = 6081
+  protocol             = "GENEVE"
+  vpc_id               = var.vpc_id
+  target_type          = "ip"
+  deregistration_delay = var.deregistration_delay
 
   health_check {
     port                = var.http_probe_port
