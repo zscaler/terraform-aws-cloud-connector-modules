@@ -322,6 +322,18 @@ variable "byo_sns_topic_name" {
   default     = ""
 }
 
+variable "protect_from_scale_in" {
+  type        = bool
+  description = "Whether newly launched instances are automatically protected from termination by Amazon EC2 Auto Scaling when scaling in. For more information about preventing instances from terminating on scale in, see Using instance scale-in protection in the Amazon EC2 Auto Scaling User Guide"
+  default     = true
+}
+
+variable "instance_warmup" {
+  type        = number
+  description = "Amount of time, in seconds, until a newly launched instance can contribute to the Amazon CloudWatch metrics. This delay lets an instance finish initializing before Amazon EC2 Auto Scaling aggregates instance metrics, resulting in more reliable usage data. Set this value equal to the amount of time that it takes for resource consumption to become stable after an instance reaches the InService state"
+  default     = 900
+}
+
 
 # ZPA/Route53 specific variables
 variable "domain_names" {

@@ -73,6 +73,8 @@ resource "aws_autoscaling_group" "cc_asg" {
   min_size                  = var.min_size
   health_check_type         = var.health_check_type
   health_check_grace_period = var.health_check_grace_period
+  default_instance_warmup   = var.instance_warmup
+  protect_from_scale_in     = var.protect_from_scale_in
 
   launch_template {
     id      = aws_launch_template.cc_launch_template[0].id
@@ -99,6 +101,15 @@ resource "aws_autoscaling_group" "cc_asg" {
       instance_reuse_policy {
         reuse_on_scale_in = var.reuse_on_scale_in
       }
+    }
+  }
+
+  dynamic "tag" {
+    for_each = var.global_tags
+    content {
+      key                 = tag.key
+      value               = tag.value
+      propagate_at_launch = true
     }
   }
 
