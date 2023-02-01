@@ -221,6 +221,12 @@ variable "allowed_principals" {
   default     = []
 }
 
+variable "deregistration_delay" {
+  type        = number
+  description = "Amount time for Elastic Load Balancing to wait before changing the state of a deregistering target from draining to unused. The range is 0-3600 seconds."
+  default     = 0
+}
+
 # BYO (Bring-your-own) variables list
 
 variable "byo_vpc" {
