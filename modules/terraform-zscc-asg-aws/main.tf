@@ -55,6 +55,8 @@ resource "aws_launch_template" "cc_launch_template" {
     associate_public_ip_address = false
   }
 
+  tags = merge(var.global_tags)
+
   lifecycle {
     create_before_destroy = true
   }
