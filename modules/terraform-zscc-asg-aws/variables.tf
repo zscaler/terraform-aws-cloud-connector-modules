@@ -113,6 +113,12 @@ variable "health_check_grace_period" {
   default     = 900
 }
 
+variable "instance_warmup" {
+  type        = number
+  description = "Amount of time, in seconds, until a newly launched instance can contribute to the Amazon CloudWatch metrics. This delay lets an instance finish initializing before Amazon EC2 Auto Scaling aggregates instance metrics, resulting in more reliable usage data. Set this value equal to the amount of time that it takes for resource consumption to become stable after an instance reaches the InService state"
+  default     = 900
+}
+
 variable "health_check_type" {
   type        = string
   description = "EC2 or ELB. Controls how health checking is done"
@@ -228,4 +234,10 @@ variable "private_amis" {
     "eu-central-1" = "ami-00fdd9a35e268bfdf"
     "eu-west-1"    = "ami-0386414112742b530"
   }
+}
+
+variable "protect_from_scale_in" {
+  type        = bool
+  description = " Whether newly launched instances are automatically protected from termination by Amazon EC2 Auto Scaling when scaling in. For more information about preventing instances from terminating on scale in, see Using instance scale-in protection in the Amazon EC2 Auto Scaling User Guide"
+  default     = true
 }

@@ -137,6 +137,8 @@ module "cc_asg" {
   target_group_arn          = module.gwlb.target_group_arn
   target_cpu_util_value     = var.target_cpu_util_value
   health_check_grace_period = var.health_check_grace_period
+  instance_warmup           = var.instance_warmup
+  protect_from_scale_in     = var.protect_from_scale_in
   launch_template_version   = var.launch_template_version
   target_tracking_metric    = var.target_tracking_metric
 

@@ -84,76 +84,87 @@
 
 #health_check_grace_period                  = 900
 
-## 11. IPv4 CIDR configured with VPC creation. Workload, Public, and Cloud Connector Subnets will be created based off this prefix
+## 11. Amount of time, in seconds, until a newly launched instance can contribute to the Amazon CloudWatch metrics. 
+##     This delay lets an instance finish initializing before Amazon EC2 Auto Scaling aggregates instance metrics, resulting in more reliable usage data.
+##     Default: 900 seconds
+
+#instance_warmup                            = 900
+
+## 12. Whether newly launched instances are automatically protected from termination by Amazon EC2 Auto Scaling when scaling in. 
+##     Uncomment to disable. (Default: true)
+
+#protect_from_scale_in                      = false
+
+## 13. IPv4 CIDR configured with VPC creation. Workload, Public, and Cloud Connector Subnets will be created based off this prefix
 ##    /24 subnets are created assuming this cidr is a /16. You may need to edit cidr_block values for subnet creations if
 ##    desired for smaller or larger subnets. (Default: "10.1.0.0/16")
 
 #vpc_cidr                                   = "10.1.0.0/16"
 
-## 12. Number of Workload VMs to be provisioned in the workload subnet. Only limitation is available IP space
+## 14. Number of Workload VMs to be provisioned in the workload subnet. Only limitation is available IP space
 ##    in subnet configuration. Only applicable for "base" deployment types. Default workload subnet is /24 so 250 max
 
 #workload_count                             = 2
 
-## 13. Tag attribute "Owner" assigned to all resoure creation. (Default: "zscc-admin")
+## 15. Tag attribute "Owner" assigned to all resoure creation. (Default: "zscc-admin")
 
 #owner_tag                                  = "username@company.com"
 
-## 14. By default, Cloud Connectors are configured with a callhome IAM policy enabled. This is recommended for production deployments
+## 16. By default, Cloud Connectors are configured with a callhome IAM policy enabled. This is recommended for production deployments
 ##     The policy creation itself does not provide any authentication/authorization access. IAM details are still required to be provided
 ##     to Zscaler in order to establish a trust relationship. Uncomment if you do not want this policy created. (Default: true)
 
 #cc_callhome_enabled                        = false
 
-## 15. By default, GWLB deployments are configured as zonal. Uncomment if you want to enable cross-zone load balancing
+## 17. By default, GWLB deployments are configured as zonal. Uncomment if you want to enable cross-zone load balancing
 ##     functionality. Only applicable for gwlb deployment types. (Default: false)
 
 #cross_zone_lb_enabled                      = true
 
-## 16. If set to true, add a warm pool to the specified Auto Scaling group. See [warm_pool](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group#warm_pool).
+## 18. If set to true, add a warm pool to the specified Auto Scaling group. See [warm_pool](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group#warm_pool).
 ##     Uncomment to enable. (Default: false)
 
 #warm_pool_enabled                          = true
 
-## 17. Sets the instance state to transition to after the lifecycle hooks finish. Valid values are: Stopped (default) or Running. Ignored when 'warm_pool_enabled' is false
+## 19. Sets the instance state to transition to after the lifecycle hooks finish. Valid values are: Stopped (default) or Running. Ignored when 'warm_pool_enabled' is false
 ##     Uncomment the desired value
 
 #warm_pool_state                            = "Stopped"
 #warm_pool_state                            = "Running"
 
-## 18. Specifies the minimum number of instances to maintain in the warm pool. This helps you to ensure that there is always a certain number of warmed instances available to handle traffic spikes. Ignored when 'warm_pool_enabled' is false
+## 20. Specifies the minimum number of instances to maintain in the warm pool. This helps you to ensure that there is always a certain number of warmed instances available to handle traffic spikes. Ignored when 'warm_pool_enabled' is false
 ##     Uncomment and specify a desired minimum number of Cloud Connectors to maintain deployed in a warm pool
 
 #warm_pool_min_size                         = 1
 
-## 19. Specifies the total maximum number of instances that are allowed to be in the warm pool or in any state except Terminated for the Auto Scaling group. Ignored when 'warm_pool_enabled' is false
+## 21. Specifies the total maximum number of instances that are allowed to be in the warm pool or in any state except Terminated for the Auto Scaling group. Ignored when 'warm_pool_enabled' is false
 ##     Uncomment and specify a desired maximum number of Cloud Connectors to maintain deployed in a warm pool
 
 #warm_pool_max_group_prepared_capacity      = 2
 
-## 20. Specifies whether instances in the Auto Scaling group can be returned to the warm pool on scale in
+## 22. Specifies whether instances in the Auto Scaling group can be returned to the warm pool on scale in
 ##     Uncomment to enable. (Default: false)
 
 #reuse_on_scale_in                          = true
 
-## 21. Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number
+## 23. Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number
 ##     (Default: 40%)
 
 #target_cpu_util_value                      = 40
 
-## 22. Determine whether or not to create autoscaling group notifications. Default is false. If setting this value to true, terraform will also create a new sns topic and topic subscription in the same AWS account"
+## 24. Determine whether or not to create autoscaling group notifications. Default is false. If setting this value to true, terraform will also create a new sns topic and topic subscription in the same AWS account"
 
 #sns_enabled                                = true
 
-## 23. List of email addresses to input for sns topic subscriptions for autoscaling group notifications. Required if sns_enabled variable is true and byo_sns_topic false
+## 25. List of email addresses to input for sns topic subscriptions for autoscaling group notifications. Required if sns_enabled variable is true and byo_sns_topic false
 
 #sns_email_list                             = ["john@corp.com","bob@corp.com"]
 
-## 24. Determine whether or not to create an AWS SNS topic and topic subscription for email alerts. Setting this variable to true implies you should also set variable sns_enabled to true
+## 26. Determine whether or not to create an AWS SNS topic and topic subscription for email alerts. Setting this variable to true implies you should also set variable sns_enabled to true
 ##     Default: false
 
 #byo_sns_topic                              = true
 
-## 25. Existing SNS Topic friendly name to be used for autoscaling group notifications assignment
+## 27. Existing SNS Topic friendly name to be used for autoscaling group notifications assignment
 
 #byo_sns_topic_name                         = "topic-name"
