@@ -2,7 +2,7 @@
 ## Uncomment and change the below variables according to your specific environment
 
 #####################################################################################################################
-##### Variables 1-25 are populated automically if terraform is ran via ZSEC bash script.   ##### 
+##### Variables 1-29 are populated automically if terraform is ran via ZSEC bash script.   ##### 
 ##### Modifying the variables in this file will override any inputs from ZSEC             #####
 #####################################################################################################################
 
@@ -106,50 +106,64 @@
 
 #cross_zone_lb_enabled                      = true
 
-## 18. If set to true, add a warm pool to the specified Auto Scaling group. See [warm_pool](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group#warm_pool).
+## 18. Gateway loadbalancing hashing algorith. Zscaler recommended default is 2-tuple (source_ip_dest_ip).
+##     Additional options include: 3-tuple (source_ip_dest_ip_proto) and 5-tuple (None)
+##     Uncomment below the configuration you want to use.
+
+#flow_stickiness                            = "2-tuple"
+#flow_stickiness                            = "3-tuple"
+#flow_stickiness                            = "5-tuple"
+
+## 19. Indicates how the GWLB handles existing flows when a target is deregistered or marked unhealthy. 
+##     true means rebalance after deregistration. false means no_rebalance. (Default: true)
+##     Uncomment to turn this feature off (not recommended)
+
+#rebalance_enabled                          = false
+
+## 20. If set to true, add a warm pool to the specified Auto Scaling group. See [warm_pool](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group#warm_pool).
 ##     Uncomment to enable. (Default: false)
 
 #warm_pool_enabled                          = true
 
-## 19. Sets the instance state to transition to after the lifecycle hooks finish. Valid values are: Stopped (default) or Running. Ignored when 'warm_pool_enabled' is false
+## 21. Sets the instance state to transition to after the lifecycle hooks finish. Valid values are: Stopped (default) or Running. Ignored when 'warm_pool_enabled' is false
 ##     Uncomment the desired value
 
 #warm_pool_state                            = "Stopped"
 #warm_pool_state                            = "Running"
 
-## 20. Specifies the minimum number of instances to maintain in the warm pool. This helps you to ensure that there is always a certain number of warmed instances available to handle traffic spikes. Ignored when 'warm_pool_enabled' is false
+## 22. Specifies the minimum number of instances to maintain in the warm pool. This helps you to ensure that there is always a certain number of warmed instances available to handle traffic spikes. Ignored when 'warm_pool_enabled' is false
 ##     Uncomment and specify a desired minimum number of Cloud Connectors to maintain deployed in a warm pool
 
 #warm_pool_min_size                         = 1
 
-## 21. Specifies the total maximum number of instances that are allowed to be in the warm pool or in any state except Terminated for the Auto Scaling group. Ignored when 'warm_pool_enabled' is false
+## 23. Specifies the total maximum number of instances that are allowed to be in the warm pool or in any state except Terminated for the Auto Scaling group. Ignored when 'warm_pool_enabled' is false
 ##     Uncomment and specify a desired maximum number of Cloud Connectors to maintain deployed in a warm pool
 
 #warm_pool_max_group_prepared_capacity      = 2
 
-## 22. Specifies whether instances in the Auto Scaling group can be returned to the warm pool on scale in
+## 24. Specifies whether instances in the Auto Scaling group can be returned to the warm pool on scale in
 ##     Uncomment to enable. (Default: false)
 
 #reuse_on_scale_in                          = true
 
-## 23. Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number
+## 25. Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number
 ##     (Default: 40%)
 
 #target_cpu_util_value                      = 40
 
-## 24. Determine whether or not to create autoscaling group notifications. Default is false. If setting this value to true, terraform will also create a new sns topic and topic subscription in the same AWS account"
+## 26. Determine whether or not to create autoscaling group notifications. Default is false. If setting this value to true, terraform will also create a new sns topic and topic subscription in the same AWS account"
 
 #sns_enabled                                = true
 
-## 25. List of email addresses to input for sns topic subscriptions for autoscaling group notifications. Required if sns_enabled variable is true and byo_sns_topic false
+## 27. List of email addresses to input for sns topic subscriptions for autoscaling group notifications. Required if sns_enabled variable is true and byo_sns_topic false
 
 #sns_email_list                             = ["john@corp.com","bob@corp.com"]
 
-## 26. Determine whether or not to create an AWS SNS topic and topic subscription for email alerts. Setting this variable to true implies you should also set variable sns_enabled to true
+## 28. Determine whether or not to create an AWS SNS topic and topic subscription for email alerts. Setting this variable to true implies you should also set variable sns_enabled to true
 ##     Default: false
 
 #byo_sns_topic                              = true
 
-## 27. Existing SNS Topic friendly name to be used for autoscaling group notifications assignment
+## 29. Existing SNS Topic friendly name to be used for autoscaling group notifications assignment
 
 #byo_sns_topic_name                         = "topic-name"
