@@ -4,6 +4,11 @@
 * name_prefix variable default string changed from zsdemo to zscc
 * validation length constraint added to name_prefix variable
 * dependency fixes for vpc/subnet data resource selection when vpc was originally created with example templates
+* GWLB default changes/new features: 
+    - Enable rebalance
+    - flow stickiness set to 2-tuple (src/dst)
+    - deregistration delay disabled
+    - healthy_threshold lowered from 3 to 2
 
 ## v0.1.0 (December 15, 2022) 
 * github release refactor from Cloud Connector Portal
