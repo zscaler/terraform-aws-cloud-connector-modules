@@ -105,6 +105,12 @@ variable "max_size" {
   type        = number
   description = "Maxinum number of Cloud Connectors to maintain in Autoscaling group"
   default     = 4
+  validation {
+    condition = (
+      var.max_size >= 1 && var.max_size <= 10
+    )
+    error_message = "Input max_size must be set to a number between 1 and 10."
+  }
 }
 
 variable "health_check_grace_period" {
