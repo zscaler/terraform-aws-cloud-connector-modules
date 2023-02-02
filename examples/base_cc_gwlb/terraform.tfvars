@@ -2,7 +2,7 @@
 ## Uncomment and change the below variables according to your specific environment
 
 #####################################################################################################################
-##### Variables 1-17 are populated automically if terraform is ran via ZSEC bash script.   ##### 
+##### Variables 1-20 are populated automically if terraform is ran via ZSEC bash script.   ##### 
 ##### Modifying the variables in this file will override any inputs from ZSEC             #####
 #####################################################################################################################
 
@@ -129,26 +129,38 @@
 
 #cross_zone_lb_enabled                      = true
 
+## 15. Gateway loadbalancing hashing algorith. Zscaler recommended default is 2-tuple (source_ip_dest_ip).
+##     Additional options include: 3-tuple (source_ip_dest_ip_proto) and 5-tuple (None)
+##     Uncomment below the configuration you want to use.
 
-## 15. By default, this script will apply 1 Security Group per Cloud Connector instance. 
+#flow_stickiness                            = "2-tuple"
+#flow_stickiness                            = "3-tuple"
+#flow_stickiness                            = "5-tuple"
+
+## 16. Indicates how the GWLB handles existing flows when a target is deregistered or marked unhealthy. 
+##     true means rebalance after deregistration. false means no_rebalance. (Default: true)
+##     Uncomment to turn this feature off (not recommended)
+
+#rebalance_enabled                          = false
+
+## 17. By default, this script will apply 1 Security Group per Cloud Connector instance. 
 ##     Uncomment if you want to use the same Security Group for ALL Cloud Connectors (true or false. Default: false)
 
 #reuse_security_group                       = true
 
-
-## 16. By default, this script will apply 1 IAM Role/Instance Profile per Cloud Connector instance. 
+## 18. By default, this script will apply 1 IAM Role/Instance Profile per Cloud Connector instance. 
 ##     Uncomment if you want to use the same IAM Role/Instance Profile for ALL Cloud Connectors (true or false. Default: false)
 
 #reuse_iam                                  = true
 
 
-## 17. By default, the VPC Endpoint Service created will auto accept any VPC Endpoint registration attempts.
+## 19. By default, the VPC Endpoint Service created will auto accept any VPC Endpoint registration attempts.
 ##     Uncomment if you want to require manual acceptance. (true or false. Default: false)
 
 #acceptance_required                        = true
 
 
-## 18. By default, the VPC Endpoint Service is configured to auto accept any VPC Endpoint registration attempts from any principal in the current AWS Account.
+## 20. By default, the VPC Endpoint Service is configured to auto accept any VPC Endpoint registration attempts from any principal in the current AWS Account.
 ##     Uncomment if you want to override this with more specific/restrictive principals. See https://docs.aws.amazon.com/vpc/latest/privatelink/configure-endpoint-service.html#accept-reject-connection-requests"
 
 #allowed_principals                         = [\"arn:aws:iam::1234567890:root\"]
