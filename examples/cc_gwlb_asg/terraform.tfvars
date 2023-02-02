@@ -63,6 +63,7 @@
 #min_size                                   = 2
 
 ## 9. The maximum number of Cloud Connectors to maintain in an Autoscaling group. (Default: 4)
+##    Value must be a number between 1 and 10
 
 #max_size                                   = 4
 
