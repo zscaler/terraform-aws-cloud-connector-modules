@@ -179,6 +179,27 @@ variable "cross_zone_lb_enabled" {
   default     = false
 }
 
+variable "flow_stickiness" {
+  type        = string
+  description = "Options are 5-tuple (src ip/src port/dest ip/dest port/protocol), 3-tuple (src ip/dest ip/protocol), or 2-tuple (src ip/dest ip). By default, Zscaler recommends 2-tuple to maintain flow stickiness to a specific target appliance. "
+  default     = "2-tuple"
+
+  validation {
+    condition = (
+      var.flow_stickiness == "2-tuple" ||
+      var.flow_stickiness == "3-tuple" ||
+      var.flow_stickiness == "5-tuple"
+    )
+    error_message = "Input flow_stickiness must be set to an approved value of either 5-tuple, 3-tuple, or 2-tuple."
+  }
+}
+
+variable "rebalance_enabled" {
+  type        = bool
+  description = "Indicates how the GWLB handles existing flows when a target is deregistered or marked unhealthy. true means rebalance. false means no_rebalance. Default: true"
+  default     = true
+}
+
 variable "zpa_enabled" {
   type        = bool
   description = "Configure Route 53 Subnets, Route Tables, and Resolvers for ZPA DNS redirection"

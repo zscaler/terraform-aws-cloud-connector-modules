@@ -213,3 +213,24 @@ variable "deregistration_delay" {
   description = "Amount time for Elastic Load Balancing to wait before changing the state of a deregistering target from draining to unused. The range is 0-3600 seconds."
   default     = 0
 }
+
+variable "flow_stickiness" {
+  type        = string
+  description = "Options are 5-tuple (src ip/src port/dest ip/dest port/protocol), 3-tuple (src ip/dest ip/protocol), or 2-tuple (src ip/dest ip). By default, Zscaler recommends 2-tuple to maintain flow stickiness to a specific target appliance. "
+  default     = "2-tuple"
+
+  validation {
+    condition = (
+      var.flow_stickiness == "2-tuple" ||
+      var.flow_stickiness == "3-tuple" ||
+      var.flow_stickiness == "5-tuple"
+    )
+    error_message = "Input flow_stickiness must be set to an approved value of either 5-tuple, 3-tuple, or 2-tuple."
+  }
+}
+
+variable "rebalance_enabled" {
+  type        = bool
+  description = "Indicates how the GWLB handles existing flows when a target is deregistered or marked unhealthy. true means rebalance. false means no_rebalance. Default: true"
+  default     = true
+}
