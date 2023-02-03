@@ -122,7 +122,7 @@
 
 #cross_zone_lb_enabled                      = true
 
-## 18. Gateway loadbalancing hashing algorith. Zscaler recommended default is 2-tuple (source_ip_dest_ip).
+## 18. Gateway loadbalancing hashing algorithm. Zscaler recommended default is 2-tuple (source_ip_dest_ip).
 ##     Additional options include: 3-tuple (source_ip_dest_ip_proto) and 5-tuple (None)
 ##     Uncomment below the configuration you want to use.
 
