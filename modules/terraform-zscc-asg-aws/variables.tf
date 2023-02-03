@@ -245,5 +245,5 @@ variable "private_amis" {
 variable "protect_from_scale_in" {
   type        = bool
   description = " Whether newly launched instances are automatically protected from termination by Amazon EC2 Auto Scaling when scaling in. For more information about preventing instances from terminating on scale in, see Using instance scale-in protection in the Amazon EC2 Auto Scaling User Guide"
-  default     = true
+  default     = false
 }
