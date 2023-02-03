@@ -1,5 +1,5 @@
 ## UNRELEASED
-* AWS Provider updated to 4.52.x for all example templates and child modules
+* AWS Provider updated from 4.7.x to 4.52.x for all example templates and child modules
 * terraform-zscc-gwlb-aws custom gwlb_name and target_group_name variables added
 * name_prefix variable default string changed from zsdemo to zscc
 * validation length constraint added to name_prefix variable
