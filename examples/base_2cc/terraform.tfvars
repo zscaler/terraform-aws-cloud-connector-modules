@@ -2,7 +2,7 @@
 ## Uncomment and change the below variables according to your specific environment
 
 #####################################################################################################################
-##### Variables 1-12 are populated automically if terraform is ran via ZSEC bash script.   ##### 
+##### Variables 1-14 are populated automically if terraform is ran via ZSEC bash script.   ##### 
 ##### Modifying the variables in this file will override any inputs from ZSEC             #####
 #####################################################################################################################
 
@@ -101,3 +101,13 @@
 ##     Uncomment if you want to use the same IAM Role/Instance Profile for ALL Cloud Connectors (true or false. Default: false)
 
 #reuse_iam                                  = true
+
+
+## 14. By default, terraform will always query the AWS Marketplace for the latest Cloud Connector AMI available.
+##     This variable is provided if a customer desires to override or retain an old ami for existing deployments rather than upgrading and forcing a replacement. 
+##     It is also inputted as a list to facilitate if a customer desired to manually upgrade only select CCs deployed based on the cc_count index
+
+##     Note: Customers should NOT be hard coding AMI IDs as Zscaler recommendation is to always be deploying/running the latest version.
+##           Leave this variable commented out unless you are absolutely certain why/that you need to set it and only temporarily.
+
+#ami_id                                     = ["ami-123456789"]
