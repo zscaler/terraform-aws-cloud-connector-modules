@@ -9,6 +9,8 @@
     - flow stickiness set to 2-tuple (src/dst)
     - deregistration delay disabled
     - healthy_threshold lowered from 3 to 2
+* new list(string) variable ami_id to enable custom deployments/granular upgrade scenarios
+    - moved latest AMI ID lookup from ccvm module to parent/main.tf
 
 ## v0.1.0 (December 15, 2022) 
 * github release refactor from Cloud Connector Portal
