@@ -185,6 +185,12 @@ variable "gwlb_enabled" {
   description = "Default is false. Workload/Route 53 subnet Route Tables will point to network_interface_id via var.cc_service_enis. If true, Route Tables will point to vpc_endpoint_id via var.gwlb_endpoint_ids input."
 }
 
+variable "ami_id" {
+  type        = list(string)
+  description = "AMI ID(s) to be used for deploying Cloud Connector appliances. Ideally all VMs should be on the same AMI ID as templates always pull the latest from AWS Marketplace. This variable is provided if a customer desires to override/retain an old ami for existing deployments rather than upgrading and forcing a replacement. It is also inputted as a list to facilitate if a customer desired to manually upgrade select CCs deployed based on the cc_count index"
+  default     = [""]
+}
+
 
 # BYO (Bring-your-own) variables list
 
