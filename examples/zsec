@@ -483,9 +483,9 @@ case $rebalance_enabled in
 	* ) echo "invalid response. Please enter yes or no";;
     esac
 done 
-flow_stickiness_default=2-tuple
+flow_stickiness_default=5-tuple
     while true; do
-    read -r -p "Set GWLB flow stickiness? (2-tuple, 3-tuple, or 5-tuple) Default 2-tuple: " flow_stickiness_input
+    read -r -p "Set GWLB flow stickiness? (2-tuple, 3-tuple, or 5-tuple) Default 5-tuple: " flow_stickiness_input
 flow_stickiness=${flow_stickiness_input:-$flow_stickiness_default}
 case $flow_stickiness in 
 	2|2-tuple ) 
