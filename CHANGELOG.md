@@ -5,9 +5,9 @@
 * validation length constraint added to name_prefix variable
 * dependency fixes for vpc/subnet data resource selection when vpc was originally created with example templates
 * GWLB default changes/new features: 
-    - Enable rebalance
-    - flow stickiness set to 2-tuple (src/dst)
-    - deregistration delay disabled
+    - Enable rebalance default
+    - flow stickiness selection capability
+    - deregistration delay changed to 0 from default 300
     - healthy_threshold lowered from 3 to 2
 * new list(string) variable ami_id to enable custom deployments/granular upgrade scenarios
     - moved latest AMI ID lookup from ccvm module to parent/main.tf

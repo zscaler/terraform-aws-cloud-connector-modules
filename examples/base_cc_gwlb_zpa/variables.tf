@@ -205,8 +205,8 @@ variable "deregistration_delay" {
 
 variable "flow_stickiness" {
   type        = string
-  description = "Options are 5-tuple (src ip/src port/dest ip/dest port/protocol), 3-tuple (src ip/dest ip/protocol), or 2-tuple (src ip/dest ip). By default, Zscaler recommends 2-tuple to maintain flow stickiness to a specific target appliance. "
-  default     = "2-tuple"
+  description = "Options are (Default) 5-tuple (src ip/src port/dest ip/dest port/protocol), 3-tuple (src ip/dest ip/protocol), or 2-tuple (src ip/dest ip)"
+  default     = "5-tuple"
 
   validation {
     condition = (
