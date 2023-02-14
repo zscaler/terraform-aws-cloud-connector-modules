@@ -106,7 +106,8 @@ data "aws_iam_policy_document" "cc_autoscale_lifecycle_policy_document" {
       "autoscaling:DescribeLifecycleHooks",
       "autoscaling:DescribeAutoScalingInstances",
       "autoscaling:CompleteLifecycleAction",
-      "autoscaling:RecordLifecycleActionHeartbeat"
+      "autoscaling:RecordLifecycleActionHeartbeat",
+      "ec2:DescribeInstanceStatus"
     ]
     resources = ["*"]
   }
