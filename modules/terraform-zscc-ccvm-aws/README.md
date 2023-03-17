@@ -8,7 +8,7 @@ This module creates all AWS EC2 instance and network interface resources needed 
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 4.52.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 4.59.0 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.2.0 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.1.0 |
 
@@ -16,7 +16,7 @@ This module creates all AWS EC2 instance and network interface resources needed 
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 4.52.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 4.59.0 |
 | <a name="provider_null"></a> [null](#provider\_null) | ~> 3.1.0 |
 
 ## Modules
@@ -33,10 +33,6 @@ No modules.
 | [aws_network_interface.cc_vm_nic_index_3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
 | [aws_network_interface.cc_vm_nic_index_4](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
 | [null_resource.error_checker](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
-| [aws_network_interface.cc_vm_nic_index_1_eni](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/network_interface) | data source |
-| [aws_network_interface.cc_vm_nic_index_2_eni](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/network_interface) | data source |
-| [aws_network_interface.cc_vm_nic_index_3_eni](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/network_interface) | data source |
-| [aws_network_interface.cc_vm_nic_index_4_eni](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/network_interface) | data source |
 
 ## Inputs
 
