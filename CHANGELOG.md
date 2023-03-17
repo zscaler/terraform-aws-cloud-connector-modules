@@ -1,5 +1,5 @@
-## UNRELEASED
-* AWS Provider updated from 4.7.x to 4.52.x for all example templates and child modules
+## v0.2.0 (March 17, 2023)
+* AWS Provider updated from 4.7.x to 4.59.x for all example templates and child modules
 * terraform-zscc-gwlb-aws custom gwlb_name and target_group_name variables added
 * name_prefix variable default string changed from zsdemo to zscc
 * validation length constraint added to name_prefix variable
@@ -11,6 +11,7 @@
     - healthy_threshold lowered from 3 to 2
 * new list(string) variable ami_id to enable custom deployments/granular upgrade scenarios
     - moved latest AMI ID lookup from ccvm module to parent/main.tf
+* service network interface data source replaced with resource for terraform-zscc-ccvm-aws outputs
 
 ## v0.1.0 (December 15, 2022) 
 * github release refactor from Cloud Connector Portal
