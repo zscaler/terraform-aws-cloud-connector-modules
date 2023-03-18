@@ -147,6 +147,7 @@ module "cc_iam" {
   resource_tag        = random_string.suffix.result
   global_tags         = local.global_tags
   cc_callhome_enabled = var.cc_callhome_enabled
+  secret_name         = var.secret_name
 
   byo_iam = var.byo_iam
   # optional inputs. only required if byo_iam set to true

@@ -12,6 +12,7 @@
 * new list(string) variable ami_id to enable custom deployments/granular upgrade scenarios
     - moved latest AMI ID lookup from ccvm module to parent/main.tf
 * service network interface data source replaced with resource for terraform-zscc-ccvm-aws outputs
+* replace default secretsmanager policy with custom least privilege CCPermitGetSecrets with only required GetSecretValue access to the Secret Manager name specified
 
 ## v0.1.0 (December 15, 2022) 
 * github release refactor from Cloud Connector Portal
