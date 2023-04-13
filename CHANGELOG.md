@@ -1,4 +1,4 @@
-## v0.2.0 (April 1, 2023)
+## v0.2.0 (April 4, 2023)
 * AWS Provider updated from 4.7.x to 4.59.x for all example templates and child modules
 * terraform-zscc-gwlb-aws custom gwlb_name and target_group_name variables added
 * name_prefix variable default string changed from zsdemo to zscc
@@ -14,6 +14,7 @@
 * service network interface data source replaced with resource for terraform-zscc-ccvm-aws outputs
 * replace default secretsmanager policy with custom least privilege CCPermitGetSecrets with only required GetSecretValue access to the Secret Manager name specified
 * IMDSv2 required by default for Cloud Connector EC2 instance creation. imdsv2_enabled variable added to terraform-zscc-ccvm-aws module
+* CC mgmt/service security group lifecycle and dependency fixes
 
 ## v0.1.0 (December 15, 2022) 
 * github release refactor from Cloud Connector Portal

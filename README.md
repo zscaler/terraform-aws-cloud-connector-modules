@@ -10,7 +10,7 @@ Zscaler Cloud Connector AWS Terraform Modules
 
 # **README for AWS Terraform**
 This README serves as a quick start guide to deploy Zscaler Cloud Connector resources in an AWS cloud using Terraform. To learn more about
-the resources created when deploying Cloud Connector with Terraform, see [Deployment Templates for Zscaler Cloud Connector](https://help.zscaler.com/cloud-connector/about-cloud-automation-scripts).
+the resources created when deploying Cloud Connector with Terraform, see [Deployment Templates for Zscaler Cloud Connector](https://help.zscaler.com/cloud-branch-connector/deployment-templates-zscaler-cloud-connector).
 
 ## **AWS Deployment Scripts for Terraform**
 
