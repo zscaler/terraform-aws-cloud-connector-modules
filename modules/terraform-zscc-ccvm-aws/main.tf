@@ -45,7 +45,7 @@ resource "aws_instance" "cc_vm" {
 ################################################################################
 resource "aws_network_interface" "cc_vm_nic_index_1" {
   count             = local.valid_cc_create ? var.cc_count : 0
-  description       = var.cc_instance_size == "small" ? "cc service interface" : "cc lb vip interface"
+  description       = "next hop forwarding interface"
   subnet_id         = element(var.service_subnet_id, count.index)
   security_groups   = [element(var.service_security_group_id, count.index)]
   source_dest_check = false
@@ -55,7 +55,7 @@ resource "aws_network_interface" "cc_vm_nic_index_1" {
   }
 
   tags = merge(var.global_tags,
-    { Name = var.cc_instance_size == "small" ? "${var.name_prefix}-cc-vm-${count.index + 1}-${var.resource_tag}-SrvcIF1" : "${var.name_prefix}-cc-vm-${count.index + 1}-${var.resource_tag}-LB" }
+    { Name = "${var.name_prefix}-cc-vm-${count.index + 1}-${var.resource_tag}-FwdIF" }
   )
 }
 
