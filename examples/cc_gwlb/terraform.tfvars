@@ -55,7 +55,7 @@
 ##    (Default: "small") 
 ##    **** NOTE - There is a dependency between ccvm_instance_type and cc_instance_size selections ****
 ##    If size = "small" any supported EC2 instance type can be deployed, but "m5/c5.large" is ideal
-##    If size = "medium" only 2xlarge and up EC2 instance types can be deployed
+##    If size = "medium" only 4xlarge and up EC2 instance types can be deployed
 ##    If size = "large" only 4xlarge EC2 instane types can be deployed 
 ##    **** NOTE - medium and large cc_instance_size is only supported with GWLB deployments. Legacy HA/Lambda deployments must be small.
 
