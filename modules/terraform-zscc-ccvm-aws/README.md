@@ -32,6 +32,7 @@ No modules.
 | [aws_network_interface.cc_vm_nic_index_2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
 | [aws_network_interface.cc_vm_nic_index_3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
 | [aws_network_interface.cc_vm_nic_index_4](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
+| [aws_network_interface.cc_vm_nic_index_5](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
 | [null_resource.error_checker](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 
 ## Inputs
@@ -59,14 +60,8 @@ No modules.
 | Name | Description |
 |------|-------------|
 | <a name="output_availability_zone"></a> [availability\_zone](#output\_availability\_zone) | Instance Availability Zone |
-| <a name="output_cc_lrg_service_3_private_ip"></a> [cc\_lrg\_service\_3\_private\_ip](#output\_cc\_lrg\_service\_3\_private\_ip) | Instance Device Index 4 Private IP |
-| <a name="output_cc_med_lrg_service_1_private_ip"></a> [cc\_med\_lrg\_service\_1\_private\_ip](#output\_cc\_med\_lrg\_service\_1\_private\_ip) | Instance Device Index 2 Private IP |
-| <a name="output_cc_med_lrg_service_2_private_ip"></a> [cc\_med\_lrg\_service\_2\_private\_ip](#output\_cc\_med\_lrg\_service\_2\_private\_ip) | Instance Device Index 3 Private IP |
 | <a name="output_cc_service_private_ip"></a> [cc\_service\_private\_ip](#output\_cc\_service\_private\_ip) | Instance Device Index 1 Private IP |
 | <a name="output_id"></a> [id](#output\_id) | Instance ID |
 | <a name="output_private_ip"></a> [private\_ip](#output\_private\_ip) | Instance Private IP |
 | <a name="output_service_eni_1"></a> [service\_eni\_1](#output\_service\_eni\_1) | Instance Device Index 1 Network ID |
-| <a name="output_service_eni_2"></a> [service\_eni\_2](#output\_service\_eni\_2) | Instance Device Index 2 Network ID |
-| <a name="output_service_eni_3"></a> [service\_eni\_3](#output\_service\_eni\_3) | Instance Device Index 3 Network ID |
-| <a name="output_service_eni_4"></a> [service\_eni\_4](#output\_service\_eni\_4) | Instance Device Index 4 Network ID |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
