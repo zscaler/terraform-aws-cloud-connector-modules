@@ -22,12 +22,12 @@
 * new list(string) variable ami_id to enable custom deployments/granular upgrade scenarios
     - moved latest AMI ID lookup from ccvm module to parent/main.tf
 * service network interface data source replaced with resource for terraform-zscc-ccvm-aws outputs
-<<<<<<< HEAD
-=======
 * replace default secretsmanager policy with custom least privilege CCPermitGetSecrets with only required GetSecretValue access to the Secret Manager name specified
 * IMDSv2 required by default for Cloud Connector EC2 instance creation. imdsv2_enabled variable added to terraform-zscc-ccvm-aws module
 * CC mgmt/service security group lifecycle and dependency fixes
->>>>>>> fix: default imdsv2 required (#23)
+* replace default secretsmanager policy with custom least privilege CCPermitGetSecrets with only required GetSecretValue access to the Secret Manager name specified
+* IMDSv2 required by default for Cloud Connector EC2 instance creation. imdsv2_enabled variable added to terraform-zscc-ccvm-aws module
+* CC mgmt/service security group lifecycle and dependency fixes
 
 ## v0.1.0 (December 15, 2022) 
 * github release refactor from Cloud Connector Portal
