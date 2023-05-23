@@ -7,7 +7,11 @@ variable "aws_region" {
 variable "name_prefix" {
   type        = string
   description = "The name prefix for all your resources"
-  default     = "zsdemo"
+  default     = "zscc"
+  validation {
+    condition     = length(var.name_prefix) <= 12
+    error_message = "Variable name_prefix must be 12 or less characters."
+  }
 }
 
 variable "vpc_cidr" {
@@ -112,7 +116,7 @@ variable "cc_instance_size" {
 # Validation to ensure that ccvm_instance_type and cc_instance_size are set appropriately
 locals {
   small_cc_instance  = ["t3.medium", "m5.large", "c5.large", "c5a.large", "m5.2xlarge", "c5.2xlarge", "m5.4xlarge", "c5.4xlarge"]
-  medium_cc_instance = ["m5.2xlarge", "c5.2xlarge", "m5.4xlarge", "c5.4xlarge"]
+  medium_cc_instance = ["m5.4xlarge", "c5.4xlarge"]
   large_cc_instance  = ["m5.4xlarge", "c5.4xlarge"]
 
   valid_cc_create = (
@@ -172,7 +176,7 @@ variable "health_check_interval" {
 variable "healthy_threshold" {
   type        = number
   description = "The number of successful health checks required before an unhealthy target becomes healthy. Minimum 2 and maximum 10"
-  default     = 3
+  default     = 2
 }
 
 variable "unhealthy_threshold" {
@@ -203,4 +207,36 @@ variable "allowed_principals" {
   type        = list(string)
   description = "List of AWS Principal ARNs who are allowed access to the GWLB Endpoint Service. E.g. [\"arn:aws:iam::1234567890:root\"]`. See https://docs.aws.amazon.com/vpc/latest/privatelink/configure-endpoint-service.html#accept-reject-connection-requests"
   default     = []
+}
+variable "deregistration_delay" {
+  type        = number
+  description = "Amount time for Elastic Load Balancing to wait before changing the state of a deregistering target from draining to unused. The range is 0-3600 seconds."
+  default     = 0
+}
+
+variable "flow_stickiness" {
+  type        = string
+  description = "Options are (Default) 5-tuple (src ip/src port/dest ip/dest port/protocol), 3-tuple (src ip/dest ip/protocol), or 2-tuple (src ip/dest ip)"
+  default     = "5-tuple"
+
+  validation {
+    condition = (
+      var.flow_stickiness == "2-tuple" ||
+      var.flow_stickiness == "3-tuple" ||
+      var.flow_stickiness == "5-tuple"
+    )
+    error_message = "Input flow_stickiness must be set to an approved value of either 5-tuple, 3-tuple, or 2-tuple."
+  }
+}
+
+variable "rebalance_enabled" {
+  type        = bool
+  description = "Indicates how the GWLB handles existing flows when a target is deregistered or marked unhealthy. true means rebalance. false means no_rebalance. Default: true"
+  default     = true
+}
+
+variable "ami_id" {
+  type        = list(string)
+  description = "AMI ID(s) to be used for deploying Cloud Connector appliances. Ideally all VMs should be on the same AMI ID as templates always pull the latest from AWS Marketplace. This variable is provided if a customer desires to override/retain an old ami for existing deployments rather than upgrading and forcing a replacement. It is also inputted as a list to facilitate if a customer desired to manually upgrade select CCs deployed based on the cc_count index"
+  default     = [""]
 }

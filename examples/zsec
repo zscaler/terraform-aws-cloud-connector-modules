@@ -326,36 +326,59 @@ done
     cc_instance_size=small
     fi
 
-ccvm_instance_type_default=m5.large
+if [[ $cc_instance_size == "small" ]]; then
+ccvm_instance_type_default="m5.large"
 while true; do
-    read -r -p "Enter desired AWS EC2 instance type for CC. Recommended types: Small CC (m5.large or c5.large); Medium (m5.2xlarge or c5.2xlarge); Large (m5.4xlarge or c5.4xlarge) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
-ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}    
+    read -r -p "Enter desired AWS EC2 instance type for $cc_instance_size CC. Recommended types: (m5.large or c5.large) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
+ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}
     case $ccvm_instance_type in
       t3.medium|m5.large|c5.large|c5a.large|m5.2xlarge|c5.2xlarge|m5.4xlarge|c5.4xlarge)
-          echo "CC EC2 type: ${ccvm_instance_type}"
-          echo "export TF_VAR_ccvm_instance_type=${ccvm_instance_type}" >> .zsecrc
+          echo "CC EC2 type: $ccvm_instance_type"
+          echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
           break
       ;;
       *)
-          echo "Invalid Cloud Connector VM type: ${ccvm_instance_type}. Please enter an approved VM type"
+          echo "EC2 type $ccvm_instance_type not compatible with Cloud Connector size $cc_instance_size. Please enter an approved VM type"
       ;;
     esac
 done
 
-small_cc_instance=("t3.medium" "m5.large" "c5.large" "c5a.large" "m5.2xlarge" "c5.2xlarge" "m5.4xlarge" "c5.4xlarge")
-medium_cc_instance=("m5.2xlarge" "c5.2xlarge" "m5.4xlarge" "c5.4xlarge")
-large_cc_instance=("m5.4xlarge" "c5.4xlarge")
+elif [[ $cc_instance_size == "medium" ]]; then
+ccvm_instance_type_default="m5.4xlarge"
+while true; do
+    read -r -p "Enter desired AWS EC2 instance type for $cc_instance_size CC. Recommended types: (m5.4xlarge or c5.4xlarge) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
+ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}
+    case $ccvm_instance_type in
+      m5.4xlarge|c5.4xlarge)
+          echo "CC EC2 type: $ccvm_instance_type"
+          echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
+          break
+      ;;
+      *)
+          echo "EC2 type $ccvm_instance_type not compatible with Cloud Connector size $cc_instance_size. Please enter an approved VM type"
+      ;;
+    esac
+done
 
-if [[ ${small_cc_instance[*]} =~ $ccvm_instance_type && "$cc_instance_size" == small ]]; then
-echo "Proceeding. ${ccvm_instance_type} compatible with ${cc_instance_size} Cloud Connector size"
-elif [[ ${medium_cc_instance[*]} =~ $ccvm_instance_type && "$cc_instance_size" == medium ]]; then
-echo "Proceeding. ${ccvm_instance_type} compatible with ${cc_instance_size} Cloud Connector size"
-elif [[ ${large_cc_instance[*]} =~ $ccvm_instance_type && "$cc_instance_size" == large ]]; then
-echo "Proceeding. ${ccvm_instance_type} compatible with ${cc_instance_size} Cloud Connector size"
-elif [[ $dtype == base ]]; then
-echo "Proceeding with no CCs to deploy"
+elif [[ $cc_instance_size == "large" ]]; then
+ccvm_instance_type_default="m5.4xlarge"
+while true; do
+    read -r -p "Enter desired AWS EC2 instance type for $cc_instance_size CC. Recommended types: (m5.4xlarge or c5.4xlarge) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
+ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}
+    case $ccvm_instance_type in
+      m5.4xlarge|c5.4xlarge)
+          echo "CC EC2 type: $ccvm_instance_type"
+          echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
+          break
+      ;;
+      *)
+          echo "EC2 type $ccvm_instance_type not compatible with Cloud Connector size $cc_instance_size. Please enter an approved VM type"
+      ;;
+    esac
+done
+
 else
-    echo "Invalid CC deployment. ${ccvm_instance_type} not compatible with ${cc_instance_size} Cloud Connector size"
+    echo "Invalid CC deployment. $ccvm_instance_type not compatible with $cc_instance_size Cloud Connector size"
     echo "Delete .zsecrc file and re-run zsec up..."
     exit 1
 fi
@@ -465,6 +488,45 @@ case $cross_zone_lb_enabled in
     break
     ;;
 	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done 
+    while true; do
+    read -r -p "Enable GWLB target failover rebalance for existing flows? (yes/no) Recommendation is yes: " rebalance_enabled
+case $rebalance_enabled in 
+	yes|y ) 
+    echo "GWLB target failover rebalance enabled"
+    echo "export TF_VAR_rebalance_enabled=true" >> .zsecrc
+    break
+    ;;
+	no|n )
+    echo "GWLB target failover rebalance disabled"
+    echo "export TF_VAR_rebalance_enabled=false" >> .zsecrc
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done 
+flow_stickiness_default=5-tuple
+    while true; do
+    read -r -p "Set GWLB flow stickiness? (2-tuple, 3-tuple, or 5-tuple) Default 5-tuple: " flow_stickiness_input
+flow_stickiness=${flow_stickiness_input:-$flow_stickiness_default}
+case $flow_stickiness in 
+	2|2-tuple ) 
+    echo "GWLB flow stickiness set to 2-tuple"
+    echo "export TF_VAR_flow_stickiness=2-tuple" >> .zsecrc
+    break
+    ;;
+	3|3-tuple ) 
+    echo "GWLB flow stickiness set to 3-tuple"
+    echo "export TF_VAR_flow_stickiness=3-tuple" >> .zsecrc
+    break
+    ;;
+    5|5-tuple ) 
+    echo "GWLB flow stickiness set to 5-tuple"
+    echo "export TF_VAR_flow_stickiness=5-tuple" >> .zsecrc
+    break
+    ;;
+	* ) echo "invalid response. Please enter either 2, 3, or 5 for flow stickness tuple";;
     esac
 done 
 fi

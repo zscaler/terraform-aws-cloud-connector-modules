@@ -17,7 +17,7 @@
 
 
 #####################################################################################################################
-##### Variables 1-12 are populated automically if terraform is ran via ZSEC bash script.   ##### 
+##### Variables 1-14 are populated automically if terraform is ran via ZSEC bash script.   ##### 
 ##### Modifying the variables in this file will override any inputs from ZSEC             #####
 #####################################################################################################################
 
@@ -44,13 +44,18 @@
 ##### Custom variables. Only change if required for your environment  #####
 #####################################################################################################################
 
-## 4. AWS region where Cloud Connector resources will be deployed. This environment variable is automatically populated if running ZSEC script
+## 4. The name string for all Cloud Connector resources created by Terraform for Tag/Name attributes. (Default: zscc)
+
+#name_prefix                                = "zscc"
+
+
+## 5. AWS region where Cloud Connector resources will be deployed. This environment variable is automatically populated if running ZSEC script
 ##    and thus will override any value set here. Only uncomment and set this value if you are deploying terraform standalone. (Default: us-west-2)
 
 #aws_region                                 = "us-west-2"
 
 
-## 5. Cloud Connector AWS EC2 Instance size selection. Uncomment ccvm_instance_type line with desired vm size to change.
+## 6. Cloud Connector AWS EC2 Instance size selection. Uncomment ccvm_instance_type line with desired vm size to change.
 ##    (Default: m5.large)
 
 #ccvm_instance_type                         = "t3.medium"
@@ -63,11 +68,11 @@
 #ccvm_instance_type                         = "c5.4xlarge"
 
 
-## 6. Cloud Connector Instance size selection. Uncomment cc_instance_size line with desired vm size to change
+## 7. Cloud Connector Instance size selection. Uncomment cc_instance_size line with desired vm size to change
 ##    (Default: "small") 
 ##    **** NOTE - There is a dependency between ccvm_instance_type and cc_instance_size selections ****
 ##    If size = "small" any supported EC2 instance type can be deployed, but "m5/c5.large" is ideal
-##    If size = "medium" only 2xlarge and up EC2 instance types can be deployed
+##    If size = "medium" only 4xlarge and up EC2 instance types can be deployed
 ##    If size = "large" only 4xlarge EC2 instane types can be deployed 
 ##    **** NOTE - medium and large cc_instance_size is only supported with GWLB deployments. Legacy HA/Lambda deployments must be small.
 
@@ -76,7 +81,7 @@
 #cc_instance_size                           = "large" 
 
 
-## 7. Network Configuration:
+## 8. Network Configuration:
 
 ##    IPv4 CIDR configured with VPC creation. All Subnet resources (Workload, Public, Cloud Connector, Route 53) will be created based off this prefix
 ##    /24 subnets are created assuming this cidr is a /16. If you require creating a VPC smaller than /16, you may need to explicitly define all other 
@@ -102,31 +107,41 @@
 #route53_subnets                            = ["10.x.y.z/24","10.x.y.z/24"]                                 = "10.1.0.0/16"
 
 
-## 8. Number of Workload VMs to be provisioned in the workload subnet. Only limitation is available IP space
+## 9. Number of Workload VMs to be provisioned in the workload subnet. Only limitation is available IP space
 ##    in subnet configuration. Only applicable for "base" deployment types. Default workload subnet is /24 so 250 max
 
 #workload_count                             = 2
 
 
-## 9. Tag attribute "Owner" assigned to all resoure creation. (Default: "zscc-admin")
+## 10. Tag attribute "Owner" assigned to all resoure creation. (Default: "zscc-admin")
 
 #owner_tag                                  = "username@company.com"
 
 
-## 10. By default, Cloud Connectors are configured with a callhome IAM policy enabled. This is recommended for production deployments
+## 11. By default, Cloud Connectors are configured with a callhome IAM policy enabled. This is recommended for production deployments
 ##     The policy creation itself does not provide any authentication/authorization access. IAM details are still required to be provided
 ##     to Zscaler in order to establish a trust relationship. Uncomment if you do not want this policy created. (Default: true)
 
 #cc_callhome_enabled                        = false
 
 
-## 11. By default, this script will apply 1 Security Group per Cloud Connector instance. 
+## 12. By default, this script will apply 1 Security Group per Cloud Connector instance. 
 ##     Uncomment if you want to use the same Security Group for ALL Cloud Connectors (true or false. Default: false)
 
 #reuse_security_group                       = true
 
 
-## 12. By default, this script will apply 1 IAM Role/Instance Profile per Cloud Connector instance. 
+## 13. By default, this script will apply 1 IAM Role/Instance Profile per Cloud Connector instance. 
 ##     Uncomment if you want to use the same IAM Role/Instance Profile for ALL Cloud Connectors (true or false. Default: false)
 
 #reuse_iam                                  = true
+
+
+## 14. By default, terraform will always query the AWS Marketplace for the latest Cloud Connector AMI available.
+##     This variable is provided if a customer desires to override or retain an old ami for existing deployments rather than upgrading and forcing a replacement. 
+##     It is also inputted as a list to facilitate if a customer desired to manually upgrade only select CCs deployed based on the cc_count index
+
+##     Note: Customers should NOT be hard coding AMI IDs as Zscaler recommendation is to always be deploying/running the latest version.
+##           Leave this variable commented out unless you are absolutely certain why/that you need to set it and only temporarily.
+
+#ami_id                                     = ["ami-123456789"]

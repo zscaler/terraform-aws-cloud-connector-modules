@@ -52,11 +52,36 @@ resource "aws_iam_role_policy_attachment" "cc_callhome_policy_attachment" {
 
 
 ################################################################################
-# Define AWS Managed Secrets Manager Policy
+# Define AWS Managed Secrets Manager Get Secrets Policy
 ################################################################################
-resource "aws_iam_role_policy_attachment" "secrets_manager_read_write" {
+# Retrieve Secret Manager ARN by friendly name
+data "aws_secretsmanager_secret" "cc_secret_name" {
+  name = var.secret_name
+}
+
+# Define policy to GetSecretValue from Secret Name
+data "aws_iam_policy_document" "cc_get_secrets_policy_document" {
+  version = "2012-10-17"
+  statement {
+    sid       = "CCPermitGetSecrets"
+    effect    = "Allow"
+    actions   = ["secretsmanager:GetSecretValue", ]
+    resources = [data.aws_secretsmanager_secret.cc_secret_name.id]
+  }
+}
+
+# Create Get Secrets Policy
+resource "aws_iam_policy" "cc_get_secrets_policy" {
+  count       = var.byo_iam == false ? var.iam_count : 0
+  description = "Policy which permits CCs to retrieve and decrypt the encrypted data from Secrets Manager"
+  name        = "${var.name_prefix}-cc-${count.index + 1}-get-secrets-${var.resource_tag}"
+  policy      = data.aws_iam_policy_document.cc_get_secrets_policy_document.json
+}
+
+# Attach Get Secrets Policy to IAM Role
+resource "aws_iam_role_policy_attachment" "cc_get_secrets_attachment" {
   count      = var.byo_iam == false ? var.iam_count : 0
-  policy_arn = "arn:aws:iam::aws:policy/${var.iam_role_policy_smrw}"
+  policy_arn = aws_iam_policy.cc_get_secrets_policy[count.index].arn
   role       = aws_iam_role.cc_node_iam_role[count.index].name
 }
 
@@ -79,6 +104,7 @@ data "aws_iam_policy_document" "cc_session_manager_policy_document" {
   }
 }
 
+# Create SSM Policy
 resource "aws_iam_policy" "cc_session_manager_policy" {
   count       = var.byo_iam == false ? var.iam_count : 0
   description = "Policy which permits CCs to register to SSM Manager for Console Connect functionality"
@@ -86,6 +112,7 @@ resource "aws_iam_policy" "cc_session_manager_policy" {
   policy      = data.aws_iam_policy_document.cc_session_manager_policy_document.json
 }
 
+# Attach SSM Policy to IAM Role
 resource "aws_iam_role_policy_attachment" "cc_session_manager_attachment" {
   count      = var.byo_iam == false ? var.iam_count : 0
   policy_arn = aws_iam_policy.cc_session_manager_policy[count.index].arn
@@ -139,7 +166,7 @@ resource "aws_iam_role" "cc_node_iam_role" {
 
 # Assign CC IAM Role to Instance Profile for CC instance attachment
 resource "aws_iam_instance_profile" "cc_host_profile" {
-  count = var.byo_iam == false ? var.iam_count : 0
+  count = var.byo_iam ? 0 : var.iam_count
   name  = var.iam_count > 1 ? "${var.name_prefix}-cc-${count.index + 1}-host-profile-${var.resource_tag}" : "${var.name_prefix}-cc-host-profile-${var.resource_tag}"
   role  = aws_iam_role.cc_node_iam_role[count.index].name
 
@@ -148,6 +175,6 @@ resource "aws_iam_instance_profile" "cc_host_profile" {
 
 # Or use existing IAM Instance Profile if specified in byo_iam
 data "aws_iam_instance_profile" "cc_host_profile_selected" {
-  count = var.byo_iam == false ? length(aws_iam_instance_profile.cc_host_profile[*].id) : length(var.byo_iam_instance_profile_id)
-  name  = var.byo_iam == false ? element(aws_iam_instance_profile.cc_host_profile[*].name, count.index) : element(var.byo_iam_instance_profile_id, count.index)
+  count = var.byo_iam ? length(var.byo_iam_instance_profile_id) : 0
+  name  = element(var.byo_iam_instance_profile_id, count.index)
 }
