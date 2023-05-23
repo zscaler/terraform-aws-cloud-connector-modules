@@ -178,6 +178,7 @@ module "cc_iam" {
   global_tags         = local.global_tags
   cc_callhome_enabled = var.cc_callhome_enabled
   asg_enabled         = var.asg_enabled
+  secret_name         = var.secret_name
 }
 
 
