@@ -79,14 +79,18 @@ variable "asg_enabled" {
 variable "gwlb_name" {
   type        = string
   description = "GWLB resource and tag name"
+  validation {
+    condition     = length(var.gwlb_name) <= 32 && can(regex("^[A-Za-z0-9-]+$", var.gwlb_name)) #the AWS API itself will do some validation as well on this resource
+    error_message = "Variable gwlb_name must be a max of 32 characters, contain only alphanumeric characters or hyphens, and must not begin or end with a hypen."
+  }
 }
 
 variable "target_group_name" {
   type        = string
   description = "GWLB Target Group resource name"
   validation {
-    condition     = length(var.target_group_name) <= 32
-    error_message = "Variable target_group_name must be 32 or less characters."
+    condition     = length(var.target_group_name) <= 32 && can(regex("^[A-Za-z0-9-]+$", var.target_group_name)) #the AWS API itself will do some validation as well on this resource
+    error_message = "Variable target_group_name must be a max of 32 characters, contain only alphanumeric characters or hyphens, and must not begin or end with a hypen."
   }
 }
 
