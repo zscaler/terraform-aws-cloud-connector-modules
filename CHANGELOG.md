@@ -1,4 +1,14 @@
-## v0.2.0 (March 17, 2023)
+## UNRELEASED (TBD)
+* Medium and Large Cloud Connector instance support
+* module terraform-zscc-gwlb-aws:
+    - resource aws_lb_target_group_attachment.gwlb_target_group_attachment_small renamed to aws_lb_target_group_attachment.gwlb_target_group_attachment
+    - rename variable cc_small_service_ips to cc_service_ips
+    - remove dedicated CC Medium/Large additional service IP dependencies from target group attachment
+* module terraform-zscc-ccvm-aws:
+    - remove secondary IP address from network interface index #1
+    - add interface device index #5 for "large" CC.
+
+## v0.2.0 (April 4, 2023)
 * AWS Provider updated from 4.7.x to 4.59.x for all example templates and child modules
 * terraform-zscc-gwlb-aws custom gwlb_name and target_group_name variables added
 * name_prefix variable default string changed from zsdemo to zscc

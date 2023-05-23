@@ -58,7 +58,7 @@ variable "ccvm_instance_type" {
 
 locals {
   small_cc_instance  = ["t3.medium", "m5.large", "c5.large", "c5a.large", "m5.2xlarge", "c5.2xlarge", "m5.4xlarge", "c5.4xlarge"]
-  medium_cc_instance = ["m5.2xlarge", "c5.2xlarge", "m5.4xlarge", "c5.4xlarge"]
+  medium_cc_instance = ["m5.4xlarge", "c5.4xlarge"]
   large_cc_instance  = ["m5.4xlarge", "c5.4xlarge"]
 
   valid_cc_create = (

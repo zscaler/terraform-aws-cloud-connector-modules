@@ -33,54 +33,12 @@ resource "aws_lb_target_group" "gwlb_target_group" {
 
 
 ################################################################################
-# Register all Small Cloud Connector Service Interface IPs as targets to gwlb. 
-# This does not apply to "Medium" or "Large" Cloud Connector sizes
+# Register all Cloud Connector Forwarding Service Interface IPs as targets to gwlb
 ################################################################################
-resource "aws_lb_target_group_attachment" "gwlb_target_group_attachment_small" {
-  count            = var.cc_instance_size == "small" && var.asg_enabled == false ? length(var.cc_small_service_ips) : 0
+resource "aws_lb_target_group_attachment" "gwlb_target_group_attachment" {
+  count            = length(var.cc_service_ips)
   target_group_arn = aws_lb_target_group.gwlb_target_group.arn
-  target_id        = element(var.cc_small_service_ips, count.index)
-
-  depends_on = [var.cc_small_service_ips]
-}
-
-
-################################################################################
-# Register all Medium/Large Cloud Connector Service Interface-1 IPs as targets 
-# to gwlb. This does not apply to "Small" Cloud Connector sizes
-################################################################################
-resource "aws_lb_target_group_attachment" "gwlb_target_group_attachment_med_lrg_1" {
-  count            = var.cc_instance_size != "small" && var.asg_enabled == false ? length(var.cc_med_lrg_service_1_ips) : 0
-  target_group_arn = aws_lb_target_group.gwlb_target_group.arn
-  target_id        = element(var.cc_med_lrg_service_1_ips, count.index)
-
-  depends_on = [var.cc_med_lrg_service_1_ips]
-}
-
-
-################################################################################
-# Register all Medium/Large Cloud Connector Service Interface-2 IPs as targets 
-# to gwlb. This does not apply to "Small" Cloud Connector sizes
-################################################################################
-resource "aws_lb_target_group_attachment" "gwlb_target_group_attachment_med_lrg_2" {
-  count            = var.cc_instance_size != "small" && var.asg_enabled == false ? length(var.cc_med_lrg_service_2_ips) : 0
-  target_group_arn = aws_lb_target_group.gwlb_target_group.arn
-  target_id        = element(var.cc_med_lrg_service_2_ips, count.index)
-
-  depends_on = [var.cc_med_lrg_service_2_ips]
-}
-
-
-################################################################################
-# Register all Large Cloud Connector Service Interface-3 IPs as targets to gwlb. 
-# This does not apply to "Small" Cloud Connector sizes
-################################################################################
-resource "aws_lb_target_group_attachment" "gwlb_target_group_attachment_lrg_3" {
-  count            = var.cc_instance_size == "large" && var.asg_enabled == false ? length(var.cc_lrg_service_3_ips) : 0
-  target_group_arn = aws_lb_target_group.gwlb_target_group.arn
-  target_id        = element(var.cc_lrg_service_3_ips, count.index)
-
-  depends_on = [var.cc_lrg_service_3_ips]
+  target_id        = element(var.cc_service_ips, count.index)
 }
 
 
