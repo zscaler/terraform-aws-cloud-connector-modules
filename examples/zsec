@@ -41,10 +41,10 @@ if [[ "$oper" == "up" ]]; then
   done
 
     while [ "$deploy" == "greenfield" ]; do
-     read -r -p "Deployment Type: ( base | base_1cc | base_1cc_zpa | base_2cc | base_2cc_zpa | base_cc_gwlb | base_cc_gwlb_zpa ): " dtype
+     read -r -p "Deployment Type: ( base | base_1cc | base_1cc_zpa | base_2cc | base_2cc_zpa | base_cc_gwlb | base_cc_gwlb_zpa | base_cc_gwlb_asg | base_cc_gwlb_asg_zpa ): " dtype
 
     case $dtype in
-      base|base_1cc|base_1cc_zpa|base_2cc|base_2cc_zpa|base_cc_gwlb|base_cc_gwlb_zpa)
+      base|base_1cc|base_1cc_zpa|base_2cc|base_2cc_zpa|base_cc_gwlb|base_cc_gwlb_zpa|base_cc_gwlb_asg|base_cc_gwlb_asg_zpa)
           echo "Deployment Type: ${dtype}"
           break
       ;;
@@ -55,10 +55,10 @@ if [[ "$oper" == "up" ]]; then
   done
 
   while [ "$deploy" == "brownfield" ]; do
-     read -r -p "Deployment Type: ( cc_ha | cc_gwlb ) : " dtype
+     read -r -p "Deployment Type: ( cc_ha | cc_gwlb | cc_gwlb_asg ) : " dtype
 
     case $dtype in
-      cc_ha|cc_gwlb)
+      cc_ha|cc_gwlb|cc_gwlb_asg)
           echo "Deployment Type: ${dtype}"
           break
       ;;
@@ -305,7 +305,7 @@ done
 fi
 
     cc_instance_size_default=small
-while true; do
+while [[ "$dtype" != *"asg"* ]]; do
     read -r -p "Enter CC Instance Size. Valid input = small, medium, or large. This needs to match the size chosen in the CC provisioning template [Default=$cc_instance_size_default]: " cc_instance_size_input
 cc_instance_size=${cc_instance_size_input:-$cc_instance_size_default}
     case $cc_instance_size in
@@ -320,7 +320,7 @@ cc_instance_size=${cc_instance_size_input:-$cc_instance_size_default}
     esac
 done
     if [[ "$dtype" == *"asg"* ]]; then
-    echo "Autoscaling deployment type identified. Only small CC instance sizes are currently support. Make sure that the CC provisioning template specified has small selected."
+    echo "Autoscaling deployment type identified. Only small CC instance sizes are currently supported. Make sure that the CC provisioning template specified has small selected."
     echo "Setting cc_instance_size to small"
     echo "export TF_VAR_cc_instance_size=small" >> .zsecrc
     cc_instance_size=small
@@ -405,6 +405,8 @@ if [[ "$dtype" == "base_1"* ]]; then
     echo "${dtype} will deploy one Cloud Connector in ${aws_region}"  
 elif [[ "$dtype" == "base_2"* || "$dtype" == "cc_ha" ]]; then  
     echo "${dtype} will deploy two Cloud Connectors in ${aws_region}"  
+elif [[ "$dtype" == *"asg"* ]]; then
+    echo "Autoscaling deployment type identified. Proceeding to ASG configurations" 
 elif [[ "$dtype" == *"gwlb"* ]]; then
     read -p "Enter how many Cloud Connectors to deploy? [Default=$cc_count_default]: " cc_count_input
 cc_count=${cc_count_input:-$cc_count_default}
@@ -417,6 +419,42 @@ else
     exit 1
 fi  
 fi
+
+min_size_default=2
+    while [[ "$dtype" == *"asg"* ]]; do
+    read -r -p "Enter the minumum number of Cloud Connectors to maintain in an Autoscaling group [Default=$min_size_default]: " min_size_input
+min_size=${min_size_input:-$min_size_default}
+    case $min_size in
+      1|2|3|4|5|6|7|8|9|10)
+          echo "Cloud Connector Mininum size: ${min_size}"
+          echo "export TF_VAR_min_size=${min_size}" >> .zsecrc
+          break
+      ;;
+      *)
+          echo "Invalid ASG Minimum size: ${min_size}. Enter a number 1-10"
+      ;;
+    esac
+done
+
+max_size_default="$min_size"
+    while [[ "$dtype" == *"asg"* ]]; do
+    read -r -p "Enter the maximum number of Cloud Connectors to maintain in an Autoscaling group [Default=$max_size_default]: " max_size_input
+max_size=${max_size_input:-$max_size_default}
+    if [[ "$max_size" -lt "$min_size" ]]; then
+    echo "Max size must be greater than or equal to ${min_size}"
+    else
+        case $max_size in
+        1|2|3|4|5|6|7|8|9|10)
+          echo "Cloud Connector Maximum size: ${max_size}"
+          echo "export TF_VAR_max_size=${max_size}" >> .zsecrc
+          break
+      ;;
+      *)
+          echo "Invalid ASG Maximum size: ${max_size}. Enter a number 1-10"
+      ;;
+    esac
+    fi
+done
 
 az_count_default=2
 if [[ "$dtype" == "base_1"* ]]; then
@@ -491,6 +529,187 @@ case $flow_stickiness in
 	* ) echo "invalid response. Please enter either 2, 3, or 5 for flow stickness tuple";;
     esac
 done 
+fi
+
+target_cpu_util_value_default=20
+while [[ "$dtype" == *"asg"* ]]; do
+    read -r -p "Enter desired ASG Target Tracking CPU Utilization target [Default=$target_cpu_util_value_default]: " target_cpu_util_value_input
+target_cpu_util_value=${target_cpu_util_value_input:-$target_cpu_util_value_default}
+ if [[ "$target_cpu_util_value" -lt 1 || "$target_cpu_util_value" -gt 100 ]]; then
+    echo "Target tracking percentage must be a number between 1-100"
+    else
+        case $target_cpu_util_value in
+        *) 
+        echo "ASG AVGCPUUtilization Target Value set to ${target_cpu_util_value}"
+        echo "export TF_VAR_target_cpu_util_value=${target_cpu_util_value}" >> .zsecrc 
+        break
+        ;;
+    esac
+    fi
+done
+
+while [[ "$dtype" == *"asg"* ]]; do
+    read -r -p "Do you want Warm Pool enabled on the Autoscaling Group? (yes/no): " warm_pool_response
+case $warm_pool_response in 
+	yes|y ) 
+    echo "Warm Pool enabled. Proceeding with configurations..."
+    echo "export TF_VAR_warm_pool_enabled=true" >> .zsecrc 
+    warm_pool_enabled=true
+    break
+    ;;
+	no|n )
+    echo "Warm Pool not enabled. Proceeding..."
+    echo "export TF_VAR_warm_pool_enabled=false" >> .zsecrc 
+    warm_pool_enabled=false
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done
+
+if [[ "$dtype" == *"asg"* && "$warm_pool_enabled" == "true" ]]; then
+warm_pool_min_size_default=1
+    while true; do
+    read -r -p "Enter the minimum number of instances to maintain in the warm pool [Default=$warm_pool_min_size_default]: " warm_pool_min_size_input
+warm_pool_min_size=${warm_pool_min_size_input:-$warm_pool_min_size_default}
+    case $warm_pool_min_size in
+      1|2|3|4|5|6|7|8|9|10)
+          echo "Warm Pool Mininum size: ${warm_pool_min_size}"
+          echo "export TF_VAR_warm_pool_min_size=${warm_pool_min_size}" >> .zsecrc
+          break
+      ;;
+      *)
+          echo "Invalid Warm Pool Minimum size: ${warm_pool_min_size}. Enter a number 1-10"
+      ;;
+    esac
+done
+warm_pool_max_group_prepared_capacity_default=1
+    while true; do
+    read -r -p "Enter the maximum number of instances that are allowed to be in the warm pool [Default=$warm_pool_max_group_prepared_capacity_default]: " warm_pool_max_group_prepared_capacity_input
+warm_pool_max_group_prepared_capacity=${warm_pool_max_group_prepared_capacity_input:-$warm_pool_max_group_prepared_capacity_default}
+    if [[ "$warm_pool_max_group_prepared_capacity" -lt "$warm_pool_min_size" ]]; then
+    echo "Warm Pool Maximum capacity must be greater than or equal to ${warm_pool_min_size}"
+    else
+    case $warm_pool_max_group_prepared_capacity in
+      1|2|3|4|5|6|7|8|9|10)
+          echo "Warm Pool Maximum capacity: ${warm_pool_max_group_prepared_capacity}"
+          echo "export TF_VAR_warm_pool_max_group_prepared_capacity=${warm_pool_max_group_prepared_capacity}" >> .zsecrc
+          break
+      ;;
+      *)
+          echo "Invalid Warm Pool Maximum capacity: ${warm_pool_max_group_prepared_capacity}. Enter a number 1-10"
+      ;;
+    esac
+    fi
+done
+warm_pool_state_default=Stopped
+    while true; do
+    read -r -p "Enter the desired Warm Pool instance state to transition to after the lifecycle hooks finish [Default=$warm_pool_state_default]: " warm_pool_state_input
+warm_pool_state=${warm_pool_state_input:-$warm_pool_state_default}
+    case $warm_pool_state in
+      Stopped|Running)
+          echo "Warm Pool State: ${warm_pool_state}"
+          echo "export TF_VAR_warm_pool_state=${warm_pool_state}" >> .zsecrc
+          break
+      ;;
+      *)
+          echo "Invalid Warm Pool State: ${warm_pool_state}. Enter either Stopped or Running"
+      ;;
+    esac
+done
+
+    while true; do
+    read -r -p "Do you want ASG instances to return to the warm pool on scale in? (yes/no): " reuse_on_scale_in_response
+case $reuse_on_scale_in_response in 
+	yes|y ) 
+    echo "Reuse on scale in enabled"
+    echo "export TF_VAR_reuse_on_scale_in=true" >> .zsecrc 
+    break
+    ;;
+	no|n )
+    echo "Reuse on scale not enabled. Proceeding..."
+    echo "export TF_VAR_reuse_on_scale_in=false" >> .zsecrc 
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done 
+fi
+
+
+if [[ "$dtype" == *"asg"* ]]; then
+ while true; do
+    read -r -p "Do you want enable ASG notifications? (yes/no): " asg_notification_response
+case $asg_notification_response in 
+	yes|y ) 
+    echo "Enabling ASG notifications..."
+    echo "export TF_VAR_sns_enabled=true" >> .zsecrc 
+        while true; do
+            read -r -p "Do you have an existing SNS Topic configured to use for ASG notifications? (yes/no): " byo_topic_response
+            case $byo_topic_response in
+            yes|y )
+            echo "export TF_VAR_byo_sns_topic=true" >> .zsecrc 
+            read -r -p "Enter the SNS Topic name: " byo_topic_name
+            echo "export TF_VAR_byo_sns_topic_name=$byo_topic_name" >> .zsecrc
+            break
+            ;;
+	        no|n )
+            echo "Terraform will create a new sns topic and topic subscription for ASG email notification..."
+            email_input=true
+            break
+            ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+            esac
+        done 
+    break
+    ;;
+	no|n )
+    echo "Skipping ASG notifications..."
+    echo "export TF_VAR_sns_enabled=false" >> .zsecrc 
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done 
+
+if [[ "$email_input" == "true" ]]; then
+array=()
+email_list="'["
+counter=0
+while true; do
+read -r -p "How many email addresses do you need to configure for ASG Notifications? " email_list_number
+if [[ $email_list_number == 0 ]]; then
+    echo "Invalid input. Please enter a whole number for the number of email addresses you will be adding..."
+elif [[ $email_list_number =~ ^[0-9]+$ ]]; then
+    echo "$email_list_number email addresses to enter..."
+    break
+else
+    echo "Invalid input. Please enter a whole number for the number of email addresses you will be adding..."
+fi
+done
+    echo "Warning: each email address entered must manually accept the AWS SNS email received after resource creation"
+for i in $(seq $email_list_number); do
+read -r -p "Enter a single email address: " email_address
+    if [[ $email_address = *" "* ]]; then
+        echo "Spaces not allowed. Please enter only one email at a time. Delete .zsecrc file and re-run zsec up..."
+        exit 1
+    elif [[ $email_address == '' ]]; then
+        echo "Empty entries are not allowed. Delete .zsecrc file and re-run zsec up..."
+        exit 1
+    elif [[ $email_address != *"@"* ]]; then
+        echo "Invalid email address format. Missing @ symbol. Delete .zsecrc file and re-run zsec up..."
+        exit 1
+    elif [[ $email_address == "*"* ]]; then
+        echo "Invalid format. Email addresses cannot start with a star/wildcard (*). Delete .zsecrc file and re-run zsec up..."
+        exit 1
+    fi
+array+=("$email_address")
+    counter=$(( $counter + 1 ))
+    email_list+="\"$email_address\","
+done
+email_list+="]'"
+echo "export TF_VAR_sns_email_list=${email_list}" >> .zsecrc
+fi
 fi
 
 if [[ "$dtype" == "cc"* ]]; then

@@ -6,7 +6,7 @@ resource "aws_lb_target_group" "gwlb_target_group" {
   port                 = 6081
   protocol             = "GENEVE"
   vpc_id               = var.vpc_id
-  target_type          = "ip"
+  target_type          = var.asg_enabled == true ? "instance" : "ip"
   deregistration_delay = var.deregistration_delay
 
   health_check {
@@ -22,6 +22,7 @@ resource "aws_lb_target_group" "gwlb_target_group" {
     on_deregistration = var.rebalance_enabled == true ? "rebalance" : "no_rebalance"
     on_unhealthy      = var.rebalance_enabled == true ? "rebalance" : "no_rebalance"
   }
+
 
   # type attribute only applies if enabled = true and only options are "source_ip_dest_ip" (2-tuple) or "source_ip_dest_ip_proto" (3-tuple).
   # enabled = false implies 5-tuple. AWS gives type a default value of "source_ip_dest_ip_proto" even if enabled is set to false

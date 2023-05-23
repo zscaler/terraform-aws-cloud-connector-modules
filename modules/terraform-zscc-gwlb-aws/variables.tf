@@ -25,7 +25,7 @@ variable "http_probe_port" {
 variable "health_check_interval" {
   type        = number
   description = "Interval for GWLB target group health check probing, in seconds, of Cloud Connector targets. Minimum 5 and maximum 300 seconds"
-  default     = 10
+  default     = 20
 }
 
 variable "healthy_threshold" {
@@ -113,4 +113,10 @@ variable "rebalance_enabled" {
   type        = bool
   description = "Indicates how the GWLB handles existing flows when a target is deregistered or marked unhealthy. true means rebalance. false means no_rebalance. Default: true"
   default     = true
+}
+
+variable "asg_enabled" {
+  type        = bool
+  description = "Determines whether to set gwlb target group target_type to 'instance' or 'ip'. If set to true, ASG uses 'instance' and no aws_lb_target_group_attachment resources need to be created"
+  default     = false
 }
