@@ -3,27 +3,9 @@ variable "vpc_id" {
   description = "Cloud Connector VPC ID"
 }
 
-variable "cc_small_service_ips" {
+variable "cc_service_ips" {
   type        = list(string)
-  description = "Cloud Connector Small instance size service IPs"
-  default     = []
-}
-
-variable "cc_med_lrg_service_1_ips" {
-  type        = list(string)
-  description = "Cloud Connector Medium/Large instance size service-1 IPs"
-  default     = []
-}
-
-variable "cc_med_lrg_service_2_ips" {
-  type        = list(string)
-  description = "Cloud Connector Medium/Large instance size service-2 IPs"
-  default     = []
-}
-
-variable "cc_lrg_service_3_ips" {
-  type        = list(string)
-  description = "Cloud Connector Large instance size service-3 IPs"
+  description = "Cloud Connector forwarding service IPs"
   default     = []
 }
 
