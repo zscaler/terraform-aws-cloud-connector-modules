@@ -192,25 +192,22 @@ module "cc_sg" {
 #    and attach primary service IP from all created CCs as registered targets.
 ################################################################################
 module "gwlb" {
-  source                   = "../../modules/terraform-zscc-gwlb-aws"
-  gwlb_name                = "${var.name_prefix}-cc-gwlb-${random_string.suffix.result}"
-  target_group_name        = "${var.name_prefix}-cc-target-${random_string.suffix.result}"
-  global_tags              = local.global_tags
-  vpc_id                   = module.network.vpc_id
-  cc_subnet_ids            = module.network.cc_subnet_ids
-  cc_small_service_ips     = module.cc_vm.cc_service_private_ip
-  cc_med_lrg_service_1_ips = module.cc_vm.cc_med_lrg_service_1_private_ip
-  cc_med_lrg_service_2_ips = module.cc_vm.cc_med_lrg_service_2_private_ip
-  cc_lrg_service_3_ips     = module.cc_vm.cc_lrg_service_3_private_ip
-  cc_instance_size         = var.cc_instance_size
-  http_probe_port          = var.http_probe_port
-  health_check_interval    = var.health_check_interval
-  healthy_threshold        = var.healthy_threshold
-  unhealthy_threshold      = var.unhealthy_threshold
-  cross_zone_lb_enabled    = var.cross_zone_lb_enabled
-  deregistration_delay     = var.deregistration_delay
-  flow_stickiness          = var.flow_stickiness
-  rebalance_enabled        = var.rebalance_enabled
+  source                = "../../modules/terraform-zscc-gwlb-aws"
+  gwlb_name             = "${var.name_prefix}-cc-gwlb-${random_string.suffix.result}"
+  target_group_name     = "${var.name_prefix}-cc-target-${random_string.suffix.result}"
+  global_tags           = local.global_tags
+  vpc_id                = module.network.vpc_id
+  cc_subnet_ids         = module.network.cc_subnet_ids
+  cc_service_ips        = module.cc_vm.cc_service_private_ip
+  cc_instance_size      = var.cc_instance_size
+  http_probe_port       = var.http_probe_port
+  health_check_interval = var.health_check_interval
+  healthy_threshold     = var.healthy_threshold
+  unhealthy_threshold   = var.unhealthy_threshold
+  cross_zone_lb_enabled = var.cross_zone_lb_enabled
+  deregistration_delay  = var.deregistration_delay
+  flow_stickiness       = var.flow_stickiness
+  rebalance_enabled     = var.rebalance_enabled
 }
 
 

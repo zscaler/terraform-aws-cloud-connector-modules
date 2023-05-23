@@ -8,7 +8,7 @@ scp -i ${var.name_prefix}-key-${random_string.suffix.result}.pem ${var.name_pref
 2) SSH to the bastion host
 ssh -i ${var.name_prefix}-key-${random_string.suffix.result}.pem ec2-user@${module.bastion.public_dns}
 
-3) SSH to the EC
+3) SSH to the CC
 ssh -i ${var.name_prefix}-key-${random_string.suffix.result}.pem zsroot@${module.cc_vm.private_ip[0]} -o "proxycommand ssh -W %h:%p -i ${var.name_prefix}-key-${random_string.suffix.result}.pem ec2-user@${module.bastion.public_dns}"
 
 All CC Management IPs. Replace private IP below with zsroot@"ip address" in ssh example command above.
@@ -29,18 +29,9 @@ ${join("\n", distinct(module.cc_vm.availability_zone))}
 All CC Instance IDs:
 ${join("\n", module.cc_vm.id)}
 
-All CC Service IPs:
+All CC Forwarding Service IPs:
 Service Interface Device Index 1:
 ${join("\n", module.cc_vm.cc_service_private_ip)} 
-
-Service Interface Device Index 2:
-${join("\n", module.cc_vm.cc_med_lrg_service_1_private_ip)} 
-
-Service Interface Device Index 3:
-${join("\n", module.cc_vm.cc_med_lrg_service_2_private_ip)} 
-
-Service Interface Device Index 4:
-${join("\n", module.cc_vm.cc_lrg_service_3_private_ip)}
 
 All CC Primary Service ENIs:
 ${join("\n", module.cc_vm.service_eni_1)}
