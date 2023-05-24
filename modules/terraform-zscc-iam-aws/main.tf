@@ -155,6 +155,37 @@ resource "aws_iam_role_policy_attachment" "cc_autoscale_lifecycle_attachment" {
 
 
 ################################################################################
+# Define AWS Managed CloudWatch Metrics Policy
+################################################################################
+data "aws_iam_policy_document" "cc_metrics_policy_document" {
+  version = "2012-10-17"
+  statement {
+    sid    = "CCAllowCloudWatchMetrics"
+    effect = "Allow"
+    actions = [
+      "cloudwatch:GetMetricStatistics",
+      "cloudwatch:ListMetrics",
+      "cloudwatch:PutMetricData",
+      "ec2:DescribeTags"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "cc_metrics_policy" {
+  count       = var.byo_iam == false ? var.iam_count : 0
+  description = "Policy which permits CCs to send custom metrics to CloudWatch"
+  name        = "${var.name_prefix}-cc-${count.index + 1}-metrics-${var.resource_tag}"
+  policy      = data.aws_iam_policy_document.cc_metrics_policy_document.json
+}
+
+resource "aws_iam_role_policy_attachment" "cc_metrics_attachment" {
+  count      = var.byo_iam == false ? var.iam_count : 0
+  policy_arn = aws_iam_policy.cc_metrics_policy[count.index].arn
+  role       = aws_iam_role.cc_node_iam_role[count.index].name
+}
+
+################################################################################
 # Create CC IAM Role and Host/Instance Profile
 ################################################################################
 resource "aws_iam_role" "cc_node_iam_role" {
