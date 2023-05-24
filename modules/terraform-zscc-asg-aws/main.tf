@@ -154,16 +154,14 @@ resource "aws_autoscaling_policy" "cc_asg_target_tracking_policy" {
 # Create autoscaling lifecycle hooks for instance launch and terminate
 ################################################################################
 resource "aws_autoscaling_lifecycle_hook" "cc_asg_lifecyclehook_launch" {
-  count                  = var.warm_pool_enabled == true ? 1 : 0
   name                   = "${var.name_prefix}-cc-asg-lifecyclehook-launch-${var.resource_tag}"
   autoscaling_group_name = aws_autoscaling_group.cc_asg.name
-  default_result         = "CONTINUE"
+  default_result         = "ABANDON"
   heartbeat_timeout      = var.lifecyclehook_instance_launch_wait_time
   lifecycle_transition   = "autoscaling:EC2_INSTANCE_LAUNCHING"
 }
 
 resource "aws_autoscaling_lifecycle_hook" "cc_asg_lifecyclehook_terminate" {
-  count                  = var.warm_pool_enabled == true ? 1 : 0
   name                   = "${var.name_prefix}-cc-asg-lifecyclehook-terminate-${var.resource_tag}"
   autoscaling_group_name = aws_autoscaling_group.cc_asg.name
   default_result         = "CONTINUE"
