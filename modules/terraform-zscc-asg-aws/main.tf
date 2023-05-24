@@ -52,6 +52,12 @@ resource "aws_launch_template" "cc_launch_template" {
     associate_public_ip_address = false
   }
 
+  metadata_options {
+    http_endpoint          = "enabled"
+    http_tokens            = "required"
+    instance_metadata_tags = "enabled"
+  }
+
   tags = merge(var.global_tags)
 
   lifecycle {
