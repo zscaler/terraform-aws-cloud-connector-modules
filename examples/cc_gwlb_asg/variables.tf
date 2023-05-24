@@ -166,7 +166,7 @@ variable "allowed_principals" {
 variable "health_check_interval" {
   type        = number
   description = "Interval for GWLB target group health check probing, in seconds, of Cloud Connector targets. Minimum 5 and maximum 300 seconds"
-  default     = 20
+  default     = 10
 }
 
 variable "healthy_threshold" {
