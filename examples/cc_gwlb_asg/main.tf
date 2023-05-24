@@ -95,6 +95,22 @@ resource "local_file" "user_data_file" {
   filename = "../user_data"
 }
 
+
+################################################################################
+# Locate Latest CC AMI by product code
+################################################################################
+data "aws_ami" "cloudconnector" {
+  most_recent = true
+
+  filter {
+    name   = "product-code"
+    values = ["2l8tfysndbav4tv2nfjwak3cu"]
+  }
+
+  owners = ["aws-marketplace"]
+}
+
+
 # Create the specified CC VMs via Launch Template and Autoscaling Group
 module "cc_asg" {
   source                    = "../../modules/terraform-zscc-asg-aws"
@@ -109,6 +125,7 @@ module "cc_asg" {
   iam_instance_profile      = module.cc_iam.iam_instance_profile_id
   mgmt_security_group_id    = module.cc_sg.mgmt_security_group_id
   service_security_group_id = module.cc_sg.service_security_group_id
+  ami_id                    = contains(var.ami_id, "") ? [data.aws_ami.cloudconnector.id] : var.ami_id
 
   max_size                  = var.max_size
   min_size                  = var.min_size

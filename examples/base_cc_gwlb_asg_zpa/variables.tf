@@ -231,6 +231,12 @@ variable "rebalance_enabled" {
   default     = true
 }
 
+variable "ami_id" {
+  type        = list(string)
+  description = "AMI ID(s) to be used for deploying Cloud Connector appliances. Ideally all VMs should be on the same AMI ID as templates always pull the latest from AWS Marketplace. This variable is provided if a customer desires to override/retain an old ami for existing deployments rather than upgrading and forcing a launch template change."
+  default     = [""]
+}
+
 # ASG specific variables
 variable "min_size" {
   type        = number

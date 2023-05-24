@@ -44,13 +44,13 @@ No modules.
 | [aws_sns_topic.cc_asg_topic](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic) | resource |
 | [aws_sns_topic_subscription.cc_asg_topic_email_subscription](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
 | [null_resource.error_checker](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
-| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_sns_topic.cc_asg_topic_selected](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/sns_topic) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_ami_id"></a> [ami\_id](#input\_ami\_id) | AMI ID(s) to be used for deploying Cloud Connector appliances. Ideally all VMs should be on the same AMI ID as templates always pull the latest from AWS Marketplace. This variable is provided if a customer desires to override/retain an old ami for existing deployments rather than upgrading and forcing a launch template change. | `list(string)` | n/a | yes |
 | <a name="input_byo_sns_topic"></a> [byo\_sns\_topic](#input\_byo\_sns\_topic) | Determine whether or not to create an AWS SNS topic and topic subscription for email alerts. Setting this variable to true implies you should also set variable sns\_enabled to true | `bool` | `false` | no |
 | <a name="input_byo_sns_topic_name"></a> [byo\_sns\_topic\_name](#input\_byo\_sns\_topic\_name) | Existing SNS Topic friendly name to be used for autoscaling group notifications | `string` | `""` | no |
 | <a name="input_cc_instance_size"></a> [cc\_instance\_size](#input\_cc\_instance\_size) | Cloud Connector Instance size. Determined by and needs to match the Cloud Connector Portal provisioning template configuration | `string` | `"small"` | no |
@@ -69,7 +69,6 @@ No modules.
 | <a name="input_mgmt_security_group_id"></a> [mgmt\_security\_group\_id](#input\_mgmt\_security\_group\_id) | Cloud Connector EC2 Instance management subnet id | `list(string)` | n/a | yes |
 | <a name="input_min_size"></a> [min\_size](#input\_min\_size) | Mininum number of Cloud Connectors to maintain in Autoscaling group | `number` | `2` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | A prefix to associate to all the Cloud Connector module resources | `string` | `null` | no |
-| <a name="input_private_amis"></a> [private\_amis](#input\_private\_amis) | Map of Zscaler Cloud Connector Private AMIs | `map(any)` | <pre>{<br>  "eu-central-1": "ami-00fdd9a35e268bfdf",<br>  "eu-west-1": "ami-0386414112742b530",<br>  "us-east-1": "ami-0c65ee5c52372f8fc",<br>  "us-east-2": "ami-0e0c0ecd08b6d1abd",<br>  "us-west-2": "ami-0f3dfa57203b38e81"<br>}</pre> | no |
 | <a name="input_protect_from_scale_in"></a> [protect\_from\_scale\_in](#input\_protect\_from\_scale\_in) | Whether newly launched instances are automatically protected from termination by Amazon EC2 Auto Scaling when scaling in. For more information about preventing instances from terminating on scale in, see Using instance scale-in protection in the Amazon EC2 Auto Scaling User Guide | `bool` | `false` | no |
 | <a name="input_resource_tag"></a> [resource\_tag](#input\_resource\_tag) | A tag to associate to all the Cloud Connector module resources | `string` | `null` | no |
 | <a name="input_reuse_on_scale_in"></a> [reuse\_on\_scale\_in](#input\_reuse\_on\_scale\_in) | Specifies whether instances in the Auto Scaling group can be returned to the warm pool on scale in. | `bool` | `false` | no |
