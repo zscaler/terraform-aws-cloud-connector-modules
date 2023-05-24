@@ -23,7 +23,7 @@ VPC:
 ${module.network.vpc_id}
 
 All CC AZs:
-${join("\n", distinct(module.cc_asg.availability_zone))}
+${join("\n", module.cc_asg.availability_zone)}
 
 All NAT GW IPs:
 ${join("\n", module.network.nat_gateway_ips)}
@@ -40,8 +40,8 @@ ${module.gwlb.gwlb_arn}
 All CC IAM Role ARNs (Please provide this to Zscaler for callhome enablement):
 ${join("\n", module.cc_iam.iam_instance_profile_arn)}
 
-Autoscaling Group ID:
-${module.cc_asg.autoscaling_group_id}
+All Autoscaling Group IDs:
+${join("\n", module.cc_asg.autoscaling_group_id)}
 
 Launch Template ID:
 ${module.cc_asg.launch_template_id}

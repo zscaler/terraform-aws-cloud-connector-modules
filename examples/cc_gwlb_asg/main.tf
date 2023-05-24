@@ -13,10 +13,9 @@ resource "random_string" "suffix" {
 ################################################################################
 locals {
   global_tags = {
-    Owner                                                                                 = var.owner_tag
-    ManagedBy                                                                             = "terraform"
-    Vendor                                                                                = "Zscaler"
-    "zs-edge-connector-cluster/${var.name_prefix}-cluster-${random_string.suffix.result}" = "shared"
+    Owner     = var.owner_tag
+    ManagedBy = "terraform"
+    Vendor    = "Zscaler"
   }
 }
 
