@@ -321,13 +321,13 @@ variable "target_cpu_util_value" {
 variable "lifecyclehook_instance_launch_wait_time" {
   type        = number
   description = "The maximum amount of time to wait in pending:wait state on instance launch in warmpool"
-  default     = 600
+  default     = 1800
 }
 
 variable "lifecyclehook_instance_terminate_wait_time" {
   type        = number
   description = "The maximum amount of time to wait in terminating:wait state on instance termination"
-  default     = 600
+  default     = 900
 }
 
 variable "asg_enabled" {
