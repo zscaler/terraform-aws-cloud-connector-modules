@@ -10,9 +10,6 @@ EOF
   }
 }
 
-# Collect current region name for AMI selection
-data "aws_region" "current" {}
-
 
 ################################################################################
 # Create launch template for Cloud Connector autoscaling group instance creation. 
@@ -22,7 +19,7 @@ data "aws_region" "current" {}
 resource "aws_launch_template" "cc_launch_template" {
   count         = local.valid_cc_create && var.cc_instance_size == "small" ? 1 : 0
   name          = "${var.name_prefix}-cc-launch-template-${var.resource_tag}"
-  image_id      = var.private_amis[data.aws_region.current.name]
+  image_id      = var.ami_id[0]
   instance_type = var.ccvm_instance_type
   key_name      = var.instance_key
   user_data     = base64encode(var.user_data)

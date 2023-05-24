@@ -230,20 +230,13 @@ variable "byo_sns_topic_name" {
   default     = ""
 }
 
-variable "private_amis" {
-  type        = map(any)
-  description = "Map of Zscaler Cloud Connector Private AMIs"
-  default = {
-    "us-west-2"    = "ami-0f3dfa57203b38e81"
-    "us-east-1"    = "ami-0c65ee5c52372f8fc"
-    "us-east-2"    = "ami-0e0c0ecd08b6d1abd"
-    "eu-central-1" = "ami-00fdd9a35e268bfdf"
-    "eu-west-1"    = "ami-0386414112742b530"
-  }
-}
-
 variable "protect_from_scale_in" {
   type        = bool
   description = " Whether newly launched instances are automatically protected from termination by Amazon EC2 Auto Scaling when scaling in. For more information about preventing instances from terminating on scale in, see Using instance scale-in protection in the Amazon EC2 Auto Scaling User Guide"
   default     = false
+}
+
+variable "ami_id" {
+  type        = list(string)
+  description = "AMI ID(s) to be used for deploying Cloud Connector appliances. Ideally all VMs should be on the same AMI ID as templates always pull the latest from AWS Marketplace. This variable is provided if a customer desires to override/retain an old ami for existing deployments rather than upgrading and forcing a launch template change."
 }
