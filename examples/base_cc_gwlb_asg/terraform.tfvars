@@ -73,9 +73,9 @@
 
 ## 11. Amount of time, in seconds, until a newly launched instance can contribute to the Amazon CloudWatch metrics. 
 ##     This delay lets an instance finish initializing before Amazon EC2 Auto Scaling aggregates instance metrics, resulting in more reliable usage data.
-##     Default: 900 seconds
+##     Default: 0 seconds
 
-#instance_warmup                            = 900
+#instance_warmup                            = 0
 
 ## 12. Whether newly launched instances are automatically protected from termination by Amazon EC2 Auto Scaling when scaling in. 
 ##     Uncomment to disable. (Default: true)
