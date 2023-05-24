@@ -67,9 +67,10 @@
 
 #max_size                                   = 4
 
-## 10. The amount of time until EC2 Auto Scaling performs the first health check on new instances after they are put into service. (Default: 900 seconds/15 minutes)
+## 10. The amount of time until EC2 Auto Scaling performs the first health check on new instances after they are put into service. 
+##     With lifecycle hooks it is immediate. Otheriwse Default is 15 minutes. (Default: 900 seconds/15 minutes)
 
-#health_check_grace_period                  = 900
+#health_check_grace_period                  = 0
 
 ## 11. Amount of time, in seconds, until a newly launched instance can contribute to the Amazon CloudWatch metrics. 
 ##     This delay lets an instance finish initializing before Amazon EC2 Auto Scaling aggregates instance metrics, resulting in more reliable usage data.
