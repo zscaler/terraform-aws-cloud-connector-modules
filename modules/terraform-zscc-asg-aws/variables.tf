@@ -122,7 +122,7 @@ variable "health_check_grace_period" {
 variable "instance_warmup" {
   type        = number
   description = "Amount of time, in seconds, until a newly launched instance can contribute to the Amazon CloudWatch metrics. This delay lets an instance finish initializing before Amazon EC2 Auto Scaling aggregates instance metrics, resulting in more reliable usage data. Set this value equal to the amount of time that it takes for resource consumption to become stable after an instance reaches the InService state"
-  default     = 900
+  default     = 0
 }
 
 variable "health_check_type" {
@@ -197,7 +197,7 @@ variable "target_cpu_util_value" {
 variable "lifecyclehook_instance_launch_wait_time" {
   type        = number
   description = "The maximum amount of time to wait in pending:wait state on instance launch in warmpool"
-  default     = 900
+  default     = 1800
 }
 
 variable "lifecyclehook_instance_terminate_wait_time" {

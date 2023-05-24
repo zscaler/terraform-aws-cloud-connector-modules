@@ -357,5 +357,5 @@ variable "protect_from_scale_in" {
 variable "instance_warmup" {
   type        = number
   description = "Amount of time, in seconds, until a newly launched instance can contribute to the Amazon CloudWatch metrics. This delay lets an instance finish initializing before Amazon EC2 Auto Scaling aggregates instance metrics, resulting in more reliable usage data. Set this value equal to the amount of time that it takes for resource consumption to become stable after an instance reaches the InService state"
-  default     = 900
+  default     = 0
 }
