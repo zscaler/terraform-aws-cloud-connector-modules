@@ -1,11 +1,11 @@
 output "availability_zone" {
   description = "Availability zones used for ASG"
-  value       = aws_autoscaling_group.cc_asg.availability_zones
+  value       = flatten(aws_autoscaling_group.cc_asg[*].availability_zones)
 }
 
 output "autoscaling_group_id" {
   description = "Autoscaling group ID"
-  value       = aws_autoscaling_group.cc_asg.id
+  value       = aws_autoscaling_group.cc_asg[*].id
 }
 
 output "launch_template_id" {
