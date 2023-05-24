@@ -67,11 +67,12 @@ resource "aws_launch_template" "cc_launch_template" {
 
 
 ################################################################################
-# Create Cloud Connector autoscaling group
+# Create Cloud Connector autoscaling group per AZ
 ################################################################################
 resource "aws_autoscaling_group" "cc_asg" {
+  count                     = length(var.cc_subnet_ids)
   name                      = "${var.name_prefix}-cc-asg-${var.resource_tag}"
-  vpc_zone_identifier       = distinct(var.cc_subnet_ids)
+  vpc_zone_identifier       = element(distinct(var.cc_subnet_ids), count.index)
   max_size                  = var.max_size
   min_size                  = var.min_size
   health_check_type         = var.health_check_type
@@ -127,7 +128,8 @@ resource "aws_autoscaling_group" "cc_asg" {
 # group to GWLB Target Group
 ################################################################################
 resource "aws_autoscaling_attachment" "cc_asg_attachment_gwlb" {
-  autoscaling_group_name = aws_autoscaling_group.cc_asg.id
+  count                  = length(aws_autoscaling_group.cc_asg[*].id)
+  autoscaling_group_name = aws_autoscaling_group.cc_asg[count.index].id
   lb_target_group_arn    = var.target_group_arn
 }
 
@@ -137,8 +139,9 @@ resource "aws_autoscaling_attachment" "cc_asg_attachment_gwlb" {
 # average CPU
 ################################################################################
 resource "aws_autoscaling_policy" "cc_asg_target_tracking_policy" {
-  name                   = "${var.name_prefix}-cc-asg-target-policy-${var.resource_tag}"
-  autoscaling_group_name = aws_autoscaling_group.cc_asg.name
+  count                  = length(aws_autoscaling_group.cc_asg[*].id)
+  name                   = "${var.name_prefix}-cc-asg-target-policy-${count.index + 1}-${var.resource_tag}"
+  autoscaling_group_name = aws_autoscaling_group.cc_asg[count.index].name
   policy_type            = "TargetTrackingScaling"
 
   target_tracking_configuration {
@@ -154,16 +157,18 @@ resource "aws_autoscaling_policy" "cc_asg_target_tracking_policy" {
 # Create autoscaling lifecycle hooks for instance launch and terminate
 ################################################################################
 resource "aws_autoscaling_lifecycle_hook" "cc_asg_lifecyclehook_launch" {
-  name                   = "${var.name_prefix}-cc-asg-lifecyclehook-launch-${var.resource_tag}"
-  autoscaling_group_name = aws_autoscaling_group.cc_asg.name
+  count                  = length(aws_autoscaling_group.cc_asg[*].id)
+  name                   = "${var.name_prefix}-cc-asg-lifecyclehook-launch-${count.index + 1}-${var.resource_tag}"
+  autoscaling_group_name = aws_autoscaling_group.cc_asg[count.index].name
   default_result         = "ABANDON"
   heartbeat_timeout      = var.lifecyclehook_instance_launch_wait_time
   lifecycle_transition   = "autoscaling:EC2_INSTANCE_LAUNCHING"
 }
 
 resource "aws_autoscaling_lifecycle_hook" "cc_asg_lifecyclehook_terminate" {
-  name                   = "${var.name_prefix}-cc-asg-lifecyclehook-terminate-${var.resource_tag}"
-  autoscaling_group_name = aws_autoscaling_group.cc_asg.name
+  count                  = length(aws_autoscaling_group.cc_asg[*].id)
+  name                   = "${var.name_prefix}-cc-asg-lifecyclehook-terminate-${count.index + 1}-${var.resource_tag}"
+  autoscaling_group_name = aws_autoscaling_group.cc_asg[count.index].name
   default_result         = "CONTINUE"
   heartbeat_timeout      = var.lifecyclehook_instance_terminate_wait_time
   lifecycle_transition   = "autoscaling:EC2_INSTANCE_TERMINATING"
@@ -176,7 +181,7 @@ resource "aws_autoscaling_lifecycle_hook" "cc_asg_lifecyclehook_terminate" {
 resource "aws_autoscaling_notification" "cc_asg_notifications" {
   count = var.sns_enabled == true ? 1 : 0
   group_names = [
-    aws_autoscaling_group.cc_asg.name,
+    aws_autoscaling_group.cc_asg[*].name,
   ]
 
   notifications = [
