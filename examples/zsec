@@ -326,36 +326,59 @@ done
     cc_instance_size=small
     fi
 
-ccvm_instance_type_default=m5.large
+if [[ $cc_instance_size == "small" ]]; then
+ccvm_instance_type_default="m5.large"
 while true; do
-    read -r -p "Enter desired AWS EC2 instance type for CC. Recommended types: Small CC (m5.large or c5.large); Medium (m5.2xlarge or c5.2xlarge); Large (m5.4xlarge or c5.4xlarge) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
-ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}    
+    read -r -p "Enter desired AWS EC2 instance type for $cc_instance_size CC. Recommended types: (m5.large or c5.large) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
+ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}
     case $ccvm_instance_type in
       t3.medium|m5.large|c5.large|c5a.large|m5.2xlarge|c5.2xlarge|m5.4xlarge|c5.4xlarge)
-          echo "CC EC2 type: ${ccvm_instance_type}"
-          echo "export TF_VAR_ccvm_instance_type=${ccvm_instance_type}" >> .zsecrc
+          echo "CC EC2 type: $ccvm_instance_type"
+          echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
           break
       ;;
       *)
-          echo "Invalid Cloud Connector VM type: ${ccvm_instance_type}. Please enter an approved VM type"
+          echo "EC2 type $ccvm_instance_type not compatible with Cloud Connector size $cc_instance_size. Please enter an approved VM type"
       ;;
     esac
 done
 
-small_cc_instance=("t3.medium" "m5.large" "c5.large" "c5a.large" "m5.2xlarge" "c5.2xlarge" "m5.4xlarge" "c5.4xlarge")
-medium_cc_instance=("m5.2xlarge" "c5.2xlarge" "m5.4xlarge" "c5.4xlarge")
-large_cc_instance=("m5.4xlarge" "c5.4xlarge")
+elif [[ $cc_instance_size == "medium" ]]; then
+ccvm_instance_type_default="m5.4xlarge"
+while true; do
+    read -r -p "Enter desired AWS EC2 instance type for $cc_instance_size CC. Recommended types: (m5.4xlarge or c5.4xlarge) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
+ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}
+    case $ccvm_instance_type in
+      m5.4xlarge|c5.4xlarge)
+          echo "CC EC2 type: $ccvm_instance_type"
+          echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
+          break
+      ;;
+      *)
+          echo "EC2 type $ccvm_instance_type not compatible with Cloud Connector size $cc_instance_size. Please enter an approved VM type"
+      ;;
+    esac
+done
 
-if [[ ${small_cc_instance[*]} =~ $ccvm_instance_type && "$cc_instance_size" == small ]]; then
-echo "Proceeding. ${ccvm_instance_type} compatible with ${cc_instance_size} Cloud Connector size"
-elif [[ ${medium_cc_instance[*]} =~ $ccvm_instance_type && "$cc_instance_size" == medium ]]; then
-echo "Proceeding. ${ccvm_instance_type} compatible with ${cc_instance_size} Cloud Connector size"
-elif [[ ${large_cc_instance[*]} =~ $ccvm_instance_type && "$cc_instance_size" == large ]]; then
-echo "Proceeding. ${ccvm_instance_type} compatible with ${cc_instance_size} Cloud Connector size"
-elif [[ $dtype == base ]]; then
-echo "Proceeding with no CCs to deploy"
+elif [[ $cc_instance_size == "large" ]]; then
+ccvm_instance_type_default="m5.4xlarge"
+while true; do
+    read -r -p "Enter desired AWS EC2 instance type for $cc_instance_size CC. Recommended types: (m5.4xlarge or c5.4xlarge) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
+ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}
+    case $ccvm_instance_type in
+      m5.4xlarge|c5.4xlarge)
+          echo "CC EC2 type: $ccvm_instance_type"
+          echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
+          break
+      ;;
+      *)
+          echo "EC2 type $ccvm_instance_type not compatible with Cloud Connector size $cc_instance_size. Please enter an approved VM type"
+      ;;
+    esac
+done
+
 else
-    echo "Invalid CC deployment. ${ccvm_instance_type} not compatible with ${cc_instance_size} Cloud Connector size"
+    echo "Invalid CC deployment. $ccvm_instance_type not compatible with $cc_instance_size Cloud Connector size"
     echo "Delete .zsecrc file and re-run zsec up..."
     exit 1
 fi
@@ -440,8 +463,13 @@ else
     read -r -p "Enter how many Availability Zone subnets [1-3] to deploy across? [Default=$az_count_default]: " az_count_input
 az_count=${az_count_input:-$az_count_default}
 if ((az_count >= 1 && az_count <= 3)); then
+    if [[ "$dtype" == *"asg"* ]]; then
+    echo "${dtype} will deploy $az_count Autoscale Groups (one per AZ) in ${aws_region} each with a minimum of $min_size Cloud Connectors"
+    echo "export TF_VAR_az_count=${az_count}" >> .zsecrc
+    else
     echo "${dtype} will deploy ${cc_count} Cloud Connectors across ${az_count} Availabiliy Zone subnets in ${aws_region}"
     echo "export TF_VAR_az_count=${az_count}" >> .zsecrc
+    fi
 else
     echo "invalid az_count value. Must be a number between 1 and 3"
     echo "Delete .zsecrc file and re-run zsec up..."
@@ -525,24 +553,24 @@ target_cpu_util_value=${target_cpu_util_value_input:-$target_cpu_util_value_defa
     fi
 done
 
-#while [[ "$dtype" == *"asg"* ]]; do
-#    read -r -p "Do you want Warm Pool enabled on the Autoscaling Group? (yes/no): " warm_pool_response
-#case $warm_pool_response in 
-#	yes|y ) 
-#    echo "Warm Pool enabled. Proceeding with configurations..."
-#    echo "export TF_VAR_warm_pool_enabled=true" >> .zsecrc 
-#    warm_pool_enabled=true
-#    break
-#    ;;
-#	no|n )
-#    echo "Warm Pool not enabled. Proceeding..."
-#    echo "export TF_VAR_warm_pool_enabled=false" >> .zsecrc 
-#    warm_pool_enabled=false
-#    break
-#    ;;
-#	* ) echo "invalid response. Please enter yes or no";;
-#    esac
-#done
+while [[ "$dtype" == *"asg"* ]]; do
+    read -r -p "Do you want Warm Pool enabled on the Autoscaling Group? (yes/no): " warm_pool_response
+case $warm_pool_response in 
+	yes|y ) 
+    echo "Warm Pool enabled. Proceeding with configurations..."
+    echo "export TF_VAR_warm_pool_enabled=true" >> .zsecrc 
+    warm_pool_enabled=true
+    break
+    ;;
+	no|n )
+    echo "Warm Pool not enabled. Proceeding..."
+    echo "export TF_VAR_warm_pool_enabled=false" >> .zsecrc 
+    warm_pool_enabled=false
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done
 
 if [[ "$dtype" == *"asg"* && "$warm_pool_enabled" == "true" ]]; then
 warm_pool_min_size_default=1
