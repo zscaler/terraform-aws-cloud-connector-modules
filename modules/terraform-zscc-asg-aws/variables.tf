@@ -240,3 +240,9 @@ variable "ami_id" {
   type        = list(string)
   description = "AMI ID(s) to be used for deploying Cloud Connector appliances. Ideally all VMs should be on the same AMI ID as templates always pull the latest from AWS Marketplace. This variable is provided if a customer desires to override/retain an old ami for existing deployments rather than upgrading and forcing a launch template change."
 }
+
+variable "wait_for_capacity_timeout" {
+  type        = string
+  description = "Maximum duration that Terraform should wait for ASG instances to be healthy before timing out"
+  default     = "0"
+}
