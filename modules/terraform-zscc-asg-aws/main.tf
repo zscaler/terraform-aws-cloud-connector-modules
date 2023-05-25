@@ -71,14 +71,15 @@ resource "aws_launch_template" "cc_launch_template" {
 ################################################################################
 resource "aws_autoscaling_group" "cc_asg" {
   count                     = length(var.cc_subnet_ids)
-  name                      = "${var.name_prefix}-cc-asg-${var.resource_tag}"
-  vpc_zone_identifier       = element(distinct(var.cc_subnet_ids), count.index)
+  name                      = "${var.name_prefix}-cc-asg-${count.index + 1}-${var.resource_tag}"
+  vpc_zone_identifier       = [element(distinct(var.cc_subnet_ids), count.index)]
   max_size                  = var.max_size
   min_size                  = var.min_size
   health_check_type         = var.health_check_type
   health_check_grace_period = var.health_check_grace_period
   default_instance_warmup   = var.instance_warmup
   protect_from_scale_in     = var.protect_from_scale_in
+  wait_for_capacity_timeout = var.wait_for_capacity_timeout
 
   launch_template {
     id      = aws_launch_template.cc_launch_template[0].id
@@ -95,6 +96,22 @@ resource "aws_autoscaling_group" "cc_asg" {
     "GroupTerminatingInstances",
     "GroupTotalInstances",
   ]
+
+  # Create autoscaling lifecycle hooks for instance launch
+  initial_lifecycle_hook {
+    name                 = "${var.name_prefix}-cc-asg-lifecyclehook-launch-${count.index + 1}-${var.resource_tag}"
+    default_result       = "ABANDON"
+    heartbeat_timeout    = var.lifecyclehook_instance_launch_wait_time
+    lifecycle_transition = "autoscaling:EC2_INSTANCE_LAUNCHING"
+  }
+
+  # Create autoscaling lifecycle hooks for instance terminate
+  initial_lifecycle_hook {
+    name                 = "${var.name_prefix}-cc-asg-lifecyclehook-terminate-${count.index + 1}-${var.resource_tag}"
+    default_result       = "CONTINUE"
+    heartbeat_timeout    = var.lifecyclehook_instance_terminate_wait_time
+    lifecycle_transition = "autoscaling:EC2_INSTANCE_TERMINATING"
+  }
 
   dynamic "warm_pool" {
     for_each = var.warm_pool_enabled == true ? [var.warm_pool_enabled] : []
@@ -150,28 +167,6 @@ resource "aws_autoscaling_policy" "cc_asg_target_tracking_policy" {
     }
     target_value = var.target_cpu_util_value
   }
-}
-
-
-################################################################################
-# Create autoscaling lifecycle hooks for instance launch and terminate
-################################################################################
-resource "aws_autoscaling_lifecycle_hook" "cc_asg_lifecyclehook_launch" {
-  count                  = length(aws_autoscaling_group.cc_asg[*].id)
-  name                   = "${var.name_prefix}-cc-asg-lifecyclehook-launch-${count.index + 1}-${var.resource_tag}"
-  autoscaling_group_name = aws_autoscaling_group.cc_asg[count.index].name
-  default_result         = "ABANDON"
-  heartbeat_timeout      = var.lifecyclehook_instance_launch_wait_time
-  lifecycle_transition   = "autoscaling:EC2_INSTANCE_LAUNCHING"
-}
-
-resource "aws_autoscaling_lifecycle_hook" "cc_asg_lifecyclehook_terminate" {
-  count                  = length(aws_autoscaling_group.cc_asg[*].id)
-  name                   = "${var.name_prefix}-cc-asg-lifecyclehook-terminate-${count.index + 1}-${var.resource_tag}"
-  autoscaling_group_name = aws_autoscaling_group.cc_asg[count.index].name
-  default_result         = "CONTINUE"
-  heartbeat_timeout      = var.lifecyclehook_instance_terminate_wait_time
-  lifecycle_transition   = "autoscaling:EC2_INSTANCE_TERMINATING"
 }
 
 
