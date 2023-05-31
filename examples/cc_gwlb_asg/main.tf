@@ -134,7 +134,6 @@ module "cc_asg" {
   instance_warmup           = var.instance_warmup
   protect_from_scale_in     = var.protect_from_scale_in
   launch_template_version   = var.launch_template_version
-  target_tracking_metric    = var.target_tracking_metric
 
   warm_pool_enabled = var.warm_pool_enabled
   ### only utilzed if warm_pool_enabled set to true ###
