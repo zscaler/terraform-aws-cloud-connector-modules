@@ -184,9 +184,9 @@
 #reuse_on_scale_in                          = true
 
 ## 28. Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number
-##     (Default: 40%)
+##     (Default: 80%)
 
-#target_cpu_util_value                      = 40
+#target_cpu_util_value                      = 80
 
 ## 29. Determine whether or not to create autoscaling group notifications. Default is false. If setting this value to true, terraform will also create a new sns topic and topic subscription in the same AWS account"
 

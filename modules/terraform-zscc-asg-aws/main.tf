@@ -99,7 +99,7 @@ resource "aws_autoscaling_group" "cc_asg" {
 
   # Create autoscaling lifecycle hooks for instance launch
   initial_lifecycle_hook {
-    name                 = "${var.name_prefix}-cc-asg-lifecyclehook-launch-${count.index + 1}-${var.resource_tag}"
+    name                 = "${var.name_prefix}-cc-asg-${count.index + 1}-lifecyclehook-launch-${var.resource_tag}"
     default_result       = "ABANDON"
     heartbeat_timeout    = var.lifecyclehook_instance_launch_wait_time
     lifecycle_transition = "autoscaling:EC2_INSTANCE_LAUNCHING"
@@ -107,7 +107,7 @@ resource "aws_autoscaling_group" "cc_asg" {
 
   # Create autoscaling lifecycle hooks for instance terminate
   initial_lifecycle_hook {
-    name                 = "${var.name_prefix}-cc-asg-lifecyclehook-terminate-${count.index + 1}-${var.resource_tag}"
+    name                 = "${var.name_prefix}-cc-asg-${count.index + 1}-lifecyclehook-terminate-${var.resource_tag}"
     default_result       = "CONTINUE"
     heartbeat_timeout    = var.lifecyclehook_instance_terminate_wait_time
     lifecycle_transition = "autoscaling:EC2_INSTANCE_TERMINATING"
@@ -134,6 +134,10 @@ resource "aws_autoscaling_group" "cc_asg" {
     }
   }
 
+  timeouts {
+    delete = "20m"
+  }
+
   lifecycle {
     ignore_changes = [load_balancers, desired_capacity, target_group_arns]
   }
@@ -153,22 +157,28 @@ resource "aws_autoscaling_attachment" "cc_asg_attachment_gwlb" {
 
 ################################################################################
 # Create autoscaling group policy based on dynamic Target Tracking Scaling on 
-# average CPU
+# average CPU from custom application metrics
 ################################################################################
-resource "aws_autoscaling_policy" "cc_asg_target_tracking_policy" {
+resource "aws_autoscaling_policy" "cc_asg_cpu_utilization_policy" {
   count                  = length(aws_autoscaling_group.cc_asg[*].id)
-  name                   = "${var.name_prefix}-cc-asg-target-policy-${count.index + 1}-${var.resource_tag}"
-  autoscaling_group_name = aws_autoscaling_group.cc_asg[count.index].name
+  name                   = "${var.name_prefix}-cc-asg-${count.index + 1}-avg-cpu-policy-${var.resource_tag}"
   policy_type            = "TargetTrackingScaling"
+  autoscaling_group_name = aws_autoscaling_group.cc_asg[count.index].name
 
   target_tracking_configuration {
-    predefined_metric_specification {
-      predefined_metric_type = var.target_tracking_metric
+    customized_metric_specification {
+      namespace   = "Zscaler/CloudConnectors"
+      metric_name = "smedge_cpu_utilization_avg"
+      metric_dimension {
+        name  = "AutoScalingGroupName"
+        value = aws_autoscaling_group.cc_asg[count.index].id
+      }
+      statistic = "Average"
+      unit      = "Percent"
     }
     target_value = var.target_cpu_util_value
   }
 }
-
 
 ################################################################################
 # Create autoscaling sns notifications

@@ -174,24 +174,10 @@ variable "launch_template_version" {
   default     = "$Latest"
 }
 
-variable "target_tracking_metric" {
-  type        = string
-  description = "The AWS ASG pre-defined target tracking metric type. Cloud Connector recommends ASGAverageCPUUtilization"
-  default     = "ASGAverageCPUUtilization"
-  validation {
-    condition = (
-      var.target_tracking_metric == "ASGAverageCPUUtilization" ||
-      var.target_tracking_metric == "ASGAverageNetworkIn" ||
-      var.target_tracking_metric == "ASGAverageNetworkOut"
-    )
-    error_message = "Input target_tracking_metric must be set to an approved predefined metric."
-  }
-}
-
 variable "target_cpu_util_value" {
   type        = number
   description = "Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number"
-  default     = 40
+  default     = 80
 }
 
 variable "lifecyclehook_instance_launch_wait_time" {
