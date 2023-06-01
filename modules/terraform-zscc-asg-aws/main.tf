@@ -168,7 +168,7 @@ resource "aws_autoscaling_policy" "cc_asg_cpu_utilization_policy" {
   target_tracking_configuration {
     customized_metric_specification {
       namespace   = "Zscaler/CloudConnectors"
-      metric_name = "smedge_cpu_utilization_avg"
+      metric_name = "smedge_cpu_utilization"
       metric_dimension {
         name  = "AutoScalingGroupName"
         value = aws_autoscaling_group.cc_asg[count.index].id
