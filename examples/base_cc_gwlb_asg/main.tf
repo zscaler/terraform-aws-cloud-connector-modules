@@ -252,6 +252,21 @@ module "gwlb_endpoint" {
 
 
 ################################################################################
+# 9. Create Lambda Function for Autoscaling support
+################################################################################
+module "asg_lambda" {
+  source                  = "../../modules/terraform-zscc-asg-lambda-aws"
+  name_prefix             = var.name_prefix
+  resource_tag            = random_string.suffix.result
+  global_tags             = local.global_tags
+  cc_vm_prov_url          = var.cc_vm_prov_url
+  secret_name             = var.secret_name
+  autoscaling_group_names = module.cc_asg.autoscaling_group_id
+  asg_lambda_filename     = var.asg_lambda_filename
+}
+
+
+################################################################################
 # Validation for Cloud Connector instance size and EC2 Instance Type 
 # compatibilty. Terraform does not have a good/native way to raise an error at 
 # the moment, so this will trigger off an invalid count value if there is an 
