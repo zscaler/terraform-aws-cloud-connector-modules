@@ -361,6 +361,12 @@ variable "instance_warmup" {
   default     = 0
 }
 
+variable "asg_lambda_filename" {
+  type        = string
+  description = "Name of the lambda zip file"
+  default     = "ZscalerCcLambdaService.zip"
+}
+
 # BYO (Bring-your-own) variables list
 variable "byo_vpc" {
   type        = bool
