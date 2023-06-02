@@ -34,5 +34,5 @@ variable "autoscaling_group_names" {
 variable "asg_lambda_filename" {
   type        = string
   description = "Name of the lambda zip file"
-  default     = "ZscalerCcLambdaService.zip"
+  default     = "zscaler_cc_lambda_service.zip"
 }
