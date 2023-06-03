@@ -57,7 +57,7 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_asg_lambda_filename"></a> [asg\_lambda\_filename](#input\_asg\_lambda\_filename) | Name of the lambda zip file | `string` | `"zscaler_cc_lambda_service.zip"` | no |
+| <a name="input_asg_lambda_filename"></a> [asg\_lambda\_filename](#input\_asg\_lambda\_filename) | Name of the lambda zip file without zip suffix | `string` | `"zscaler_cc_lambda_service"` | no |
 | <a name="input_autoscaling_group_names"></a> [autoscaling\_group\_names](#input\_autoscaling\_group\_names) | List of Autoscaling Group Names in a given Cloud Connector cluster/VPC for Lambda to monitor | `list(string)` | n/a | yes |
 | <a name="input_cc_vm_prov_url"></a> [cc\_vm\_prov\_url](#input\_cc\_vm\_prov\_url) | Zscaler Cloud Connector Provisioning URL | `string` | n/a | yes |
 | <a name="input_global_tags"></a> [global\_tags](#input\_global\_tags) | Populate any custom user defined tags from a map | `map(string)` | `{}` | no |

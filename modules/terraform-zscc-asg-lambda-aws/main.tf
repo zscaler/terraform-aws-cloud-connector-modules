@@ -76,7 +76,8 @@ data "aws_iam_policy_document" "lambda_autoscale_lifecycle_policy_document" {
       "autoscaling:CompleteLifecycleAction",
       "autoscaling:RecordLifecycleActionHeartbeat",
       "autoscaling:SetInstanceHealth",
-      "ec2:DescribeInstanceStatus"
+      "ec2:DescribeInstanceStatus",
+      "ec2:DescribeInstances"
     ]
     resources = ["*"]
   }
@@ -173,9 +174,9 @@ resource "aws_iam_role_policy_attachment" "lambda_logs_attachment" {
 ################################################################################
 resource "aws_lambda_function" "asg_lambda_function" {
   function_name = "${var.name_prefix}_asg_lambda_function_${var.resource_tag}"
-  handler       = "${var.name_prefix}_asg_lambda_function_${var.resource_tag}.lambda_handler"
+  handler       = "${var.asg_lambda_filename}.lambda_handler"
   runtime       = "python3.9"
-  filename      = "${path.module}/${var.asg_lambda_filename}"
+  filename      = "${path.module}/${var.asg_lambda_filename}.zip"
   role          = aws_iam_role.asg_lambda_iam_role.arn
   timeout       = 180
   memory_size   = 256
