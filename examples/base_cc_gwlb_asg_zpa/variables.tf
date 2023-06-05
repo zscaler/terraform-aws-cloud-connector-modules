@@ -360,8 +360,8 @@ variable "instance_warmup" {
 
 variable "asg_lambda_filename" {
   type        = string
-  description = "Name of the lambda zip file"
-  default     = "ZscalerCcLambdaService.zip"
+  description = "Name of the lambda zip file without suffix"
+  default     = "zscaler_cc_lambda_service"
 }
 
 # ZPA/Route53 specific variables
