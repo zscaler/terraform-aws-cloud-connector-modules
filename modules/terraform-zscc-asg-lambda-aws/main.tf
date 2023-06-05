@@ -1,9 +1,4 @@
 ################################################################################
-#  Pull the Account ID number of the account that owns or contains the calling entity.
-################################################################################
-data "aws_caller_identity" "asg_caller_identity" {}
-
-################################################################################
 # Create IAM Role and Policy for Lambda
 ################################################################################
 resource "aws_iam_role" "asg_lambda_iam_role" {
@@ -143,15 +138,7 @@ data "aws_iam_policy_document" "lambda_logs_policy_document" {
       "logs:CreateLogStream",
       "logs:PutLogEvents"
     ]
-    resources = [aws_cloudwatch_log_group.asg_cloudwatch_log_group.arn]
-  }
-  statement {
-    sid    = "LambdaAllowLogGroupCreation"
-    effect = "Allow"
-    actions = [
-      "logs:CreateLogGroup"
-    ]
-    resources = ["arn:aws:logs::${data.aws_caller_identity.asg_caller_identity.id}:*"]
+    resources = ["${aws_cloudwatch_log_group.asg_cloudwatch_log_group.arn}:*"]
   }
 }
 
@@ -281,5 +268,6 @@ resource "aws_lambda_permission" "asg_cloudwatch_instance_termination_permission
 # Create Cloudwatch log Group
 ################################################################################
 resource "aws_cloudwatch_log_group" "asg_cloudwatch_log_group" {
-  name = "/aws/lambda/${var.name_prefix}-asg-lambda-function-${var.resource_tag}"
+  name              = "/aws/lambda/${aws_lambda_function.asg_lambda_function.id}"
+  retention_in_days = var.log_group_retention_days
 }
