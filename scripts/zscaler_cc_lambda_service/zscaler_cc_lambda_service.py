@@ -31,7 +31,7 @@ def test_all():
 def lambda_handler(event, context):
     # dump the event and context
     logger.info(f'Zscaler lambda_handler: event={event} and context={context}')
-    result = utils.helper.process_data(event)
+    result = utils.event_processor.process_data(event)
 
     # test_all()
 
