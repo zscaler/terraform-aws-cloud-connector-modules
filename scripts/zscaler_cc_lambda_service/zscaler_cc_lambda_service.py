@@ -5,7 +5,7 @@ import logging
 import utils.event_processor
 from utils.secret_manager import get_secret_value
 from utils.metric_dimensions import test_dimensions
-from zscaler_client.ZscalerApiClient import test_zscaler_resouce_deletion
+from zscaler_client.zscaler_api_client import test_zscaler_resouce_deletion
 import json
 
 # Configure the logger

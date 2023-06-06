@@ -6,9 +6,12 @@ import logging
 import datetime
 import os
 
-from metric_dimensions import retrieve_dimensions
-from secret_manager import get_secret_value
-from zscaler_cc_lambda_service.zscaler_client.ZscalerApiClient import ZscalerApiClient
+from utils.metric_dimensions import retrieve_dimensions
+from utils.secret_manager import get_secret_value
+from zscaler_client.zscaler_api_client import ZscalerApiClient
+# from zscaler_cc_lambda_service.utils.metric_dimensions import retrieve_dimensions
+# from secret_manager import get_secret_value
+# from zscaler_cc_lambda_service.zscaler_client.zscaler_api_client import ZscalerApiClient
 
 # Set up logging
 logger = logging.getLogger()
