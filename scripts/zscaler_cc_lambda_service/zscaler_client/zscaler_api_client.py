@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 
 import requests
 
-from zscaler_cc_lambda_service.utils.secret_manager import get_secret_value
+from ..utils.secret_manager import get_secret_value
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
