@@ -265,7 +265,7 @@ variable "health_check_grace_period" {
 variable "warm_pool_enabled" {
   type        = bool
   description = "If set to true, add a warm pool to the specified Auto Scaling group. See [warm_pool](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group#warm_pool)."
-  default     = "false"
+  default     = false
 }
 
 variable "warm_pool_state" {
@@ -288,8 +288,8 @@ variable "warm_pool_max_group_prepared_capacity" {
 
 variable "reuse_on_scale_in" {
   type        = bool
-  description = "Specifies whether instances in the Auto Scaling group can be returned to the warm pool on scale in."
-  default     = "false"
+  description = "Specifies whether instances in the Auto Scaling group can be returned to the warm pool on scale in. Default recommendation is true"
+  default     = true
 }
 
 variable "launch_template_version" {
@@ -301,7 +301,7 @@ variable "launch_template_version" {
 variable "target_cpu_util_value" {
   type        = number
   description = "Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number"
-  default     = 40
+  default     = 80
 }
 
 variable "lifecyclehook_instance_launch_wait_time" {
