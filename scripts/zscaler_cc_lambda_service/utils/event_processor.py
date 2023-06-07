@@ -1,14 +1,14 @@
-import json
+import datetime
+import logging
+import os
 from urllib.parse import urlparse
 
 import boto3
-import logging
-import datetime
-import os
 
-from metric_dimensions import retrieve_dimensions
-from secret_manager import get_secret_value
+from utils.metric_dimensions import retrieve_dimensions
+from utils.secret_manager import get_secret_value
 from zscaler_client.zscaler_api_client import ZscalerApiClient
+
 # from zscaler_cc_lambda_service.utils.metric_dimensions import retrieve_dimensions
 # from secret_manager import get_secret_value
 # from zscaler_cc_lambda_service.zscaler_client.zscaler_api_client import ZscalerApiClient
@@ -16,6 +16,16 @@ from zscaler_client.zscaler_api_client import ZscalerApiClient
 # Set up logging
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
+
+# Create a formatter
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(funcName)s - %(message)s')
+
+# Create a handler and set the formatter
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+
+# Add the handler to the logger
+logger.addHandler(handler)
 
 # Set up the boto3 client for Auto Scaling and EC2
 autoscaling = boto3.client('autoscaling')
@@ -85,6 +95,25 @@ def get_instances_in_service(asg_name):
     instances = response['AutoScalingGroups'][0]['Instances']
     return [instance for instance in instances if instance['LifecycleState'] == 'InService']
 
+def get_autoscaling_group_name(instance_id):
+    # Create an EC2 client
+    ec2 = boto3.client('ec2')
+
+    # Get the autoscaling group information for the instance
+    response = ec2.describe_instances(InstanceIds=[instance_id])
+
+    # Extract the autoscaling group name from the response
+    autoscaling_group_name = None
+    if 'Reservations' in response and len(response['Reservations']) > 0:
+        instances = response['Reservations'][0]['Instances']
+        if len(instances) > 0:
+            tags = instances[0].get('Tags', [])
+            for tag in tags:
+                if tag['Key'] == 'aws:autoscaling:groupName':
+                    autoscaling_group_name = tag['Value']
+                    break
+
+    return autoscaling_group_name
 
 def log_instance_info(instance_id, asg_name):
     logger.info(f"Instance ID: {instance_id}, ASG Name: {asg_name}")
@@ -219,7 +248,11 @@ def extract_ec2_instance_id_and_asg_name(event):
         autoscaling_group_name = event['detail']['AutoScalingGroupName']
     elif event['detail-type'] == 'EC2 Instance State-change Notification':
         ec2_instance_id = event['detail']['instance-id']
-        autoscaling_group_name = None
+        logger.info(f'extract_ec2_instance_id_and_asg_name(): Find out the autoscaling group name for instanceId: {ec2_instance_id}')
+        autoscaling_group_name = get_autoscaling_group_name(ec2_instance_id)
+        if autoscaling_group_name:
+            logger.info(
+                f'extract_ec2_instance_id_and_asg_name(): Found instanceId: {ec2_instance_id} autoscaling_group_name {autoscaling_group_name}')
     else:
         logger.info("Unsupported event type.")
         return None, None

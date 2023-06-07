@@ -6,10 +6,22 @@ import json
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
+# Create a formatter
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(funcName)s - %(message)s')
+
+# Create a handler and set the formatter
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+
+# Add the handler to the logger
+logger.addHandler(handler)
+
+# Create a Secrets Manager client
+client = boto3.client('secretsmanager')
+
+
 def get_secret_value(secret_name):
-    # Create a Secrets Manager client
     logger.debug(f'Entering get_secret_value()')
-    client = boto3.client('secretsmanager')
 
     try:
         # Retrieve the secret value
