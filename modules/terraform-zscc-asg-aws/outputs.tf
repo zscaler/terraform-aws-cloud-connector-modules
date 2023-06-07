@@ -3,7 +3,7 @@ output "availability_zone" {
   value       = flatten(aws_autoscaling_group.cc_asg[*].availability_zones)
 }
 
-output "autoscaling_group_id" {
+output "autoscaling_group_ids" {
   description = "Autoscaling group ID"
   value       = aws_autoscaling_group.cc_asg[*].id
 }

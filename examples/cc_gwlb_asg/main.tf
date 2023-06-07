@@ -270,7 +270,7 @@ module "asg_lambda" {
   global_tags             = local.global_tags
   cc_vm_prov_url          = var.cc_vm_prov_url
   secret_name             = var.secret_name
-  autoscaling_group_names = module.cc_asg.autoscaling_group_id
+  autoscaling_group_names = module.cc_asg.autoscaling_group_ids
   asg_lambda_filename     = var.asg_lambda_filename
 }
 
