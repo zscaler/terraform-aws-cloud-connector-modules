@@ -41,7 +41,7 @@ All CC IAM Role ARNs (Please provide this to Zscaler for callhome enablement):
 ${join("\n", module.cc_iam.iam_instance_profile_arn)}
 
 All Autoscaling Group IDs:
-${join("\n", module.cc_asg.autoscaling_group_id)}
+${join("\n", module.cc_asg.autoscaling_group_ids)}
 
 Launch Template ID:
 ${module.cc_asg.launch_template_id}
