@@ -12,6 +12,16 @@ import json
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+# Create a formatter
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(funcName)s - %(message)s')
+
+# Create a handler and set the formatter
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+
+# Add the handler to the logger
+logger.addHandler(handler)
+
 
 def test_read_from_secretmanager():
     # Specify the AWS Secrets Manager secret name
@@ -38,7 +48,7 @@ def lambda_handler(event, context):
     # Return a response
     return {
         'statusCode': 200,
-        'body': json.dumps('zscaler_cc_lambda_service completed')
+        'body': json.dumps(result)
     }
 
 

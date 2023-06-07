@@ -5,11 +5,21 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
+# Create a formatter
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(funcName)s - %(message)s')
+
+# Create a handler and set the formatter
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+
+# Add the handler to the logger
+logger.addHandler(handler)
+
+# Create a CloudWatch client
+cloudwatch = boto3.client('cloudwatch')
+
 
 def retrieve_dimensions(namespace, metric_name, dimension_pairs):
-    # Create a CloudWatch client
-    cloudwatch = boto3.client('cloudwatch')
-
     # Retrieve all metrics matching the namespace and metric name
     response = cloudwatch.list_metrics(Namespace=namespace, MetricName=metric_name)
 
