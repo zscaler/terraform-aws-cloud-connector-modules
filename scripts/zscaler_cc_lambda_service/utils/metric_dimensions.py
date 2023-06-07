@@ -16,12 +16,12 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 # Create a CloudWatch client
-cloudwatch = boto3.client('cloudwatch')
+cloudwatch_client = boto3.client('cloudwatch')
 
 
 def retrieve_dimensions(namespace, metric_name, dimension_pairs):
     # Retrieve all metrics matching the namespace and metric name
-    response = cloudwatch.list_metrics(Namespace=namespace, MetricName=metric_name)
+    response = cloudwatch_client.list_metrics(Namespace=namespace, MetricName=metric_name)
 
     # Process the response and retrieve the dimensions
     metrics = response['Metrics']

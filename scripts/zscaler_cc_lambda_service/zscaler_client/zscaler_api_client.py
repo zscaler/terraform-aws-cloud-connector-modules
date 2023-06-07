@@ -11,6 +11,16 @@ from utils.secret_manager import get_secret_value
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Create a formatter
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(funcName)s - %(message)s')
+
+# Create a handler and set the formatter
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+
+# Add the handler to the logger
+logger.addHandler(handler)
+
 
 class ZscalerApiClient:
     def __init__(self, api_key, username, password, base_url):
