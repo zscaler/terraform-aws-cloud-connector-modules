@@ -1,9 +1,11 @@
 import datetime
 import logging
 import os
+from typing import List
 from urllib.parse import urlparse
 
 import boto3
+import botocore
 
 from utils.metric_dimensions import retrieve_dimensions
 from utils.secret_manager import get_secret_value
@@ -57,8 +59,10 @@ def process_data(event):
 def read_environment_variables():
     # read Environment Variables
     logger.info(f'## ENVIRONMENT VARIABLES')
-    logger.info(f"os.environ['AWS_LAMBDA_LOG_GROUP_NAME']")
-    logger.info(f"os.environ['AWS_LAMBDA_LOG_STREAM_NAME']")
+    log_group_name = os.environ['AWS_LAMBDA_LOG_GROUP_NAME']
+    log_stream_name = os.environ['AWS_LAMBDA_LOG_STREAM_NAME']
+    logger.info(f"log_group_name: {log_group_name}")
+    logger.info(f"log_stream_name: {log_stream_name}")
     asg_list = os.environ['ASG_NAMES']
     cc_url = os.environ['CC_URL']
     secret_name: str = os.environ['SECRET_NAME']
@@ -101,21 +105,30 @@ def get_instances_in_service(asg_name):
 
 
 def get_autoscaling_group_name(instance_id):
-    # Get the autoscaling group information for the instance
-    response = ec2_client.describe_instances(InstanceIds=[instance_id])
+    try:
+        # Get the autoscaling group information for the instance
+        response = ec2_client.describe_instances(InstanceIds=[instance_id])
 
-    # Extract the autoscaling group name from the response
-    autoscaling_group_name = None
-    if 'Reservations' in response and len(response['Reservations']) > 0:
-        instances = response['Reservations'][0]['Instances']
-        if len(instances) > 0:
-            tags = instances[0].get('Tags', [])
-            for tag in tags:
-                if tag['Key'] == 'aws:autoscaling:groupName':
-                    autoscaling_group_name = tag['Value']
-                    break
+        # Extract the autoscaling group name from the response
+        autoscaling_group_name = None
+        if 'Reservations' in response and len(response['Reservations']) > 0:
+            instances = response['Reservations'][0]['Instances']
+            if len(instances) > 0:
+                tags = instances[0].get('Tags', [])
+                for tag in tags:
+                    if tag['Key'] == 'aws:autoscaling:groupName':
+                        autoscaling_group_name = tag['Value']
+                        break
 
-    return autoscaling_group_name
+        return autoscaling_group_name
+    except botocore.exceptions.ClientError as e:
+        error_message = e.response.get('Error', {}).get('Message', '')
+        if 'InvalidInstanceID.NotFound' in error_message:
+            logger.error(f"Instance ID '{instance_id}' does not exist")
+        else:
+            # Handle other ClientError exceptions if needed
+            logger.error(f"An error occurred while retrieving the autoscaling group name")
+        return None
 
 
 def log_instance_info(instance_id, asg_name):
@@ -332,14 +345,32 @@ def process_lifecycle_termination_events(event):
 
 def complete_lifecycle_action(hook_name, asg_name, token, instance_id):
     try:
-        # Complete the lifecycle action
-        response = autoscaling_client.complete_lifecycle_action(
-            LifecycleHookName=hook_name,
-            AutoScalingGroupName=asg_name,
-            LifecycleActionToken=token,
-            LifecycleActionResult='CONTINUE',
-            InstanceId=instance_id
-        )
+        if hook_name is None:
+            # Get the termination lifecycle hook name from the ASG
+            response = autoscaling_client.describe_lifecycle_hooks(AutoScalingGroupName=asg_name)
+            hooks = response['LifecycleHooks']
+            for hook in hooks:
+                if hook['LifecycleTransition'] == 'autoscaling:EC2_INSTANCE_TERMINATING':
+                    hook_name = hook['LifecycleHookName']
+                    break
+
+        if token is None:
+            response = autoscaling_client.complete_lifecycle_action(
+                LifecycleHookName=hook_name,
+                AutoScalingGroupName=asg_name,
+                LifecycleActionResult='CONTINUE',
+                InstanceId=instance_id
+            )
+        else:
+            response = autoscaling_client.complete_lifecycle_action(
+                LifecycleHookName=hook_name,
+                AutoScalingGroupName=asg_name,
+                LifecycleActionToken=token,
+                LifecycleActionResult='CONTINUE',
+                InstanceId=instance_id
+            )
+
+        logger.debug(f"Lifecycle action response: {response}")
 
         if response['ResponseMetadata']['HTTPStatusCode'] == 200:
             logger.info("Lifecycle action completed successfully.")
@@ -348,7 +379,6 @@ def complete_lifecycle_action(hook_name, asg_name, token, instance_id):
             logger.error("Failed to complete the lifecycle action.")
             return False
 
-        logger.debug(f"Lifecycle action response: {response}")
     except Exception as e:
         logger.error("Failed to complete the lifecycle action.")
         logger.exception(e)
@@ -390,14 +420,16 @@ def extract_base_url():
 
 def is_asg_name_in_list(asg_name):
     asg_names_list = os.getenv('ASG_NAMES')
+    logger.info(f"managed asg names are: {asg_names_list}")
 
-    if asg_names_list:
-        asg_names = asg_names_list.split(',')
-
-        if asg_name in asg_names:
-            return True
+    if asg_name in asg_names_list:
+        return True
 
     return False
+
+
+def check_name_in_list(name: str, string_list: List[str]) -> bool:
+    return name in string_list
 
 
 def process_terminated_instance_events(event: object) -> object:
@@ -414,18 +446,56 @@ def process_terminated_instance_events(event: object) -> object:
     # Get the instance ID, asg_name from the event
     instance_id, asg_name = extract_ec2_instance_id_and_asg_name(event)
 
-    if asg_name:
-        pass
-    else:
-        if is_asg_name_in_list(asg_name):
-            logger.info(f"{asg_name} is part of the ASG names list.")
-            # clean up zscaler cloud resources
-            get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instance_id)
-        else:
-            logger.info(f"{asg_name} is not found in the ASG names list.")
+    if instance_id and asg_name:
+        message_body = f"{instance_id} with ASG name {asg_name} is valid. Zscaler cloud resources will be cleaned + " \
+                       f"lifecycle action"
+        logger.info(message_body)
+        is_asg_managed = is_asg_name_in_list(asg_name)
+        logger.info(f"is_asg_managed: {is_asg_managed}")
+        if not is_asg_managed:
+            success_code = 404
+            message_body = f"ASG name {asg_name} is valid. Lambda is not managing this asg. no work to be done"
+            logger.info(message_body)
             response = {
-                'statusCode': 400,
-                'body': 'Not Supported: Zscaler cloud resources cleanup as no metadata exists'
+                'statusCode': success_code,
+                'body': message_body
             }
+            return response
+
+        get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instance_id)
+        # can't get hook_name or toke from this event
+        # let complete_lifecycle_action() handle those case using different API
+        hook_name = None
+        token = None
+        success = complete_lifecycle_action(hook_name, asg_name, token, instance_id)
+
+        if success:
+            # Handle successful completion of the lifecycle action
+            logger.info(f"Lifecycle action completed successfully.")
+        else:
+            # Handle failure in completing the lifecycle action
+            logger.error(f"Failed to complete the lifecycle action.")
+
+        success_code = 200
+
+    elif instance_id:
+        message_body = f"{instance_id} is valid, but ASG name is missing. Zscaler cloud resources will be cleaned"
+        logger.info(message_body)
+        get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instance_id)
+        success_code = 200
+
+    elif asg_name:
+        success_code = 404
+        message_body = f"ASG name {asg_name} is valid, but instance ID is missing. Lambda is not managing this asg"
+        logger.info(message_body)
+    else:
+        message_body = f"Neither instance ID nor ASG name is valid. No need to perform Zscaler cloud resource cleanup."
+        logger.info(message_body)
+        success_code = 200
+
+    response = {
+        'statusCode': success_code,
+        'body': message_body
+    }
 
     return response
