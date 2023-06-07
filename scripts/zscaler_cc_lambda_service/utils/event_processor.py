@@ -6,8 +6,8 @@ import logging
 import datetime
 import os
 
-from utils.metric_dimensions import retrieve_dimensions
-from utils.secret_manager import get_secret_value
+from metric_dimensions import retrieve_dimensions
+from secret_manager import get_secret_value
 from zscaler_client.zscaler_api_client import ZscalerApiClient
 # from zscaler_cc_lambda_service.utils.metric_dimensions import retrieve_dimensions
 # from secret_manager import get_secret_value
