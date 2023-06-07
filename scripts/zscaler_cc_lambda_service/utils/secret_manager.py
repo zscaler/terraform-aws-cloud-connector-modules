@@ -17,7 +17,7 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 # Create a Secrets Manager client
-client = boto3.client('secretsmanager')
+secretmanager_client = boto3.client('secretsmanager')
 
 
 def get_secret_value(secret_name):
@@ -25,7 +25,7 @@ def get_secret_value(secret_name):
 
     try:
         # Retrieve the secret value
-        response = client.get_secret_value(SecretId=secret_name)
+        response = secretmanager_client.get_secret_value(SecretId=secret_name)
 
         # Extract the secret value from the response
         if 'SecretString' in response:

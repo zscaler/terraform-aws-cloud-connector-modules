@@ -28,8 +28,12 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 # Set up the boto3 client for Auto Scaling and EC2
-autoscaling = boto3.client('autoscaling')
-ec2 = boto3.client('ec2')
+autoscaling_client = boto3.client('autoscaling')
+ec2_client = boto3.client('ec2')
+cloudwatch_client = boto3.client('cloudwatch')
+
+custom_namespace = 'Zscaler/CloudConnectors'
+custom_metric = 'cloud_connector_gw_health'
 
 
 def process_data(event):
@@ -65,19 +69,19 @@ def read_environment_variables():
 
 
 def process_scheduled_event(event):
-    logger.info("Processing Scheduled Event: %s", event)
+    logger.info("event: %s", event)
     # Check health of the instance and set custom autoscale health if unhealthy
     process_fault_management_event(event)
 
 
 def process_terminate_lifecycle_action(event):
-    logger.info("Processing Autoscale Instance-terminate Lifecycle Action: %s", event)
+    logger.info("event: %s", event)
     # processing the EC2 Instance-terminate Lifecycle Action
     process_lifecycle_termination_events(event)
 
 
 def process_terminated_instance_action(event):
-    logger.info("Processing EC2 Instance-terminate Lifecycle Action: %s", event)
+    logger.info("event: %s", event)
     # processing the EC2 Instance-terminate Lifecycle Action
     process_terminated_instance_events(event)
 
@@ -91,16 +95,14 @@ def get_asg_names():
 
 # FIXME Can't use this call yet as no IAM rules setup lets use the other one for now
 def get_instances_in_service(asg_name):
-    response = autoscaling.describe_auto_scaling_groups(AutoScalingGroupNames=[asg_name])
+    response = autoscaling_client.describe_auto_scaling_groups(AutoScalingGroupNames=[asg_name])
     instances = response['AutoScalingGroups'][0]['Instances']
     return [instance for instance in instances if instance['LifecycleState'] == 'InService']
 
-def get_autoscaling_group_name(instance_id):
-    # Create an EC2 client
-    ec2 = boto3.client('ec2')
 
+def get_autoscaling_group_name(instance_id):
     # Get the autoscaling group information for the instance
-    response = ec2.describe_instances(InstanceIds=[instance_id])
+    response = ec2_client.describe_instances(InstanceIds=[instance_id])
 
     # Extract the autoscaling group name from the response
     autoscaling_group_name = None
@@ -115,16 +117,16 @@ def get_autoscaling_group_name(instance_id):
 
     return autoscaling_group_name
 
+
 def log_instance_info(instance_id, asg_name):
     logger.info(f"Instance ID: {instance_id}, ASG Name: {asg_name}")
 
 
 def process_fault_management_event(event):
-    logger.info(f"process_fault_management_event received: {event}")
+    logger.info(f"event: {event}")
     # Get the Auto Scaling group name
     try:
         asg_names = get_asg_names()
-        ec2_client = boto3.client('ec2')
 
         for asg_name in asg_names:
             # instances = get_instances_in_service(asg_name)
@@ -132,23 +134,28 @@ def process_fault_management_event(event):
             for instance in instances:
                 instance_id = instance['InstanceId']
                 log_instance_info(instance_id, asg_name)
-                # query the custom health metric for this pair and get 10 entries atleast
-                # If 7 out of 10 entries are unhealthy these are in env than mark instance as unhealthy
+                # query the custom health metric for this pair and get 10 entries at least If HC_UNHEALTHY_THRESHOLD
+                # out of HC_DATA_POINTS entries are unhealthy these are in env than mark instance as unhealthy
 
-        return "processed event successfully."
+        return f'health checked for all Inservice instances for autoscalinggroup list  successfully.'
     except Exception as e:
         logger.error(f"Error: {str(e)}")
         return "process_fault_management_event(): Error occurred while processing the ASGs."
 
 
-def retrieve_last_12_entries():
-    logger.info("Entering retrieve_last_5_entries")
-    client = boto3.client('cloudwatch')
+def retrieve_last_n_entries():
+    logger.info("Entering")
     start_time = datetime.datetime.now() - datetime.timedelta(minutes=30)
     end_time = datetime.datetime.now() - datetime.timedelta(minutes=10)
-    logger.info('zscaler: Retrieving metric data from {} to {}'.format(start_time, end_time))
+    logger.info('Retrieving metric data from {} to {}'.format(start_time, end_time))
+    # need to add 2 extra to ensure we have at least HC_DATA_POINTS
+    num_of_data_points_to_retrieve = os.environ['HC_DATA_POINTS'] + 2
 
-    response = client.get_metric_data(
+    # FIXME pass entire dimensions for the desired metric instance instead of 1 dimension
+    dimension_name = 'AutoScalingGroupName'
+    dimension_value = 'AutoScalingGroupValue'
+
+    response = cloudwatch_client.get_metric_data(
         MetricDataQueries=[
             {
                 'Id': 'm1',
@@ -164,15 +171,15 @@ def retrieve_last_12_entries():
                         ]
                     },
                     'Period': 60,
-                    'Stat': smedge_cpu_utilization_stat,
-                    'Unit': smedge_cpu_utilization_unit
+                    'Stat': ['Average'],
+                    'Unit': 'Percent'
                 }
             }
         ],
         StartTime=start_time,
         EndTime=end_time,
         ScanBy='TimestampDescending',
-        MaxDatapoints=12
+        MaxDatapoints=num_of_data_points_to_retrieve
     )
     logger.info(f"retrieved get_metric_data(): {response}")
     logger.info(f'response["MetricDataResults"][0]["Values"]')
@@ -180,7 +187,7 @@ def retrieve_last_12_entries():
         if response['Messages']:
             logger.warning('Partial data received. Some metric data points may be missing.')
 
-        logger.info('Last 12 entries retrieved successfully!')
+        logger.info('Last {num_of_data_points_to_retrieve} entries retrieved successfully!')
 
         # Process the metric data points
         if 'MetricDataResults' in response:
@@ -200,8 +207,7 @@ def retrieve_last_12_entries():
 
 def retrieve_all_dimensions():
     logger.info("Entering retrieve_all_dimensions")
-    client = boto3.client('cloudwatch')
-    response = client.list_metrics(
+    response = cloudwatch_client.list_metrics(
         Namespace=custom_namespace,
         MetricName=custom_metric
     )
@@ -212,11 +218,13 @@ def retrieve_all_dimensions():
 
 
 def process_results(instance_id, health_probe_results):
-    # Check if 3 out of 5 health probe results are false
-    if health_probe_results.count(0) >= 3:
-        logger.info(f"zscaler: process_results found unhealthy datapoint count of {health_probe_results.count(0)}")
+    # Check if HC_UNHEALTHY_THRESHOLD out of HC_DATA_POINTS health probe results are 0 %
+    hc_data_points = os.environ['HC_DATA_POINTS']
+    hc_unhealthy_threshold = os.environ['HC_UNHEALTHY_THRESHOLD']
+    if health_probe_results.count(0) >= hc_unhealthy_threshold:
+        logger.info(f"process_results found unhealthy datapoint count of {health_probe_results.count(0)}")
         # Set the custom Auto Scaling group health check for the instance as unhealthy
-        autoscaling.set_instance_health(
+        autoscaling_client.set_instance_health(
             InstanceId=instance_id,
             HealthStatus='Unhealthy',
             ShouldRespectGracePeriod=False
@@ -225,7 +233,7 @@ def process_results(instance_id, health_probe_results):
 
 def get_in_service_instances(auto_scaling_group_name):
     # Retrieve in-service instances from the Auto Scaling group
-    response = ec2.describe_instances(
+    response = ec2_client.describe_instances(
         Filters=[
             {'Name': 'tag:aws:autoscaling:groupName', 'Values': [auto_scaling_group_name]},
             {'Name': 'instance-state-name', 'Values': ['running']}
@@ -248,7 +256,8 @@ def extract_ec2_instance_id_and_asg_name(event):
         autoscaling_group_name = event['detail']['AutoScalingGroupName']
     elif event['detail-type'] == 'EC2 Instance State-change Notification':
         ec2_instance_id = event['detail']['instance-id']
-        logger.info(f'extract_ec2_instance_id_and_asg_name(): Find out the autoscaling group name for instanceId: {ec2_instance_id}')
+        logger.info(
+            f'extract_ec2_instance_id_and_asg_name(): Find out the autoscaling group name for instanceId: {ec2_instance_id}')
         autoscaling_group_name = get_autoscaling_group_name(ec2_instance_id)
         if autoscaling_group_name:
             logger.info(
@@ -296,7 +305,7 @@ def process_lifecycle_termination_events(event):
     # Determine if the instance is part of a warmed pool and is being terminated
     if event['detail']['LifecycleTransition'] == 'autoscaling:EC2_INSTANCE_TERMINATING' and event['detail'][
         'LifecycleHookName'] == hook_name:
-        response = autoscaling.describe_auto_scaling_instances(InstanceIds=[instance_id])
+        response = autoscaling_client.describe_auto_scaling_instances(InstanceIds=[instance_id])
         logger.info(f"describe_auto_scaling_instances: {response}")
         instances = response['AutoScalingInstances']
         if instances and instances[0]['LifecycleState'] == 'Warmed:Terminating:Wait':
@@ -324,7 +333,7 @@ def process_lifecycle_termination_events(event):
 def complete_lifecycle_action(hook_name, asg_name, token, instance_id):
     try:
         # Complete the lifecycle action
-        response = autoscaling.complete_lifecycle_action(
+        response = autoscaling_client.complete_lifecycle_action(
             LifecycleHookName=hook_name,
             AutoScalingGroupName=asg_name,
             LifecycleActionToken=token,
