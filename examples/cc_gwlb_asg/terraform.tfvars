@@ -176,9 +176,9 @@
 #warm_pool_max_group_prepared_capacity      = 2
 
 ## 27. Specifies whether instances in the Auto Scaling group can be returned to the warm pool on scale in
-##     Uncomment to enable. (Default: false)
+##     Uncomment to disable. (Default: true)
 
-#reuse_on_scale_in                          = true
+#reuse_on_scale_in                          = false
 
 ## 28. Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number
 ##     (Default: 80%)

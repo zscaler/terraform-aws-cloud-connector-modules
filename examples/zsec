@@ -436,7 +436,7 @@ min_size=${min_size_input:-$min_size_default}
     esac
 done
 
-max_size_default="$min_size"
+max_size_default=4
     while [[ "$dtype" == *"asg"* ]]; do
     read -r -p "Enter the maximum number of Cloud Connectors to maintain in an Autoscaling group [Default=$max_size_default]: " max_size_input
 max_size=${max_size_input:-$max_size_default}
@@ -536,16 +536,16 @@ case $flow_stickiness in
 done 
 fi
 
-target_cpu_util_value_default=82
+target_cpu_util_value_default=80
 while [[ "$dtype" == *"asg"* ]]; do
-    read -r -p "Enter desired ASG Target Tracking CPU Utilization target [Default=$target_cpu_util_value_default]: " target_cpu_util_value_input
+    read -r -p "Enter desired ASG Target Tracking CPU % Utilization target [Default=$target_cpu_util_value_default]: " target_cpu_util_value_input
 target_cpu_util_value=${target_cpu_util_value_input:-$target_cpu_util_value_default}
  if [[ "$target_cpu_util_value" -lt 1 || "$target_cpu_util_value" -gt 100 ]]; then
     echo "Target tracking percentage must be a number between 1-100"
     else
         case $target_cpu_util_value in
         *) 
-        echo "ASG AVGCPUUtilization Target Value set to ${target_cpu_util_value}"
+        echo "ASG CPU Utilization Target Value set to ${target_cpu_util_value}"
         echo "export TF_VAR_target_cpu_util_value=${target_cpu_util_value}" >> .zsecrc 
         break
         ;;
@@ -624,7 +624,7 @@ warm_pool_state=${warm_pool_state_input:-$warm_pool_state_default}
 done
 
     while true; do
-    read -r -p "Do you want ASG instances to return to the warm pool on scale in? (yes/no): " reuse_on_scale_in_response
+    read -r -p "Do you want ASG instances to return to the warm pool on scale in? (yes/no) Recommendation is yes: " reuse_on_scale_in_response
 case $reuse_on_scale_in_response in 
 	yes|y ) 
     echo "Reuse on scale in enabled"
