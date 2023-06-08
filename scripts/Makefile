@@ -1,24 +1,57 @@
-# Define variables
-ZIP_FILE := zscaler_cc_lambda_service.zip
-SRC_DIR := zscaler_cc_lambda_service
-DEST_TARGET_DIR := artifacts
+# Makefile for Lambda Python project
 
-REQ_FILE := $(SRC_DIR)/requirements.txt
+# Set the name of your Lambda function
+FUNCTION_NAME = vk-june7-zip-test-drive
 
-.PHONY: build clean
+# Set the name of the zip file to be created
+ZIP_FILE_NAME = zscaler_cc_lambda_service.zip
 
-build:
-	@echo "Creating virtual environment..."
-	python3.9 -m venv venv
-	@echo "Activating virtual environment..."
-	. venv/bin/activate && \
-	pip install -r $(REQ_FILE) && \
-	deactivate
-	@echo "Zipping files..."
-	(cd $(SRC_DIR) && zip -r $(ZIP_FILE) .)
-	mv $(SRC_DIR)/$(ZIP_FILE) $(DEST_TARGET_DIR)/$(ZIP_FILE)
-	@echo "Cleaning up..."
-	rm -rf venv
+DEST_TARGET_DIR = artifacts
+
+# Set the path to your Python interpreter 3.9
+PYTHON_INTERPRETER = python3
+
+#Terraform module folder
+TERRAFORM_TARGET_DIR = ../modules/terraform-zscc-lambda-aws
+
+#S3 folder
+S3_FOLDER = zscc-dev/lambda_scripts
+
+install:
+	# Create a temporary directory
+	mkdir -p temp
+	# Install dependencies to the temporary directory
+	$(PYTHON_INTERPRETER) -m pip install -r zscaler_cc_lambda_service/requirements.txt -t temp
+	# Copy your Python files to the temporary directory
+	cp -r zscaler_cc_lambda_service/* temp/
+	# Create the zip file
+	cd temp && zip -r ../$(ZIP_FILE_NAME) .
+	cp $(ZIP_FILE_NAME) $(DEST_TARGET_DIR)/$(ZIP_FILE)
+	# Clean up temporary directory
+	rm -rf temp
+
+deploy: install
+	# Deploy the zip file to AWS Lambda using the AWS CLI or other deployment method
+	aws lambda update-function-code --function-name $(FUNCTION_NAME) --zip-file fileb://$(ZIP_FILE_NAME) \
+		--region us-west-2
+
+fresh-deploy: install
+	# Create a new AWS Lambda function using the zip file
+	aws lambda create-function \
+		--function-name $(FUNCTION_NAME) \
+		--runtime python3.8 \
+		--role arn:aws:iam::223544365242:role/zscc-asg-lambda-iam-role-5secz2st \
+		--handler zscaler_cc_lambda_service.lambda_handler \
+		--zip-file fileb://$(ZIP_FILE_NAME) \
+		--region us-west-2
+
+
+terraform_module_deploy: install
+	cp $(ZIP_FILE_NAME) $(TERRAFORM_TARGET_DIR)/$(ZIP_FILE_NAME)
+
+s3_deploy: install
+	aws s3 cp $(ZIP_FILE_NAME) s3://$(S3_FOLDER)/$(ZIP_FILE_NAME)
 
 clean:
-	rm -f $(DEST_TARGET_DIR)/$(ZIP_FILE)
+	rm -f $(DEST_TARGET_DIR)/$(ZIP_FILE_NAME)
+	rm -rf temp
