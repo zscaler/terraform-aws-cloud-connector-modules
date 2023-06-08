@@ -41,7 +41,13 @@ custom_metric = 'cloud_connector_gw_health'
 def process_data(event):
     # Process the event data
 
-    read_environment_variables()
+    try:
+        read_environment_variables()
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'body': f'Error: {str(e)}'
+        }
 
     detail_type = event.get('detail-type')
     if detail_type == 'Scheduled Event':
@@ -56,20 +62,21 @@ def process_data(event):
     return "Data processed successfully"
 
 
-def read_environment_variables():
-    # read Environment Variables
+def read_environment_variables() -> object:
+    # Read Environment Variables
     logger.info(f'## ENVIRONMENT VARIABLES')
-    log_group_name = os.environ['AWS_LAMBDA_LOG_GROUP_NAME']
-    log_stream_name = os.environ['AWS_LAMBDA_LOG_STREAM_NAME']
+    log_group_name = os.environ.get('AWS_LAMBDA_LOG_GROUP_NAME', 'local-log-group')
+    log_stream_name = os.environ.get('AWS_LAMBDA_LOG_STREAM_NAME', 'local-log-stream')
     logger.info(f"log_group_name: {log_group_name}")
     logger.info(f"log_stream_name: {log_stream_name}")
-    asg_list = os.environ['ASG_NAMES']
-    cc_url = os.environ['CC_URL']
-    secret_name: str = os.environ['SECRET_NAME']
-    hc_data_points = os.environ['HC_DATA_POINTS']
-    hc_unhealthy_threshold = os.environ['HC_UNHEALTHY_THRESHOLD']
+
+    asg_list = os.environ.get('ASG_NAMES', '')
+    cc_url = os.environ.get('CC_URL', '')
+    secret_name = os.environ.get('SECRET_NAME', '')
+    hc_data_points = os.environ.get('HC_DATA_POINTS', '10')
+    hc_unhealthy_threshold = os.environ.get('HC_UNHEALTHY_THRESHOLD', '7')
     logger.info(
-        f'#asg_list# {asg_list} #c_url# {cc_url} #secret_name# {secret_name} #hc_data_points# {hc_data_points} #hc_unhealthy_threshold# {hc_unhealthy_threshold}')
+        f'#asg_list# {asg_list} #cc_url# {cc_url} #secret_name# {secret_name} #hc_data_points# {hc_data_points} #hc_unhealthy_threshold# {hc_unhealthy_threshold}')
 
 
 def process_scheduled_event(event):
@@ -390,6 +397,9 @@ def get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instan
     namespace = 'Zscaler/CloudConnectors'
     metric_name = 'cloud_connector_gw_health'
 
+    logger.info(
+        f"get_asg_instance_metadata_and_delete_zscaler_cloud_resource: asg_name: {asg_name} instance_id: {instance_id}")
+
     base_url = extract_base_url()
 
     dimension_pairs = [('AutoScalingGroupName', asg_name),
@@ -397,6 +407,7 @@ def get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instan
     dimensions = retrieve_dimensions(namespace, metric_name, dimension_pairs)
     # retrieve zsgroupid and zsvmid
     zsgroupid, zsvmid = extract_zsgroupid_zsvmid_from_dimensions(dimensions)
+    logger.info(f"zsgroupid: {zsgroupid} zsvmid: {zsvmid}")
     if zsgroupid and zsvmid:
         # get secret value
         secret_name = os.environ['SECRET_NAME']
