@@ -184,10 +184,8 @@ resource "aws_autoscaling_policy" "cc_asg_cpu_utilization_policy" {
 # Create autoscaling sns notifications
 ################################################################################
 resource "aws_autoscaling_notification" "cc_asg_notifications" {
-  count = var.sns_enabled == true ? 1 : 0
-  group_names = [
-    aws_autoscaling_group.cc_asg[*].name,
-  ]
+  count       = var.sns_enabled == true ? 1 : 0
+  group_names = toset(aws_autoscaling_group.cc_asg[*].name)
 
   notifications = [
     "autoscaling:EC2_INSTANCE_LAUNCH",
