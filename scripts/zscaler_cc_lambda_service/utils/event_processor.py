@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 import os
 from typing import List
@@ -70,9 +71,9 @@ def read_environment_variables() -> object:
     logger.info(f"log_group_name: {log_group_name}")
     logger.info(f"log_stream_name: {log_stream_name}")
 
-    asg_list = os.environ.get('ASG_NAMES', '')
-    cc_url = os.environ.get('CC_URL', '')
-    secret_name = os.environ.get('SECRET_NAME', '')
+    asg_list = os.environ.get('ASG_NAMES', '["vkjune8-cc-asg-1-l0nk6zcm","vkjune8-cc-asg-2-l0nk6zcm"]')
+    cc_url = os.environ.get('CC_URL', 'connector.zscalerbeta.net/api/v1/provUrl?name=aws_prov_template1')
+    secret_name = os.environ.get('SECRET_NAME', 'ZS/CC/credentials/15859684-zscalerbeta')
     hc_data_points = os.environ.get('HC_DATA_POINTS', '10')
     hc_unhealthy_threshold = os.environ.get('HC_UNHEALTHY_THRESHOLD', '7')
     logger.info(
@@ -98,7 +99,8 @@ def process_terminated_instance_action(event):
 
 
 def get_asg_names():
-    asg_names = os.getenv('ASG_NAMES', '').split(',')
+    asg_names_str = os.environ.get('ASG_NAMES', '["vkjune8-cc-asg-1-l0nk6zcm","vkjune8-cc-asg-2-l0nk6zcm"]')
+    asg_names = json.loads(asg_names_str)
     if not asg_names:
         raise ValueError("No ASG names provided in the environment variable.")
     return asg_names
@@ -152,7 +154,8 @@ def process_fault_management_event(event):
             # instances = get_instances_in_service(asg_name)
             instances = get_in_service_instances(asg_name)
             for instance in instances:
-                instance_id = instance['InstanceId']
+                # instance_id = instance['InstanceId']
+                instance_id = instance
                 log_instance_info(instance_id, asg_name)
                 # query the custom health metric for this pair and get 10 entries at least If HC_UNHEALTHY_THRESHOLD
                 # out of HC_DATA_POINTS entries are unhealthy these are in env than mark instance as unhealthy
@@ -421,7 +424,7 @@ def get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instan
 
 
 def extract_base_url():
-    cc_url = os.environ['CC_URL']
+    cc_url = os.environ.get('CC_URL', 'connector.zscalerbeta.net/api/v1/provUrl?name=aws_prov_template1')
     prov_url = "https://" + cc_url
     parsed_url = urlparse(prov_url)
     base_url = "https://" + parsed_url.netloc
