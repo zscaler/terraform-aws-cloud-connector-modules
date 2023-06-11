@@ -21,7 +21,17 @@ cloudwatch_client = boto3.client('cloudwatch')
 
 def retrieve_dimensions(namespace, metric_name, dimension_pairs):
     # Retrieve all metrics matching the namespace and metric name
-    response = cloudwatch_client.list_metrics(Namespace=namespace, MetricName=metric_name)
+    dimensions = []
+    for name, value in dimension_pairs:
+        dimensions.append({
+            'Name': name,
+            'Value': value
+        })
+
+    # response = cloudwatch_client.list_metrics(Namespace=namespace, MetricName=metric_name,
+    #   Dimensions=dimensions)
+    response = cloudwatch_client.list_metrics(Namespace=namespace,
+                                              Dimensions=dimensions)
 
     # Process the response and retrieve the dimensions
     metrics = response['Metrics']
@@ -41,6 +51,11 @@ def test_dimensions():
     # Specify the namespace and metric name
     namespace = 'Zscaler/CloudConnectors'
     metric_name = 'cloud_connector_gw_health'
-    dimension_pairs = [('AutoScalingGroupName', 'vkmay20-cc-asg-xhlsy0ko'), ('InstanceId', 'i-093fdbd1e654be354')]
+    dimension_pairs = [('AutoScalingGroupName', 'vkjune8-cc-asg-1-l0nk6zcm'), ('InstanceId', 'i-0beab4f0232f1bec2')]
+
     dimensions = retrieve_dimensions(namespace, metric_name, dimension_pairs)
     logger.info(f'test_dimensions(): Found dimensions: {dimensions}')
+
+
+if __name__ == '__main__':
+    test_dimensions()

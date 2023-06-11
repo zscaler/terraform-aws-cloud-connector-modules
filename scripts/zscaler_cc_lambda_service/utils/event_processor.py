@@ -2,6 +2,7 @@ import datetime
 import json
 import logging
 import os
+from datetime import datetime, timedelta
 from typing import List
 from urllib.parse import urlparse
 
@@ -36,7 +37,7 @@ ec2_client = boto3.client('ec2')
 cloudwatch_client = boto3.client('cloudwatch')
 
 custom_namespace = 'Zscaler/CloudConnectors'
-custom_metric = 'cloud_connector_gw_health'
+custom_metric = 'cloud_connector_aggr_health'
 
 
 def process_data(event):
@@ -159,11 +160,65 @@ def process_fault_management_event(event):
                 log_instance_info(instance_id, asg_name)
                 # query the custom health metric for this pair and get 10 entries at least If HC_UNHEALTHY_THRESHOLD
                 # out of HC_DATA_POINTS entries are unhealthy these are in env than mark instance as unhealthy
+                base_url, dimensions = get_dimensions_for_health_metrics(asg_name, instance_id)
+                getstats_cloud_connector_gw_health(asg_name, instance_id, dimensions)
 
         return f'health checked for all Inservice instances for autoscalinggroup list  successfully.'
     except Exception as e:
         logger.error(f"Error: {str(e)}")
         return "process_fault_management_event(): Error occurred while processing the ASGs."
+
+
+def getstats_cloud_connector_gw_health(cgh_asgname, cgh_instanceid, dimensions):
+    # Retrieve cloud_connector_gw_health
+    # dimensions is a list of dict
+    # get first item
+    dimensions_formatted_list = []
+    for dimension in dimensions:
+        for name, value in dimension.items():
+            dimensions_formatted_list.append({
+                'Name': name,
+                'Value': value
+            })
+
+    logger.info(f'dimensions_formatted_list: {dimensions_formatted_list}')
+    endtime = datetime.utcnow()
+    starttime = endtime - timedelta(minutes=12)
+    try:
+        response = cloudwatch_client.get_metric_statistics(
+            Namespace=custom_namespace,
+            MetricName=custom_metric,
+
+            Dimensions=dimensions_formatted_list,
+            StartTime=starttime,
+            EndTime=endtime,
+            Period=60,
+            Statistics=['Average']
+        )
+    except Exception as e:
+        logger.error(f"An error occured while retrieving  cloud_connector_gw_health: {str(e)} ")
+    logger.info(
+        f"cloud_connector_gw_health for {cgh_asgname}, "
+        "{cgh_instanceid} after get_metric_statistics response is : {response}")
+    # Sort data points by timestamp
+    datapoints = sorted(response['Datapoints'], key=lambda x: x['Timestamp'], reverse=True)
+    if len(datapoints) == 0:
+        logger.info(
+            f'[cloud_connector_gw_health for {cgh_asgname}, {cgh_instanceid}] No datapoints found between StartTime:'
+            f' {starttime} and EndTime: {endtime}')
+    else:
+        logger.info(
+            f'[cloud_connector_gw_health for {cgh_asgname}, {cgh_instanceid}] '
+            f'Number of datapoints processed between StartTime: {starttime} and EndTime: {endtime}: {len(datapoints)}')
+    # Verify data
+    if datapoints:
+        average = datapoints[0]['Average']
+        timestamp = datapoints[0]['Timestamp']
+        logger.info(
+            f"[cloud_connector_gw_health for {cgh_asgname}, {cgh_instanceid}] Sum for FIRST datapoint Only : {average} "
+            f"at {timestamp}")
+    else:
+        logger.info(f"[cloud_connector_gw_health for {cgh_asgname}, {cgh_instanceid}] No data available ")
 
 
 def retrieve_last_n_entries():
@@ -396,18 +451,7 @@ def complete_lifecycle_action(hook_name, asg_name, token, instance_id):
 
 
 def get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instance_id):
-    # Specify the namespace and metric name cloud_connector_gw_health to get metadata
-    namespace = 'Zscaler/CloudConnectors'
-    metric_name = 'cloud_connector_gw_health'
-
-    logger.info(
-        f"get_asg_instance_metadata_and_delete_zscaler_cloud_resource: asg_name: {asg_name} instance_id: {instance_id}")
-
-    base_url = extract_base_url()
-
-    dimension_pairs = [('AutoScalingGroupName', asg_name),
-                       ('InstanceId', instance_id)]
-    dimensions = retrieve_dimensions(namespace, metric_name, dimension_pairs)
+    base_url, dimensions = get_dimensions_for_health_metrics(asg_name, instance_id)
     # retrieve zsgroupid and zsvmid
     zsgroupid, zsvmid = extract_zsgroupid_zsvmid_from_dimensions(dimensions)
     logger.info(f"zsgroupid: {zsgroupid} zsvmid: {zsvmid}")
@@ -421,6 +465,19 @@ def get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instan
         # create an authenticated session and delete the zsvmid and logout
         zscaler_api = ZscalerApiClient(myapi_key, my_username, my_password, base_url)
         zscaler_api.process_data(zsgroupid, zsvmid)
+
+
+def get_dimensions_for_health_metrics(asg_name, instance_id):
+    # Specify the namespace and metric name cloud_connector_gw_health to get metadata
+    namespace = 'Zscaler/CloudConnectors'
+    metric_name = 'cloud_connector_gw_health'
+    logger.info(
+        f"get_asg_instance_metadata_and_delete_zscaler_cloud_resource: asg_name: {asg_name} instance_id: {instance_id}")
+    base_url = extract_base_url()
+    dimension_pairs = [('AutoScalingGroupName', asg_name),
+                       ('InstanceId', instance_id)]
+    dimensions = retrieve_dimensions(namespace, metric_name, dimension_pairs)
+    return base_url, dimensions
 
 
 def extract_base_url():
