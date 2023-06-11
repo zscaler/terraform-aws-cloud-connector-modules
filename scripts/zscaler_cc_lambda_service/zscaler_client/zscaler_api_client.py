@@ -57,7 +57,7 @@ class ZscalerApiClient:
             "Accept": "application/json"
         }
 
-        response = requests.post(auth_url, json=auth_payload, headers=headers)
+        response = requests.post(auth_url, json=auth_payload, headers=headers, verify=False)
 
         if response.status_code == 200:
             self.jsessionid = response.cookies.get('JSESSIONID')
@@ -75,13 +75,13 @@ class ZscalerApiClient:
 
         try:
             if method == 'get':
-                response = requests.get(url, headers=headers)
+                response = requests.get(url, headers=headers, verify=False)
             elif method == 'post':
-                response = requests.post(url, json=payload, headers=headers)
+                response = requests.post(url, json=payload, headers=headers, verify=False)
             elif method == 'put':
-                response = requests.put(url, headers=headers)
+                response = requests.put(url, headers=headers, verify=False)
             elif method == 'delete':
-                response = requests.delete(url, headers=headers)
+                response = requests.delete(url, headers=headers, verify=False)
             else:
                 logger.error("Invalid HTTP method.")
                 return None
