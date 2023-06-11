@@ -74,7 +74,7 @@ def read_environment_variables() -> object:
 
     asg_list = os.environ.get('ASG_NAMES', '["vkjune8-cc-asg-1-l0nk6zcm","vkjune8-cc-asg-2-l0nk6zcm"]')
     cc_url = os.environ.get('CC_URL', 'connector.zscalerbeta.net/api/v1/provUrl?name=aws_prov_template1')
-    secret_name = os.environ.get('SECRET_NAME', 'ZS/CC/credentials/15859684-zscalerbeta')
+    secret_name = os.environ.get('SECRET_NAME', 'zscloudbeta11584294/CC/credentials')
     hc_data_points = os.environ.get('HC_DATA_POINTS', '10')
     hc_unhealthy_threshold = os.environ.get('HC_UNHEALTHY_THRESHOLD', '7')
     logger.info(
@@ -161,7 +161,12 @@ def process_fault_management_event(event):
                 # query the custom health metric for this pair and get 10 entries at least If HC_UNHEALTHY_THRESHOLD
                 # out of HC_DATA_POINTS entries are unhealthy these are in env than mark instance as unhealthy
                 base_url, dimensions = get_dimensions_for_health_metrics(asg_name, instance_id)
-                getstats_cloud_connector_gw_health(asg_name, instance_id, dimensions)
+                health_stats_datapoints_results = getstats_cloud_connector_gw_health(asg_name, instance_id, dimensions)
+                if if_unhealthy_ask_autoscaling_to_replace_instance(instance_id, asg_name,
+                                                                    health_stats_datapoints_results):
+                    # delete the Zscaler resource as well
+                    get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instance_id)
+
 
         return f'health checked for all Inservice instances for autoscalinggroup list  successfully.'
     except Exception as e:
@@ -170,7 +175,7 @@ def process_fault_management_event(event):
 
 
 def getstats_cloud_connector_gw_health(cgh_asgname, cgh_instanceid, dimensions):
-    # Retrieve cloud_connector_gw_health
+    # Retrieve cloud_connector_aggr_health
     # dimensions is a list of dict
     # get first item
     dimensions_formatted_list = []
@@ -196,29 +201,31 @@ def getstats_cloud_connector_gw_health(cgh_asgname, cgh_instanceid, dimensions):
             Statistics=['Average']
         )
     except Exception as e:
-        logger.error(f"An error occured while retrieving  cloud_connector_gw_health: {str(e)} ")
+        logger.error(f"An error occurred while retrieving  cloud_connector_aggr_health: {str(e)} ")
     logger.info(
-        f"cloud_connector_gw_health for {cgh_asgname}, "
+        f"cloud_connector_aggr_health for {cgh_asgname}, "
         "{cgh_instanceid} after get_metric_statistics response is : {response}")
     # Sort data points by timestamp
     datapoints = sorted(response['Datapoints'], key=lambda x: x['Timestamp'], reverse=True)
     if len(datapoints) == 0:
         logger.info(
-            f'[cloud_connector_gw_health for {cgh_asgname}, {cgh_instanceid}] No datapoints found between StartTime:'
+            f'[cloud_connector_aggr_health for {cgh_asgname}, {cgh_instanceid}] No datapoints found between StartTime:'
             f' {starttime} and EndTime: {endtime}')
     else:
         logger.info(
-            f'[cloud_connector_gw_health for {cgh_asgname}, {cgh_instanceid}] '
+            f'[cloud_connector_aggr_health for {cgh_asgname}, {cgh_instanceid}] '
             f'Number of datapoints processed between StartTime: {starttime} and EndTime: {endtime}: {len(datapoints)}')
     # Verify data
     if datapoints:
         average = datapoints[0]['Average']
         timestamp = datapoints[0]['Timestamp']
         logger.info(
-            f"[cloud_connector_gw_health for {cgh_asgname}, {cgh_instanceid}] Sum for FIRST datapoint Only : {average} "
+            f"[cloud_connector_aggr_health for {cgh_asgname}, {cgh_instanceid}] Sum for FIRST datapoint Only : {average} "
             f"at {timestamp}")
     else:
-        logger.info(f"[cloud_connector_gw_health for {cgh_asgname}, {cgh_instanceid}] No data available ")
+        logger.info(f"[cloud_connector_aggr_health for {cgh_asgname}, {cgh_instanceid}] No data available ")
+
+    return datapoints
 
 
 def retrieve_last_n_entries():
@@ -227,7 +234,7 @@ def retrieve_last_n_entries():
     end_time = datetime.datetime.now() - datetime.timedelta(minutes=10)
     logger.info('Retrieving metric data from {} to {}'.format(start_time, end_time))
     # need to add 2 extra to ensure we have at least HC_DATA_POINTS
-    num_of_data_points_to_retrieve = os.environ['HC_DATA_POINTS'] + 2
+    num_of_data_points_to_retrieve = os.environ.get('HC_DATA_POINTS', '10') + 2
 
     # FIXME pass entire dimensions for the desired metric instance instead of 1 dimension
     dimension_name = 'AutoScalingGroupName'
@@ -295,18 +302,41 @@ def retrieve_all_dimensions():
     logger.info(dimensions)
 
 
-def process_results(instance_id, health_probe_results):
+def is_stats_reported_unhealthy(datapoints):
+    hc_data_points = int(os.environ.get('HC_DATA_POINTS', '10'))
+    hc_unhealthy_threshold = int(os.environ.get('HC_UNHEALTHY_THRESHOLD', '7'))
+    if datapoints is None or not datapoints:
+        missing_datapoints_unhealthy = bool(os.environ.get('MISSING_DATAPOINTS_UNHEALTHY', 'True'))
+        if missing_datapoints_unhealthy:
+            logger.info(f'is_stats_reported_unhealthy():  Either none or empty and hence marking instance as unhealthy')
+            return True
+
+    datapoint_to_evaluate = len(datapoints)
+    logger.info(f"is_stats_reported_unhealthy() number of datapoints to evaluate: {datapoint_to_evaluate}")
+    count = 0
+    for datapoint in datapoints:
+        if datapoint['Average'] < 100:
+            count += 1
+
+    if count >= hc_unhealthy_threshold:
+        return True
+    else:
+        return False
+
+
+def if_unhealthy_ask_autoscaling_to_replace_instance(instance_id, asg_name, health_stats_recent_datapoints_results):
     # Check if HC_UNHEALTHY_THRESHOLD out of HC_DATA_POINTS health probe results are 0 %
-    hc_data_points = os.environ['HC_DATA_POINTS']
-    hc_unhealthy_threshold = os.environ['HC_UNHEALTHY_THRESHOLD']
-    if health_probe_results.count(0) >= hc_unhealthy_threshold:
-        logger.info(f"process_results found unhealthy datapoint count of {health_probe_results.count(0)}")
+
+    if is_stats_reported_unhealthy(health_stats_recent_datapoints_results):
+        logger.info(f"process_results found asg_name: {asg_name} instance {instance_id} unhealthy datapoint count of'"
+                    f" {health_stats_recent_datapoints_results.count(0)}")
         # Set the custom Auto Scaling group health check for the instance as unhealthy
         autoscaling_client.set_instance_health(
             InstanceId=instance_id,
             HealthStatus='Unhealthy',
             ShouldRespectGracePeriod=False
         )
+        return True
 
 
 def get_in_service_instances(auto_scaling_group_name):
@@ -449,15 +479,38 @@ def complete_lifecycle_action(hook_name, asg_name, token, instance_id):
         logger.exception(e)
         return False
 
+def extract_zs_group_vm_ids(data):
+    try:
+        if not isinstance(data, list) or len(data) == 0:
+            raise ValueError("Invalid data object")
+
+        zs_group_id = data[0].get('ZsGroupId')
+        zs_vm_id = data[0].get('ZsVmId')
+
+        if zs_group_id is None or zs_vm_id is None:
+            raise ValueError("Missing ZsGroupId or ZsVmId")
+
+        return zs_group_id, zs_vm_id
+
+    except (ValueError, IndexError) as e:
+        print("Error occurred:", str(e))
+        return None, None
+
 
 def get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instance_id):
     base_url, dimensions = get_dimensions_for_health_metrics(asg_name, instance_id)
+    # TODO check if I broke code by changing this method
     # retrieve zsgroupid and zsvmid
-    zsgroupid, zsvmid = extract_zsgroupid_zsvmid_from_dimensions(dimensions)
-    logger.info(f"zsgroupid: {zsgroupid} zsvmid: {zsvmid}")
+    #  extract_zsgroupid_zsvmid_from_dimensions() expects dimensions in Name,value pair
+    # zsgroupid, zsvmid = extract_zsgroupid_zsvmid_from_dimensions(dimensions)
+
+    zsgroupid, zsvmid = extract_zs_group_vm_ids(dimensions)
+    if zsgroupid is not None and zsvmid is not None:
+        logger.info(f"zsgroupid: {zsgroupid} zsvmid: {zsvmid}")
+
     if zsgroupid and zsvmid:
         # get secret value
-        secret_name = os.environ['SECRET_NAME']
+        secret_name = os.environ.get('SECRET_NAME', 'zscloudbeta11584294/CC/credentials')
 
         # Call the method to retrieve the secret value
         myapi_key, my_username, my_password = get_secret_value(secret_name)
@@ -468,9 +521,9 @@ def get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instan
 
 
 def get_dimensions_for_health_metrics(asg_name, instance_id):
-    # Specify the namespace and metric name cloud_connector_gw_health to get metadata
+    # Specify the namespace and metric name cloud_connector_aggr_health to get metadata
     namespace = 'Zscaler/CloudConnectors'
-    metric_name = 'cloud_connector_gw_health'
+    metric_name = 'cloud_connector_aggr_health'
     logger.info(
         f"get_asg_instance_metadata_and_delete_zscaler_cloud_resource: asg_name: {asg_name} instance_id: {instance_id}")
     base_url = extract_base_url()
@@ -490,7 +543,8 @@ def extract_base_url():
 
 
 def is_asg_name_in_list(asg_name):
-    asg_names_list = os.getenv('ASG_NAMES')
+    # asg_names_list = os.getenv('ASG_NAMES')
+    asg_names_list = os.environ.get('ASG_NAMES', '["vkjune8-cc-asg-1-l0nk6zcm","vkjune8-cc-asg-2-l0nk6zcm"]')
     logger.info(f"managed asg names are: {asg_names_list}")
 
     if asg_name in asg_names_list:
