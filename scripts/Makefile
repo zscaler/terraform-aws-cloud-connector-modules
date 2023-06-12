@@ -6,7 +6,7 @@ FUNCTION_NAME = vk-june7-zip-test-drive
 # Set the name of the zip file to be created
 ZIP_FILE_NAME = zscaler_cc_lambda_service.zip
 
-ZIP_FILE_NAME_LAMBDA_LAYER = zscaler_cc_lambda_service_for_lambda_layer.zip
+ZIP_FILE_NAME_LAMBDA_LAYER = zscaler_cc_lambda_service.zip.for_lambda_layer
 
 DEST_TARGET_DIR = artifacts
 
