@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+from logging import Logger
 from urllib.parse import urlparse
 
 import requests
@@ -9,7 +10,7 @@ from utils.secret_manager import get_secret_value
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger: Logger = logging.getLogger(__name__)
 
 # Create a formatter
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(funcName)s - %(message)s')
@@ -30,7 +31,8 @@ class ZscalerApiClient:
         self.base_url = base_url
         self.jsessionid = None
 
-    def obfuscate_api_key(self, seed):
+    @staticmethod
+    def obfuscate_api_key(seed):
         now = int(time.time() * 1000)
         n = str(now)[-6:]
         r = str(int(n) >> 1).zfill(6)
@@ -113,12 +115,12 @@ class ZscalerApiClient:
         self.make_api_request(ecvm_url, method='delete')
 
         # Step 5: Get ecAdminActivateStatus
-        ecAdminActivateStatus_url = f"{self.base_url}/api/v1/ecAdminActivateStatus"
-        self.make_api_request(ecAdminActivateStatus_url)
+        ec_admin_activate_status_url = f"{self.base_url}/api/v1/ecAdminActivateStatus"
+        self.make_api_request(ec_admin_activate_status_url)
 
         # Step 6: Activate using Put
-        ecAdminActivate_url = f"{self.base_url}/api/v1/ecAdminActivateStatus/activate"
-        self.make_api_request(ecAdminActivate_url, method='put')
+        ec_admin_activate_url: str = f"{self.base_url}/api/v1/ecAdminActivateStatus/activate"
+        self.make_api_request(ec_admin_activate_url, method='put')
 
         # Step 7: Logout using delete
         logout_url = f"{self.base_url}/api/v1/auth"
