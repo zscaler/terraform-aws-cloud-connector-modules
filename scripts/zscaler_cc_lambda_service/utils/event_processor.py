@@ -59,7 +59,7 @@ def process_data(event):
     elif detail_type == 'EC2 Instance State-change Notification':
         process_terminated_instance_action(event)
     else:
-        logger.warning("Unknown event detail-type: %s", detail_type)
+        logger.warning(f"Not supported: Unknown event detail-type: {detail_type} Ignoring")
 
     return "Data processed successfully"
 
@@ -82,19 +82,19 @@ def read_environment_variables() -> object:
 
 
 def process_scheduled_event(event):
-    logger.info("event: %s", event)
+    logger.info(f"event: {event}")
     # Check health of the instance and set custom autoscale health if unhealthy
     process_fault_management_event(event)
 
 
 def process_terminate_lifecycle_action(event):
-    logger.info("event: %s", event)
+    logger.info(f"event: {event}")
     # processing the EC2 Instance-terminate Lifecycle Action
     process_lifecycle_termination_events(event)
 
 
 def process_terminated_instance_action(event):
-    logger.info("event: %s", event)
+    logger.info(f"event: {event}")
     # processing the EC2 Instance-terminate Lifecycle Action
     process_terminated_instance_events(event)
 
@@ -164,9 +164,11 @@ def process_fault_management_event(event):
                 health_stats_datapoints_results = getstats_cloud_connector_gw_health(asg_name, instance_id, dimensions)
                 if if_unhealthy_ask_autoscaling_to_replace_instance(instance_id, asg_name,
                                                                     health_stats_datapoints_results):
+                    logger.info(f'if_unhealthy_ask_autoscaling_to_replace_instance(): returned True, for instance: '
+                                f'{instance_id} asg_name: {asg_name} '
+                                f'health_stats_datapoints_results: {health_stats_datapoints_results}')
                     # delete the Zscaler resource as well
                     get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instance_id)
-
 
         return f'health checked for all Inservice instances for autoscalinggroup list  successfully.'
     except Exception as e:
@@ -186,6 +188,7 @@ def getstats_cloud_connector_gw_health(cgh_asgname, cgh_instanceid, dimensions):
                 'Value': value
             })
 
+    # Needs to be Name, value pair dimensions when sent to get_metric_statistics
     logger.info(f'dimensions_formatted_list: {dimensions_formatted_list}')
     endtime = datetime.utcnow()
     starttime = endtime - timedelta(minutes=12)
@@ -228,8 +231,12 @@ def getstats_cloud_connector_gw_health(cgh_asgname, cgh_instanceid, dimensions):
     return datapoints
 
 
+'''
+retrieve_last_n_entries() not used
+'''
+
+
 def retrieve_last_n_entries():
-    logger.info("Entering")
     start_time = datetime.datetime.now() - datetime.timedelta(minutes=30)
     end_time = datetime.datetime.now() - datetime.timedelta(minutes=10)
     logger.info('Retrieving metric data from {} to {}'.format(start_time, end_time))
@@ -291,15 +298,13 @@ def retrieve_last_n_entries():
 
 
 def retrieve_all_dimensions():
-    logger.info("Entering retrieve_all_dimensions")
     response = cloudwatch_client.list_metrics(
         Namespace=custom_namespace,
         MetricName=custom_metric
     )
-    logger.info(response)
+    logger.debug(f'response: {response}')
     dimensions = [metric['Dimensions'] for metric in response['Metrics']]
-    logger.info('Dimensions associated with the metric:')
-    logger.info(dimensions)
+    logger.debug(f'dimensions: {dimensions}')
 
 
 def is_stats_reported_unhealthy(datapoints):
@@ -308,11 +313,11 @@ def is_stats_reported_unhealthy(datapoints):
     if datapoints is None or not datapoints:
         missing_datapoints_unhealthy = bool(os.environ.get('MISSING_DATAPOINTS_UNHEALTHY', 'True'))
         if missing_datapoints_unhealthy:
-            logger.info(f'is_stats_reported_unhealthy():  Either none or empty and hence marking instance as unhealthy')
+            logger.info(f'Either none or empty and hence marking instance as unhealthy')
             return True
 
     datapoint_to_evaluate = len(datapoints)
-    logger.info(f"is_stats_reported_unhealthy() number of datapoints to evaluate: {datapoint_to_evaluate}")
+    logger.info(f"number of datapoints to evaluate: {datapoint_to_evaluate}")
     count = 0
     for datapoint in datapoints:
         if datapoint['Average'] < 100:
@@ -331,6 +336,8 @@ def if_unhealthy_ask_autoscaling_to_replace_instance(instance_id, asg_name, heal
         logger.info(f"process_results found asg_name: {asg_name} instance {instance_id} unhealthy datapoint count of'"
                     f" {health_stats_recent_datapoints_results.count(0)}")
         # Set the custom Auto Scaling group health check for the instance as unhealthy
+        logger.info(f'Found instance {instance_id} in asg {asg_name} Unhealthy, breaching threshold'
+                    f'sending message to autoscaling orchestration svc to terminate the instance')
         autoscaling_client.set_instance_health(
             InstanceId=instance_id,
             HealthStatus='Unhealthy',
@@ -365,11 +372,11 @@ def extract_ec2_instance_id_and_asg_name(event):
     elif event['detail-type'] == 'EC2 Instance State-change Notification':
         ec2_instance_id = event['detail']['instance-id']
         logger.info(
-            f'extract_ec2_instance_id_and_asg_name(): Find out the autoscaling group name for instanceId: {ec2_instance_id}')
+            f'Find out the autoscaling group name for instanceId: {ec2_instance_id}')
         autoscaling_group_name = get_autoscaling_group_name(ec2_instance_id)
         if autoscaling_group_name:
             logger.info(
-                f'extract_ec2_instance_id_and_asg_name(): Found instanceId: {ec2_instance_id} autoscaling_group_name {autoscaling_group_name}')
+                f'Found instanceId: {ec2_instance_id} autoscaling_group_name {autoscaling_group_name}')
     else:
         logger.info("Unsupported event type.")
         return None, None
@@ -398,7 +405,7 @@ def extract_zsgroupid_zsvmid_from_dimensions(dimensions):
 
 
 def process_lifecycle_termination_events(event):
-    logger.info(f"process_lifecycle_termination_events  received: {event}")
+    logger.info(f"received: {event}")
 
     # Get the instance ID, asg_name from the event
     instance_id, asg_name = extract_ec2_instance_id_and_asg_name(event)
@@ -471,13 +478,14 @@ def complete_lifecycle_action(hook_name, asg_name, token, instance_id):
             logger.info("Lifecycle action completed successfully.")
             return True
         else:
-            logger.error("Failed to complete the lifecycle action.")
+            logger.warning("Failed to complete the lifecycle action.")
             return False
 
     except Exception as e:
-        logger.error("Failed to complete the lifecycle action.")
+        logger.warning("Failed to complete the lifecycle action.")
         logger.exception(e)
         return False
+
 
 def extract_zs_group_vm_ids(data):
     try:
@@ -506,7 +514,8 @@ def get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instan
 
     zsgroupid, zsvmid = extract_zs_group_vm_ids(dimensions)
     if zsgroupid is not None and zsvmid is not None:
-        logger.info(f"zsgroupid: {zsgroupid} zsvmid: {zsvmid}")
+        logger.info(f"Zscaler resource deletion planned for zsgroupid: {zsgroupid} zsvmid: {zsvmid}"
+                    f"asg_name: {asg_name} instance_id: {instance_id}")
 
     if zsgroupid and zsvmid:
         # get secret value
