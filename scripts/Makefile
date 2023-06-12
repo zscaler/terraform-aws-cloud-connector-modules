@@ -50,9 +50,11 @@ fresh-deploy: install
 
 terraform_module_deploy: install
 	cp $(ZIP_FILE_NAME) $(TERRAFORM_TARGET_DIR)/$(ZIP_FILE_NAME)
+	cp $(ZIP_FILE_NAME_LAMBDA_LAYER) $(TERRAFORM_TARGET_DIR)/$(ZIP_FILE_NAME_LAMBDA_LAYER)
 
 s3_deploy: 
 	aws s3 cp $(ZIP_FILE_NAME) s3://$(S3_FOLDER)/$(ZIP_FILE_NAME)
+	aws s3 cp $(ZIP_FILE_NAME_LAMBDA_LAYER) s3://$(S3_FOLDER)/$(ZIP_FILE_NAME_LAMBDA_LAYER)
 
 lambdalayer_install:
 	# Create a temporary directory
@@ -69,4 +71,4 @@ clean:
 	rm -f $(DEST_TARGET_DIR)/$(ZIP_FILE_NAME)
 	rm -rf temp temp_lambdalayer
 
-all: clean install s3_deploy terraform_module_deploy
+all: clean install lambdalayer_install s3_deploy terraform_module_deploy
