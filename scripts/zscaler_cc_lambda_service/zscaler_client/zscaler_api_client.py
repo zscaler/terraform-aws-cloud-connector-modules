@@ -108,8 +108,8 @@ class ZscalerApiClient:
         # self.make_api_request(ecgrouplite_url)
         #
         # # Step 3: Read ecvmid
-        ecvm_url = f"{self.base_url}/api/v1/ecgroup/{zSGroupId}/vm/{zsVmId}"
-        # self.make_api_request(ecvm_url)
+        ecvm_url: str = f"{self.base_url}/api/v1/ecgroup/{zSGroupId}/vm/{zsVmId}"
+        self.make_api_request(ecvm_url)
 
         # Step 4: Delete the ecvmid
         self.make_api_request(ecvm_url, method='delete')
