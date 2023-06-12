@@ -6,6 +6,8 @@ FUNCTION_NAME = vk-june7-zip-test-drive
 # Set the name of the zip file to be created
 ZIP_FILE_NAME = zscaler_cc_lambda_service.zip
 
+ZIP_FILE_NAME_LAMBDA_LAYER = zscaler_cc_lambda_service_for_lambda_layer.zip
+
 DEST_TARGET_DIR = artifacts
 
 # Set the path to your Python interpreter 3.9
@@ -52,8 +54,19 @@ terraform_module_deploy: install
 s3_deploy: 
 	aws s3 cp $(ZIP_FILE_NAME) s3://$(S3_FOLDER)/$(ZIP_FILE_NAME)
 
+lambdalayer_install:
+	# Create a temporary directory
+	mkdir -p temp_lambdalayer
+	# Copy your Python files to the temporary directory
+	cp -r zscaler_cc_lambda_service/* temp_lambdalayer/
+	# Create the zip file
+	cd temp_lambdalayer && zip -r ../$(ZIP_FILE_NAME_LAMBDA_LAYER) .
+	cp $(ZIP_FILE_NAME_LAMBDA_LAYER) $(DEST_TARGET_DIR)/$(ZIP_FILE_NAME_LAMBDA_LAYER)
+	# Clean up temporary directory
+	rm -rf temp_lambdalayer
+
 clean:
 	rm -f $(DEST_TARGET_DIR)/$(ZIP_FILE_NAME)
-	rm -rf temp
+	rm -rf temp temp_lambdalayer
 
 all: clean install s3_deploy terraform_module_deploy
