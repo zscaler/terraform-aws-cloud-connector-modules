@@ -26,7 +26,7 @@ install:
 	cp -r zscaler_cc_lambda_service/* temp/
 	# Create the zip file
 	cd temp && zip -r ../$(ZIP_FILE_NAME) .
-	cp $(ZIP_FILE_NAME) $(DEST_TARGET_DIR)/$(ZIP_FILE)
+	cp $(ZIP_FILE_NAME) $(DEST_TARGET_DIR)/$(ZIP_FILE_NAME)
 	# Clean up temporary directory
 	rm -rf temp
 
@@ -49,9 +49,11 @@ fresh-deploy: install
 terraform_module_deploy: install
 	cp $(ZIP_FILE_NAME) $(TERRAFORM_TARGET_DIR)/$(ZIP_FILE_NAME)
 
-s3_deploy: install
+s3_deploy: 
 	aws s3 cp $(ZIP_FILE_NAME) s3://$(S3_FOLDER)/$(ZIP_FILE_NAME)
 
 clean:
 	rm -f $(DEST_TARGET_DIR)/$(ZIP_FILE_NAME)
 	rm -rf temp
+
+all: clean install s3_deploy terraform_module_deploy
