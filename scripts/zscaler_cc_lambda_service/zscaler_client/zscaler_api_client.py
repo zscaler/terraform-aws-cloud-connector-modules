@@ -74,7 +74,7 @@ class ZscalerApiClient:
             "Accept": "application/json",
             "Cookie": f"JSESSIONID={self.jsessionid}"
         }
-
+        logger.info(f"method: {method} url: {url}")
         try:
             if method == 'get':
                 response = requests.get(url, headers=headers, verify=False)
@@ -85,10 +85,12 @@ class ZscalerApiClient:
             elif method == 'delete':
                 response = requests.delete(url, headers=headers, verify=False)
             else:
-                logger.error("Invalid HTTP method.")
+                logger.error(f"Invalid HTTP method. {method}")
                 return None
 
-            if response.status_code == 200:
+            logger.info(f"method: {method} url: {url} http_status_code: {response.status_code}")
+
+            if response.status_code >= 200 or response.status_code < 300:
                 data = response.json()
                 logger.info(f"API request successful. Response: {data}")
                 return data
