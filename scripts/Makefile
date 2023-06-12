@@ -14,7 +14,7 @@ DEST_TARGET_DIR = artifacts
 PYTHON_INTERPRETER = python3
 
 #Terraform module folder
-TERRAFORM_TARGET_DIR = ../modules/terraform-zscc-lambda-aws
+TERRAFORM_TARGET_DIR = ../modules/terraform-zscc-asg-lambda-aws
 
 #S3 folder
 S3_FOLDER = zscc-dev/lambda_scripts
