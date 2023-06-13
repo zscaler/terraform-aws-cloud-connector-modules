@@ -64,7 +64,7 @@ def invoke_lambda_locally():
             "arn:aws:ec2:us-east-1:123456789012:instance/i-abcd5555"
         ],
         "detail": {
-            "instance-id": "i-069ddc7ef9375896d",
+            "instance-id": "i-03200d11a5163947e",
             "state": "terminated"
         }
     }
@@ -83,9 +83,9 @@ def invoke_lambda_locally():
       ],
       "detail": {
         "LifecycleActionToken": "630aa23f-48eb-45e7-aba6-799ea6093a0f",
-        "AutoScalingGroupName": "vkjune8-cc-asg-1-l0nk6zcm",
-        "LifecycleHookName": "vkjune8-cc-asg-1-lifecyclehook-terminate-l0nk6zcm",
-        "EC2InstanceId": "i-0779050666e3ecd88",
+        "AutoScalingGroupName": "vkjune8-cc-asg-1-bu4wgv5y",
+        "LifecycleHookName": "vkjune8-cc-asg-1-lifecyclehook-terminate-bu4wgv5y",
+        "EC2InstanceId": "i-03200d11a5163947e",
         "LifecycleTransition": "autoscaling:EC2_INSTANCE_TERMINATING"
       }
     }
@@ -119,7 +119,7 @@ def invoke_lambda_locally():
     }
 
     # Invoke the lambda_handler with the test event
-    response = lambda_handler(test_termination_event, None)
+    response = lambda_handler(test_asg_termination_event, None)
 
     # Print the response
     print(response)
