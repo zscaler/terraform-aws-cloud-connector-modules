@@ -72,7 +72,8 @@ def read_environment_variables() -> object:
     logger.info(f"log_group_name: {log_group_name}")
     logger.info(f"log_stream_name: {log_stream_name}")
 
-    asg_list = os.environ.get('ASG_NAMES', '["vkjune8-cc-asg-1-l0nk6zcm","vkjune8-cc-asg-2-l0nk6zcm"]')
+    # asg_list = os.environ.get('ASG_NAMES', '["vkjune8-cc-asg-1-bu4wgv5y","vkjune8-cc-asg-2-bu4wgv5y"]')
+    asg_list = os.environ.get('ASG_NAMES', '["vkjune8-cc-asg-1-bu4wgv5y"]')
     cc_url = os.environ.get('CC_URL', 'connector.zscalerbeta.net/api/v1/provUrl?name=aws_prov_template1')
     secret_name = os.environ.get('SECRET_NAME', 'zscloudbeta11584294/CC/credentials')
     hc_data_points = os.environ.get('HC_DATA_POINTS', '10')
@@ -84,23 +85,28 @@ def read_environment_variables() -> object:
 def process_scheduled_event(event):
     logger.info(f"event: {event}")
     # Check health of the instance and set custom autoscale health if unhealthy
-    process_fault_management_event(event)
+    result = process_fault_management_event(event)
+    logger.info(f'result is : {result}')
 
 
 def process_terminate_lifecycle_action(event):
     logger.info(f"event: {event}")
     # processing the EC2 Instance-terminate Lifecycle Action
-    process_lifecycle_termination_events(event)
+    result = process_lifecycle_termination_events(event)
+    logger.info(f'result is : {result}')
 
 
 def process_terminated_instance_action(event):
     logger.info(f"event: {event}")
     # processing the EC2 Instance-terminate Lifecycle Action
-    process_terminated_instance_events(event)
+    result = process_terminated_instance_events(event)
+    logger.info(f'result is : {result}')
+
 
 
 def get_asg_names():
-    asg_names_str = os.environ.get('ASG_NAMES', '["vkjune8-cc-asg-1-l0nk6zcm","vkjune8-cc-asg-2-l0nk6zcm"]')
+    # asg_names_str = os.environ.get('ASG_NAMES', '["vkjune8-cc-asg-1-bu4wgv5y","vkjune8-cc-asg-2-bu4wgv5y"]')
+    asg_names_str = os.environ.get('ASG_NAMES', '["vkjune8-cc-asg-1-bu4wgv5y"]')
     asg_names = json.loads(asg_names_str)
     if not asg_names:
         raise ValueError("No ASG names provided in the environment variable.")
@@ -169,6 +175,9 @@ def process_fault_management_event(event):
                                 f'health_stats_datapoints_results: {health_stats_datapoints_results}')
                     # delete the Zscaler resource as well
                     get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instance_id)
+                else:
+                    logger.info(f'if_unhealthy_ask_autoscaling_to_replace_instance(): returned False, for instance: '
+                                f'{instance_id} asg_name: {asg_name} hence it is HEALTHY')
 
         return f'health checked for all Inservice instances for autoscalinggroup list  successfully.'
     except Exception as e:
@@ -553,7 +562,8 @@ def extract_base_url():
 
 def is_asg_name_in_list(asg_name):
     # asg_names_list = os.getenv('ASG_NAMES')
-    asg_names_list = os.environ.get('ASG_NAMES', '["vkjune8-cc-asg-1-l0nk6zcm","vkjune8-cc-asg-2-l0nk6zcm"]')
+    # asg_names_list = os.environ.get('ASG_NAMES', '["vkjune8-cc-asg-1-bu4wgv5y","vkjune8-cc-asg-2-bu4wgv5y"]')
+    asg_names_list = os.environ.get('ASG_NAMES', '["vkjune8-cc-asg-1-bu4wgv5y"]')
     logger.info(f"managed asg names are: {asg_names_list}")
 
     if asg_name in asg_names_list:
