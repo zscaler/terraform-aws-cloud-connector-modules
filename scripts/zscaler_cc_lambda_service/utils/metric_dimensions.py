@@ -23,6 +23,8 @@ def retrieve_dimensions(namespace, metric_name, dimension_pairs):
     # Retrieve all metrics matching the namespace and metric name
     dimensions = []
     for name, value in dimension_pairs:
+        if value is None:
+            return []
         dimensions.append({
             'Name': name,
             'Value': value

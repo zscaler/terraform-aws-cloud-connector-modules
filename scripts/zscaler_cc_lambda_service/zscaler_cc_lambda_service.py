@@ -119,7 +119,7 @@ def invoke_lambda_locally():
     }
 
     # Invoke the lambda_handler with the test event
-    response = lambda_handler(test_asg_termination_event, None)
+    response = lambda_handler(test_termination_event, None)
 
     # Print the response
     print(response)

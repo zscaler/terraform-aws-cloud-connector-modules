@@ -103,7 +103,6 @@ def process_terminated_instance_action(event):
     logger.info(f'result is : {result}')
 
 
-
 def get_asg_names():
     # asg_names_str = os.environ.get('ASG_NAMES', '["vkjune8-cc-asg-1-bu4wgv5y","vkjune8-cc-asg-2-bu4wgv5y"]')
     asg_names_str = os.environ.get('ASG_NAMES', '["vkjune8-cc-asg-1-bu4wgv5y"]')
@@ -114,10 +113,48 @@ def get_asg_names():
 
 
 # FIXME Can't use this call yet as no IAM rules setup lets use the other one for now
-def get_instances_in_service(asg_name):
+# def get_instances_in_service(asg_name):
+#     response = autoscaling_client.describe_auto_scaling_groups(AutoScalingGroupNames=[asg_name])
+#     instances = response['AutoScalingGroups'][0]['Instances']
+#     return [instance for instance in instances if instance['LifecycleState'] == 'InService']
+
+
+def get_instances_by_pool_membership(asg_name):
     response = autoscaling_client.describe_auto_scaling_groups(AutoScalingGroupNames=[asg_name])
     instances = response['AutoScalingGroups'][0]['Instances']
-    return [instance for instance in instances if instance['LifecycleState'] == 'InService']
+
+    in_service_instances = []
+    in_warm_pool_instances = []
+    ten_minutes = timedelta(minutes=10)
+
+    # Check if warm pool is configured for the Auto Scaling group
+    if 'WarmPoolConfiguration' in response['AutoScalingGroups'][0]:
+        warm_pool_response = autoscaling_client.describe_warm_pool(AutoScalingGroupName=asg_name)
+        warm_pool_instances = [instance['InstanceId'] for instance in warm_pool_response['Instances']]
+
+        for instance in instances:
+            if instance['InstanceId'] in warm_pool_instances:
+                in_warm_pool_instances.append(instance)
+            elif instance['LifecycleState'] == 'InService':
+                instance_uptime = get_instance_uptime(instance['InstanceId'])
+                if instance_uptime >= ten_minutes:
+                    in_service_instances.append(instance)
+    else:
+        for instance in instances:
+            if instance['LifecycleState'] == 'InService':
+                instance_uptime = get_instance_uptime(instance['InstanceId'])
+                if instance_uptime >= ten_minutes:
+                    in_service_instances.append(instance)
+
+    return in_service_instances, in_warm_pool_instances
+
+
+def get_instance_uptime(instance_id):
+    response = ec2_client.describe_instances(InstanceIds=[instance_id])
+    launch_time = response['Reservations'][0]['Instances'][0]['LaunchTime']
+    current_time = datetime.now(launch_time.tzinfo)
+    uptime = current_time - launch_time
+    return uptime
 
 
 def get_autoscaling_group_name(instance_id):
@@ -153,21 +190,31 @@ def log_instance_info(instance_id, asg_name):
 
 def process_fault_management_event(event):
     logger.info(f"event: {event}")
+    hc_data_points = int(os.environ.get('HC_DATA_POINTS', '10'))
     # Get the Auto Scaling group name
     try:
         asg_names = get_asg_names()
 
         for asg_name in asg_names:
-            # instances = get_instances_in_service(asg_name)
-            instances = get_in_service_instances(asg_name)
+            # instances, warm_pool_instances = get_instances_in_service(asg_name)
+            instances, warm_pool_instances = get_instances_by_pool_membership(asg_name)
+            # TODO check which is correct
+            instances_minus_warmpool = get_inservice_instances_not_in_warm_pool(asg_name)
+            # instances = get_in_service_instances(asg_name)
             for instance in instances:
                 # instance_id = instance['InstanceId']
                 instance_id = instance
                 log_instance_info(instance_id, asg_name)
-                # query the custom health metric for this pair and get 10 entries at least If HC_UNHEALTHY_THRESHOLD
+                # query the custom health metric for this pair and get 10 entries at least. If HC_UNHEALTHY_THRESHOLD
                 # out of HC_DATA_POINTS entries are unhealthy these are in env than mark instance as unhealthy
-                base_url, dimensions = get_dimensions_for_health_metrics(asg_name, instance_id)
+                base_url, dimensions = get_dimensions_for_health_metrics(asg_name, instance_id['InstanceId'])
                 health_stats_datapoints_results = getstats_cloud_connector_gw_health(asg_name, instance_id, dimensions)
+                # TODO check if instance is up for at least 10 minutes
+                # not needed as we already check if instance uptime is 10 minute
+                # if not is_instance_in_service_for_x_amount_of_time(instance_id, hc_data_points):
+                #     logger.info(f'instance_id: {instance_id} is running for less than {hc_data_points} minutes'
+                #                 f'and hence Skipping health check')
+                #     continue
                 if if_unhealthy_ask_autoscaling_to_replace_instance(instance_id, asg_name,
                                                                     health_stats_datapoints_results):
                     logger.info(f'if_unhealthy_ask_autoscaling_to_replace_instance(): returned True, for instance: '
@@ -189,6 +236,7 @@ def getstats_cloud_connector_gw_health(cgh_asgname, cgh_instanceid, dimensions):
     # Retrieve cloud_connector_aggr_health
     # dimensions is a list of dict
     # get first item
+    hc_data_points = int(os.environ.get('HC_DATA_POINTS', '10'))
     dimensions_formatted_list = []
     for dimension in dimensions:
         for name, value in dimension.items():
@@ -200,7 +248,8 @@ def getstats_cloud_connector_gw_health(cgh_asgname, cgh_instanceid, dimensions):
     # Needs to be Name, value pair dimensions when sent to get_metric_statistics
     logger.info(f'dimensions_formatted_list: {dimensions_formatted_list}')
     endtime = datetime.utcnow()
-    starttime = endtime - timedelta(minutes=12)
+    # configured time +
+    starttime = endtime - timedelta(minutes=hc_data_points + 2)
     try:
         response = cloudwatch_client.get_metric_statistics(
             Namespace=custom_namespace,
@@ -319,14 +368,19 @@ def retrieve_all_dimensions():
 def is_stats_reported_unhealthy(datapoints):
     hc_data_points = int(os.environ.get('HC_DATA_POINTS', '10'))
     hc_unhealthy_threshold = int(os.environ.get('HC_UNHEALTHY_THRESHOLD', '7'))
-    if datapoints is None or not datapoints:
-        missing_datapoints_unhealthy = bool(os.environ.get('MISSING_DATAPOINTS_UNHEALTHY', 'True'))
-        if missing_datapoints_unhealthy:
-            logger.info(f'Either none or empty and hence marking instance as unhealthy')
-            return True
+    if hc_unhealthy_threshold:
+        if datapoints is None or not datapoints:
+            missing_datapoints_unhealthy = bool(os.environ.get('MISSING_DATAPOINTS_UNHEALTHY', 'True'))
+            if missing_datapoints_unhealthy:
+                logger.info(f'Either none or empty and hence marking instance as unhealthy')
+                return True
 
     datapoint_to_evaluate = len(datapoints)
     logger.info(f"number of datapoints to evaluate: {datapoint_to_evaluate}")
+    if datapoint_to_evaluate <= hc_data_points:
+        # need to have min. number of datapoints otherwise skip
+        return False
+
     count = 0
     for datapoint in datapoints:
         if datapoint['Average'] < 100:
@@ -355,6 +409,40 @@ def if_unhealthy_ask_autoscaling_to_replace_instance(instance_id, asg_name, heal
         return True
 
 
+def is_instance_in_service_for_x_amount_of_time(instance_id, inservice_age):
+    response = autoscaling_client.describe_auto_scaling_instances(InstanceIds=[instance_id])
+    instance_status = response['AutoScalingInstances'][0]['LifecycleState']
+    transition_time = response['AutoScalingInstances'][0]['LifecycleTransitionStart']
+
+    if instance_status == 'InService':
+        current_time = datetime.now(transition_time.tzinfo)
+        elapsed_time = current_time - transition_time
+        elapsed_minutes = elapsed_time.total_seconds() / 60
+
+        if elapsed_minutes >= inservice_age:
+            return True
+
+    return False
+
+
+def get_inservice_instances_not_in_warm_pool(auto_scaling_group_name):
+    # Get the Auto Scaling group details
+    response = autoscaling_client.describe_auto_scaling_groups(AutoScalingGroupNames=[auto_scaling_group_name])
+    instances = response['AutoScalingGroups'][0]['Instances']
+    warm_pool_instances = response['AutoScalingGroups'][0].get('WarmPoolConfiguration', {}).get('Instances', [])
+
+    # Find instances that are InService and not in the warm pool
+    inservice_instances = []
+    for instance in instances:
+        instance_id = instance['InstanceId']
+        if instance_id not in warm_pool_instances and instance['LifecycleState'] == 'InService':
+            inservice_instances.append(instance_id)
+
+    return inservice_instances
+
+
+# TODO Somehow this returns warm pool instances that are initializing
+# maybe I  have to filter this out
 def get_in_service_instances(auto_scaling_group_name):
     # Retrieve in-service instances from the Auto Scaling group
     response = ec2_client.describe_instances(
@@ -368,6 +456,8 @@ def get_in_service_instances(auto_scaling_group_name):
     for reservation in response['Reservations']:
         for instance in reservation['Instances']:
             instance_id = instance['InstanceId']
+            if not instance['LaunchTime'] >= 10 * 60:
+                logger.info(f'launchtime less than 10 minutes instanceid: {instance_id} skipping')
             in_service_instances.append(instance_id)
             logger.info(f"In-Service Instance ID: {instance_id}")
 
@@ -515,6 +605,10 @@ def extract_zs_group_vm_ids(data):
 
 
 def get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instance_id):
+    if asg_name is None or instance_id is None:
+        logger.info(f'asg_name: {asg_name} instance_id: {instance_id} one of them is None and hence '
+                    f'cannot retreive statistics, cannot handle this event, processing is complete')
+        return False
     base_url, dimensions = get_dimensions_for_health_metrics(asg_name, instance_id)
     # TODO check if I broke code by changing this method
     # retrieve zsgroupid and zsvmid
@@ -536,6 +630,7 @@ def get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instan
         # create an authenticated session and delete the zsvmid and logout
         zscaler_api = ZscalerApiClient(myapi_key, my_username, my_password, base_url)
         zscaler_api.process_data(zsgroupid, zsvmid)
+        return True
 
 
 def get_dimensions_for_health_metrics(asg_name, instance_id):
@@ -607,23 +702,27 @@ def process_terminated_instance_events(event: object) -> object:
             return response
 
         get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instance_id)
-        # can't get hook_name or toke from this event
+        # can't get hook_name or token from this event
         # let complete_lifecycle_action() handle those case using different API
-        hook_name = None
-        token = None
-        success = complete_lifecycle_action(hook_name, asg_name, token, instance_id)
+        if asg_name is not None and instance_id is not None:
+            hook_name = None
+            token = None
+            success = complete_lifecycle_action(hook_name, asg_name, token, instance_id)
 
-        if success:
-            # Handle successful completion of the lifecycle action
-            logger.info(f"Lifecycle action completed successfully.")
+            if success:
+                # Handle successful completion of the lifecycle action
+                logger.info(f"Lifecycle action completed successfully.")
+            else:
+                # Handle failure in completing the lifecycle action
+                logger.error(f"Failed to complete the lifecycle action.")
+
+            success_code = 200
         else:
-            # Handle failure in completing the lifecycle action
-            logger.error(f"Failed to complete the lifecycle action.")
-
-        success_code = 200
+            success_code = 404
+            message_body = f"one of ASG name or instance_id is None. no work to be done"
 
     elif instance_id:
-        message_body = f"{instance_id} is valid, but ASG name is missing. Zscaler cloud resources will be cleaned"
+        message_body = f"{instance_id} is valid, but ASG name is missing. Zscaler cloud resources won't be cleaned"
         logger.info(message_body)
         get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instance_id)
         success_code = 200
