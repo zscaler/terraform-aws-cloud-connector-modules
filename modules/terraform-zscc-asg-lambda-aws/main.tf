@@ -71,6 +71,7 @@ data "aws_iam_policy_document" "lambda_autoscale_lifecycle_policy_document" {
       "autoscaling:CompleteLifecycleAction",
       "autoscaling:RecordLifecycleActionHeartbeat",
       "autoscaling:SetInstanceHealth",
+      "autoscaling:DescribeAutoScalingGroups",
       "ec2:DescribeInstanceStatus",
       "ec2:DescribeInstances"
     ]
