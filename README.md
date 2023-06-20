@@ -42,6 +42,15 @@ version 0.13.7 should be generally supported.
 7.  A valid Zscaler Cloud Connector provisioning URL generated from the Zscaler Cloud & Branch Connector Admin Portal
 8.  Zscaler Cloud Connector Credentials (api key, username, password) are stored in AWS Secrets Manager
 
+### **Terraform client requirements**
+9. If executing Terraform via the "zsec" wrapper bash script, it is advised that you run from a MacOS or Linux workstation. Minimum installed application requirements to successfully from the script are:
+- AWS CLI (to generate temporary session token if required)
+- bash
+- curl
+- unzip
+<br>
+<br>
+
 ## **Greenfield Deployments** 
 
 Use this if you are building an entire cluster from the ground up. These templates include a bastion host and test workloads and are designed for greenfield/POV testing. 
