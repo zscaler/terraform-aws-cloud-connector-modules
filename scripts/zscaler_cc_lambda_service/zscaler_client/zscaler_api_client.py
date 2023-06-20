@@ -75,58 +75,78 @@ class ZscalerApiClient:
             "Cookie": f"JSESSIONID={self.jsessionid}"
         }
         logger.info(f"method: {method} url: {url}")
-        try:
-            if method == 'get':
-                response = requests.get(url, headers=headers, verify=False)
-            elif method == 'post':
-                response = requests.post(url, json=payload, headers=headers, verify=False)
-            elif method == 'put':
-                response = requests.put(url, headers=headers, verify=False)
-            elif method == 'delete':
-                response = requests.delete(url, headers=headers, verify=False)
-            else:
-                logger.error(f"Invalid HTTP method. {method}")
+
+        max_retries = 3
+        retries = 0
+        delay = 1  # initial delay in seconds
+
+        while retries < max_retries:
+            try:
+                if method == 'get':
+                    response = requests.get(url, headers=headers)
+                elif method == 'post':
+                    response = requests.post(url, json=payload, headers=headers)
+                elif method == 'put':
+                    response = requests.put(url, headers=headers)
+                elif method == 'delete':
+                    response = requests.delete(url, headers=headers)
+                else:
+                    logger.error("Invalid HTTP method.")
+                    return None
+
+                logger.info(f"method: {method} url: {url} retries: {retries} http_status_code: {response.status_code}")
+
+                if response.status_code >= 200 or response.status_code < 300:
+                    data = response.json()
+                    logger.info(f"API request successful. Response: {data}")
+                    return data
+                else:
+                    logger.error(f"API request failed. url: {url} HTTP status code: {response.status_code}")
+                    return None
+
+            except requests.exceptions.RequestException as e:
+                logger.error(f"Error occurred during API request: {str(e)}")
+
+            if retries == max_retries - 1:
+                logger.error(f"retries: {retries}  Maximum number of retries: {max_retries} reached.")
                 return None
 
-            logger.info(f"method: {method} url: {url} http_status_code: {response.status_code}")
+            # Increase the retry count and calculate the next delay using the backoff strategy
+            retries += 1
+            delay *= 2  # example of exponential backoff
+            logger.info(f"Retry #{retries}. Retrying in {delay} seconds...")
+            time.sleep(delay)
 
-            if response.status_code >= 200 or response.status_code < 300:
-                data = response.json()
-                logger.info(f"API request successful. Response: {data}")
-                return data
-            else:
-                logger.error(f"API request failed. url: {url} HTTP status code: {response.status_code}")
-                return None
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Error occurred during API request: {str(e)}")
-            return None
+        logger.error("Maximum number of retries reached: {max_retries}")
+        return None
 
-    def process_data(self, zSGroupId, zsVmId):
-        # Step 1: Authenticate and obtain JSESSIONID
-        self.authenticate()
 
-        # # Step 2: Use JSESSIONID for further API calls
-        # ecgrouplite_url = f"{self.base_url}/api/v1/ecgroup/lite"
-        # self.make_api_request(ecgrouplite_url)
-        #
-        # # Step 3: Read ecvmid
-        ecvm_url: str = f"{self.base_url}/api/v1/ecgroup/{zSGroupId}/vm/{zsVmId}"
-        self.make_api_request(ecvm_url)
+def process_data(self, zSGroupId, zsVmId):
+    # Step 1: Authenticate and obtain JSESSIONID
+    self.authenticate()
 
-        # Step 4: Delete the ecvmid
-        self.make_api_request(ecvm_url, method='delete')
+    # # Step 2: Use JSESSIONID for further API calls
+    # ecgrouplite_url = f"{self.base_url}/api/v1/ecgroup/lite"
+    # self.make_api_request(ecgrouplite_url)
+    #
+    # # Step 3: Read ecvmid
+    ecvm_url: str = f"{self.base_url}/api/v1/ecgroup/{zSGroupId}/vm/{zsVmId}"
+    self.make_api_request(ecvm_url)
 
-        # Step 5: Get ecAdminActivateStatus
-        ec_admin_activate_status_url = f"{self.base_url}/api/v1/ecAdminActivateStatus"
-        self.make_api_request(ec_admin_activate_status_url)
+    # Step 4: Delete the ecvmid
+    self.make_api_request(ecvm_url, method='delete')
 
-        # Step 6: Activate using Put
-        ec_admin_activate_url: str = f"{self.base_url}/api/v1/ecAdminActivateStatus/activate"
-        self.make_api_request(ec_admin_activate_url, method='put')
+    # Step 5: Get ecAdminActivateStatus
+    ec_admin_activate_status_url = f"{self.base_url}/api/v1/ecAdminActivateStatus"
+    self.make_api_request(ec_admin_activate_status_url)
 
-        # Step 7: Logout using delete
-        logout_url = f"{self.base_url}/api/v1/auth"
-        self.make_api_request(logout_url, method='delete')
+    # Step 6: Activate using Put
+    ec_admin_activate_url: str = f"{self.base_url}/api/v1/ecAdminActivateStatus/activate"
+    self.make_api_request(ec_admin_activate_url, method='put')
+
+    # Step 7: Logout using delete
+    logout_url = f"{self.base_url}/api/v1/auth"
+    self.make_api_request(logout_url, method='delete')
 
 
 def main():
