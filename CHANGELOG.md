@@ -1,3 +1,21 @@
+## v0.2.0 (June 20, 2023)
+* AWS Provider updated from 4.7.x to 4.59.x for all example templates and child modules
+* terraform-zscc-gwlb-aws custom gwlb_name and target_group_name variables added
+* name_prefix variable default string changed from zsdemo to zscc
+* validation length constraint added to name_prefix variable
+* dependency fixes for vpc/subnet data resource selection when vpc was originally created with example templates
+* GWLB default changes/new features: 
+    - Enable rebalance default
+    - flow stickiness selection capability
+    - deregistration delay changed to 0 from default 300
+    - healthy_threshold lowered from 3 to 2
+* new list(string) variable ami_id to enable custom deployments/granular upgrade scenarios
+    - moved latest AMI ID lookup from ccvm module to parent/main.tf
+* service network interface data source replaced with resource for terraform-zscc-ccvm-aws outputs
+* replace default secretsmanager policy with custom least privilege CCPermitGetSecrets with only required GetSecretValue access to the Secret Manager name specified
+* IMDSv2 required by default for Cloud Connector EC2 instance creation. imdsv2_enabled variable added to terraform-zscc-ccvm-aws module
+* CC mgmt/service security group lifecycle and dependency fixes
+
 ## v0.1.0 (December 15, 2022) 
 * github release refactor from Cloud Connector Portal
 * zsec update for terraform support up to 1.1.9 and aws provider 4.7.x

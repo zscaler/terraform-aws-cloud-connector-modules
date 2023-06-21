@@ -17,7 +17,7 @@
 
 
 #####################################################################################################################
-##### Variables 1-17 are populated automically if terraform is ran via ZSEC bash script.   ##### 
+##### Variables 1-21 are populated automically if terraform is ran via ZSEC bash script.   ##### 
 ##### Modifying the variables in this file will override any inputs from ZSEC             #####
 #####################################################################################################################
 
@@ -44,13 +44,18 @@
 ##### Custom variables. Only change if required for your environment  #####
 #####################################################################################################################
 
-## 4. AWS region where Cloud Connector resources will be deployed. This environment variable is automatically populated if running ZSEC script
+## 4. The name string for all Cloud Connector resources created by Terraform for Tag/Name attributes. (Default: zscc)
+
+#name_prefix                                = "zscc"
+
+
+## 5. AWS region where Cloud Connector resources will be deployed. This environment variable is automatically populated if running ZSEC script
 ##    and thus will override any value set here. Only uncomment and set this value if you are deploying terraform standalone. (Default: us-west-2)
 
 #aws_region                                 = "us-west-2"
 
 
-## 5. Cloud Connector AWS EC2 Instance size selection. Uncomment ccvm_instance_type line with desired vm size to change.
+## 6. Cloud Connector AWS EC2 Instance size selection. Uncomment ccvm_instance_type line with desired vm size to change.
 ##    (Default: m5.large)
 
 #ccvm_instance_type                         = "t3.medium"
@@ -63,7 +68,7 @@
 #ccvm_instance_type                         = "c5.4xlarge"
 
 
-## 6. Cloud Connector Instance size selection. Uncomment cc_instance_size line with desired vm size to change
+## 7. Cloud Connector Instance size selection. Uncomment cc_instance_size line with desired vm size to change
 ##    (Default: "small") 
 ##    **** NOTE - There is a dependency between ccvm_instance_type and cc_instance_size selections ****
 ##    If size = "small" any supported EC2 instance type can be deployed, but "m5/c5.large" is ideal
@@ -76,13 +81,13 @@
 #cc_instance_size                           = "large" 
 
 
-## 7. The number of Cloud Connector Subnets to create in sequential availability zones. Available input range 1-3 (Default: 2)
+## 8. The number of Cloud Connector Subnets to create in sequential availability zones. Available input range 1-3 (Default: 2)
 ##    **** NOTE - This value will be ignored if byo_vpc / byo_subnets
 
 #az_count                                   = 2
 
 
-## 8. The number of Cloud Connector appliances to provision. Each incremental Cloud Connector will be created in alternating 
+## 9. The number of Cloud Connector appliances to provision. Each incremental Cloud Connector will be created in alternating 
 ##    subnets based on the az_count or byo_subnet_ids variable and loop through for any deployments where cc_count > az_count.
 ##    (Default: varies per deployment type template)
 ##    E.g. cc_count set to 4 and az_count set to 2 or byo_subnet_ids configured for 2 will create 2x CCs in AZ subnet 1 and 2x CCs in AZ subnet 2
@@ -90,7 +95,7 @@
 #cc_count                                   = 2
 
 
-## 9. Network Configuration:
+## 10. Network Configuration:
 
 ##    IPv4 CIDR configured with VPC creation. All Subnet resources (Workload, Public, Cloud Connector, Route 53) will be created based off this prefix
 ##    /24 subnets are created assuming this cidr is a /16. If you require creating a VPC smaller than /16, you may need to explicitly define all other 
@@ -116,49 +121,72 @@
 #route53_subnets                            = ["10.x.y.z/24","10.x.y.z/24"]
 
 
-## 10. Number of Workload VMs to be provisioned in the workload subnet. Only limitation is available IP space
+## 11. Number of Workload VMs to be provisioned in the workload subnet. Only limitation is available IP space
 ##    in subnet configuration. Only applicable for "base" deployment types. Default workload subnet is /24 so 250 max
 
 #workload_count                             = 2
 
 
-## 11. Tag attribute "Owner" assigned to all resoure creation. (Default: "zscc-admin")
+## 12. Tag attribute "Owner" assigned to all resoure creation. (Default: "zscc-admin")
 
 #owner_tag                                  = "username@company.com"
 
 
-## 12. By default, Cloud Connectors are configured with a callhome IAM policy enabled. This is recommended for production deployments
+## 13. By default, Cloud Connectors are configured with a callhome IAM policy enabled. This is recommended for production deployments
 ##     The policy creation itself does not provide any authentication/authorization access. IAM details are still required to be provided
 ##     to Zscaler in order to establish a trust relationship. Uncomment if you do not want this policy created. (Default: true)
 
 #cc_callhome_enabled                        = false
 
 
-## 13. By default, GWLB deployments are configured as zonal. Uncomment if you want to enable cross-zone load balancing
+## 14. By default, GWLB deployments are configured as zonal. Uncomment if you want to enable cross-zone load balancing
 ##     functionality. Only applicable for gwlb deployment types. (Default: false)
 
 #cross_zone_lb_enabled                      = true
 
+## 15. Gateway loadbalancing hashing algorithm. Default is 5-tuple (None).
+##     Additional options include: 2-tuple (source_ip_dest_ip) and 3-tuple (source_ip_dest_ip_proto)
+##     Uncomment below the configuration you want to use.
 
-## 14. By default, this script will apply 1 Security Group per Cloud Connector instance. 
+#flow_stickiness                            = "2-tuple"
+#flow_stickiness                            = "3-tuple"
+#flow_stickiness                            = "5-tuple"
+
+## 16. Indicates how the GWLB handles existing flows when a target is deregistered or marked unhealthy. 
+##     true means rebalance after deregistration. false means no_rebalance. (Default: true)
+##     Uncomment to turn this feature off (not recommended)
+
+#rebalance_enabled                          = false
+
+## 17. By default, this script will apply 1 Security Group per Cloud Connector instance. 
 ##     Uncomment if you want to use the same Security Group for ALL Cloud Connectors (true or false. Default: false)
 
 #reuse_security_group                       = true
 
 
-## 15. By default, this script will apply 1 IAM Role/Instance Profile per Cloud Connector instance. 
+## 18. By default, this script will apply 1 IAM Role/Instance Profile per Cloud Connector instance. 
 ##     Uncomment if you want to use the same IAM Role/Instance Profile for ALL Cloud Connectors (true or false. Default: false)
 
 #reuse_iam                                  = true
 
 
-## 16. By default, the VPC Endpoint Service created will auto accept any VPC Endpoint registration attempts.
+## 19. By default, the VPC Endpoint Service created will auto accept any VPC Endpoint registration attempts.
 ##     Uncomment if you want to require manual acceptance. (true or false. Default: false)
 
 #acceptance_required                        = true
 
 
-## 17. By default, the VPC Endpoint Service is configured to auto accept any VPC Endpoint registration attempts from any principal in the current AWS Account.
+## 20. By default, the VPC Endpoint Service is configured to auto accept any VPC Endpoint registration attempts from any principal in the current AWS Account.
 ##     Uncomment if you want to override this with more specific/restrictive principals. See https://docs.aws.amazon.com/vpc/latest/privatelink/configure-endpoint-service.html#accept-reject-connection-requests"
 
 #allowed_principals                         = [\"arn:aws:iam::1234567890:root\"]
+
+
+## 21. By default, terraform will always query the AWS Marketplace for the latest Cloud Connector AMI available.
+##     This variable is provided if a customer desires to override or retain an old ami for existing deployments rather than upgrading and forcing a replacement. 
+##     It is also inputted as a list to facilitate if a customer desired to manually upgrade only select CCs deployed based on the cc_count index
+
+##     Note: Customers should NOT be hard coding AMI IDs as Zscaler recommendation is to always be deploying/running the latest version.
+##           Leave this variable commented out unless you are absolutely certain why/that you need to set it and only temporarily.
+
+#ami_id                                     = ["ami-123456789"]

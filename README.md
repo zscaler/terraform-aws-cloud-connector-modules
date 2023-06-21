@@ -10,7 +10,7 @@ Zscaler Cloud Connector AWS Terraform Modules
 
 # **README for AWS Terraform**
 This README serves as a quick start guide to deploy Zscaler Cloud Connector resources in an AWS cloud using Terraform. To learn more about
-the resources created when deploying Cloud Connector with Terraform, see [Deployment Templates for Zscaler Cloud Connector](https://help.zscaler.com/cloud-connector/about-cloud-automation-scripts).
+the resources created when deploying Cloud Connector with Terraform, see [Deployment Templates for Zscaler Cloud Connector](https://help.zscaler.com/cloud-branch-connector/deployment-templates-zscaler-cloud-connector).
 
 ## **AWS Deployment Scripts for Terraform**
 
@@ -22,7 +22,7 @@ cloud (VPC). The [examples](examples/) directory contains complete automation sc
 The AWS Terraform scripts leverage Terraform v1.1.9 which includes full binary and provider support for macOS M1 chips, but any Terraform
 version 0.13.7 should be generally supported.
 
--   provider registry.terraform.io/hashicorp/aws v4.7.x
+-   provider registry.terraform.io/hashicorp/aws v4.59.x
 -   provider registry.terraform.io/hashicorp/random v3.3.x
 -   provider registry.terraform.io/hashicorp/local v2.2.x
 -   provider registry.terraform.io/hashicorp/null v3.1.x
@@ -41,6 +41,15 @@ version 0.13.7 should be generally supported.
 
 7.  A valid Zscaler Cloud Connector provisioning URL generated from the Zscaler Cloud & Branch Connector Admin Portal
 8.  Zscaler Cloud Connector Credentials (api key, username, password) are stored in AWS Secrets Manager
+
+### **Terraform client requirements**
+9. If executing Terraform via the "zsec" wrapper bash script, it is advised that you run from a MacOS or Linux workstation. Minimum installed application requirements to successfully from the script are:
+- AWS CLI (to generate temporary session token if required)
+- bash
+- curl
+- unzip
+<br>
+<br>
 
 ## **Greenfield Deployments** 
 

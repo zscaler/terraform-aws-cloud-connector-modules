@@ -429,6 +429,45 @@ case $cross_zone_lb_enabled in
 	* ) echo "invalid response. Please enter yes or no";;
     esac
 done 
+    while true; do
+    read -r -p "Enable GWLB target failover rebalance for existing flows? (yes/no) Recommendation is yes: " rebalance_enabled
+case $rebalance_enabled in 
+	yes|y ) 
+    echo "GWLB target failover rebalance enabled"
+    echo "export TF_VAR_rebalance_enabled=true" >> .zsecrc
+    break
+    ;;
+	no|n )
+    echo "GWLB target failover rebalance disabled"
+    echo "export TF_VAR_rebalance_enabled=false" >> .zsecrc
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done 
+flow_stickiness_default=5-tuple
+    while true; do
+    read -r -p "Set GWLB flow stickiness? (2-tuple, 3-tuple, or 5-tuple) Default 5-tuple: " flow_stickiness_input
+flow_stickiness=${flow_stickiness_input:-$flow_stickiness_default}
+case $flow_stickiness in 
+	2|2-tuple ) 
+    echo "GWLB flow stickiness set to 2-tuple"
+    echo "export TF_VAR_flow_stickiness=2-tuple" >> .zsecrc
+    break
+    ;;
+	3|3-tuple ) 
+    echo "GWLB flow stickiness set to 3-tuple"
+    echo "export TF_VAR_flow_stickiness=3-tuple" >> .zsecrc
+    break
+    ;;
+    5|5-tuple ) 
+    echo "GWLB flow stickiness set to 5-tuple"
+    echo "export TF_VAR_flow_stickiness=5-tuple" >> .zsecrc
+    break
+    ;;
+	* ) echo "invalid response. Please enter either 2, 3, or 5 for flow stickness tuple";;
+    esac
+done 
 fi
 
 if [[ "$dtype" == "cc"* ]]; then
