@@ -7,7 +7,11 @@ variable "aws_region" {
 variable "name_prefix" {
   type        = string
   description = "The name prefix for all your resources"
-  default     = "zsdemo"
+  default     = "zscc"
+  validation {
+    condition     = length(var.name_prefix) <= 12
+    error_message = "Variable name_prefix must be 12 or less characters."
+  }
 }
 
 variable "vpc_cidr" {
@@ -184,4 +188,10 @@ variable "zpa_enabled" {
   type        = bool
   default     = true
   description = "Configure Route 53 Subnets, Route Tables, and Resolvers for ZPA DNS redirection with route53 module"
+}
+
+variable "ami_id" {
+  type        = list(string)
+  description = "AMI ID(s) to be used for deploying Cloud Connector appliances. Ideally all VMs should be on the same AMI ID as templates always pull the latest from AWS Marketplace. This variable is provided if a customer desires to override/retain an old ami for existing deployments rather than upgrading and forcing a replacement. It is also inputted as a list to facilitate if a customer desired to manually upgrade select CCs deployed based on the cc_count index"
+  default     = [""]
 }

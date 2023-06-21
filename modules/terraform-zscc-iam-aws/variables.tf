@@ -16,12 +16,6 @@ variable "global_tags" {
   default     = {}
 }
 
-variable "iam_role_policy_smrw" {
-  type        = string
-  description = "Cloud Connector EC2 Instance predefined IAM Role to access Secrets Manager resources"
-  default     = "SecretsManagerReadWrite"
-}
-
 variable "iam_count" {
   type        = number
   description = "Default number IAM roles/policies/profiles to create"
@@ -44,4 +38,9 @@ variable "byo_iam_instance_profile_id" {
   type        = list(string)
   description = "Existing IAM Instance Profile IDs for Cloud Connector association"
   default     = null
+}
+
+variable "secret_name" {
+  type        = string
+  description = "AWS Secrets Manager Secret Name for Cloud Connector provisioning"
 }

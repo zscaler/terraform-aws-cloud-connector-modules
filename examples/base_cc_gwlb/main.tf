@@ -115,10 +115,25 @@ resource "local_file" "user_data_file" {
   filename = "../user_data"
 }
 
+################################################################################
+# Locate Latest CC AMI by product code
+################################################################################
+data "aws_ami" "cloudconnector" {
+  most_recent = true
+
+  filter {
+    name   = "product-code"
+    values = ["2l8tfysndbav4tv2nfjwak3cu"]
+  }
+
+  owners = ["aws-marketplace"]
+}
+
 # Create specified number of CC appliances
 module "cc_vm" {
   source                    = "../../modules/terraform-zscc-ccvm-aws"
   cc_count                  = var.cc_count
+  ami_id                    = contains(var.ami_id, "") ? [data.aws_ami.cloudconnector.id] : var.ami_id
   name_prefix               = var.name_prefix
   resource_tag              = random_string.suffix.result
   global_tags               = local.global_tags
@@ -152,6 +167,7 @@ module "cc_iam" {
   resource_tag        = random_string.suffix.result
   global_tags         = local.global_tags
   cc_callhome_enabled = var.cc_callhome_enabled
+  secret_name         = var.secret_name
 }
 
 
@@ -177,8 +193,8 @@ module "cc_sg" {
 ################################################################################
 module "gwlb" {
   source                   = "../../modules/terraform-zscc-gwlb-aws"
-  name_prefix              = var.name_prefix
-  resource_tag             = random_string.suffix.result
+  gwlb_name                = "${var.name_prefix}-cc-gwlb-${random_string.suffix.result}"
+  target_group_name        = "${var.name_prefix}-cc-target-${random_string.suffix.result}"
   global_tags              = local.global_tags
   vpc_id                   = module.network.vpc_id
   cc_subnet_ids            = module.network.cc_subnet_ids
@@ -192,6 +208,9 @@ module "gwlb" {
   healthy_threshold        = var.healthy_threshold
   unhealthy_threshold      = var.unhealthy_threshold
   cross_zone_lb_enabled    = var.cross_zone_lb_enabled
+  deregistration_delay     = var.deregistration_delay
+  flow_stickiness          = var.flow_stickiness
+  rebalance_enabled        = var.rebalance_enabled
 }
 
 
