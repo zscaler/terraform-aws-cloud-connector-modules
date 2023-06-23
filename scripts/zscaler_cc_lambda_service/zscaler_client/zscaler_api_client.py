@@ -121,32 +121,32 @@ class ZscalerApiClient:
         return None
 
 
-def process_data(self, zSGroupId, zsVmId):
-    # Step 1: Authenticate and obtain JSESSIONID
-    self.authenticate()
+    def process_data(self, zSGroupId, zsVmId):
+        # Step 1: Authenticate and obtain JSESSIONID
+        self.authenticate()
 
-    # # Step 2: Use JSESSIONID for further API calls
-    # ecgrouplite_url = f"{self.base_url}/api/v1/ecgroup/lite"
-    # self.make_api_request(ecgrouplite_url)
-    #
-    # # Step 3: Read ecvmid
-    ecvm_url: str = f"{self.base_url}/api/v1/ecgroup/{zSGroupId}/vm/{zsVmId}"
-    self.make_api_request(ecvm_url)
+        # # Step 2: Use JSESSIONID for further API calls
+        # ecgrouplite_url = f"{self.base_url}/api/v1/ecgroup/lite"
+        # self.make_api_request(ecgrouplite_url)
+        #
+        # # Step 3: Read ecvmid
+        ecvm_url: str = f"{self.base_url}/api/v1/ecgroup/{zSGroupId}/vm/{zsVmId}"
+        self.make_api_request(ecvm_url)
 
-    # Step 4: Delete the ecvmid
-    self.make_api_request(ecvm_url, method='delete')
+        # Step 4: Delete the ecvmid
+        self.make_api_request(ecvm_url, method='delete')
 
-    # Step 5: Get ecAdminActivateStatus
-    ec_admin_activate_status_url = f"{self.base_url}/api/v1/ecAdminActivateStatus"
-    self.make_api_request(ec_admin_activate_status_url)
+        # Step 5: Get ecAdminActivateStatus
+        ec_admin_activate_status_url = f"{self.base_url}/api/v1/ecAdminActivateStatus"
+        self.make_api_request(ec_admin_activate_status_url)
 
-    # Step 6: Activate using Put
-    ec_admin_activate_url: str = f"{self.base_url}/api/v1/ecAdminActivateStatus/activate"
-    self.make_api_request(ec_admin_activate_url, method='put')
+        # Step 6: Activate using Put
+        ec_admin_activate_url: str = f"{self.base_url}/api/v1/ecAdminActivateStatus/activate"
+        self.make_api_request(ec_admin_activate_url, method='put')
 
-    # Step 7: Logout using delete
-    logout_url = f"{self.base_url}/api/v1/auth"
-    self.make_api_request(logout_url, method='delete')
+        # Step 7: Logout using delete
+        logout_url = f"{self.base_url}/api/v1/auth"
+        self.make_api_request(logout_url, method='delete')
 
 
 def main():
