@@ -190,8 +190,8 @@ resource "aws_lambda_function" "asg_lambda_function" {
 ################################################################################
 resource "aws_cloudwatch_event_rule" "asg_cloudwatch_scheduler_event_rule" {
   name                = "${var.name_prefix}-cc-asg-scheduled-event-rule-${var.resource_tag}"
-  description         = "EventBridge rule to trigger Lambda function every 10 minutes"
-  schedule_expression = "rate(10 minutes)"
+  description         = "EventBridge rule to trigger Lambda function every 1 minute"
+  schedule_expression = "rate(1 minute)"
 }
 
 resource "aws_cloudwatch_event_target" "asg_cloudwatch_scheduler_event_target" {
