@@ -90,13 +90,16 @@ class ZscalerApiClient:
                     response = requests.put(url, headers=headers)
                 elif method == 'delete':
                     response = requests.delete(url, headers=headers)
+                    if 200 <= response.status_code < 300:
+                        logger.info(f"API request successful. HTTP status code: {response.status_code}")
+                        return None  # No JSON content to return for the delete method
                 else:
                     logger.error("Invalid HTTP method.")
                     return None
 
-                logger.info(f"method: {method} url: {url} retries: {retries} http_status_code: {response.status_code}")
+                logger.info(f"method: {method} url: {url} http_status_code: {response.status_code}")
 
-                if response.status_code >= 200 or response.status_code < 300:
+                if 200 <= response.status_code < 300:
                     data = response.json()
                     logger.info(f"API request successful. Response: {data}")
                     return data
@@ -106,22 +109,17 @@ class ZscalerApiClient:
 
             except requests.exceptions.RequestException as e:
                 logger.error(f"Error occurred during API request: {str(e)}")
+                if retries == max_retries - 1:
+                    logger.error("Maximum number of retries reached.")
+                    return None
 
-            if retries == max_retries - 1:
-                logger.error(f"retries: {retries}  Maximum number of retries: {max_retries} reached.")
-                return None
+                # Increase the retry count and calculate the next delay using the backoff strategy
+                retries += 1
+                delay *= 2  # example of exponential backoff
+                logger.info(f"Retry #{retries}. Retrying in {delay} seconds...")
+                time.sleep(delay)
 
-            # Increase the retry count and calculate the next delay using the backoff strategy
-            retries += 1
-            delay *= 2  # example of exponential backoff
-            logger.info(f"Retry #{retries}. Retrying in {delay} seconds...")
-            time.sleep(delay)
-
-        logger.error("Maximum number of retries reached: {max_retries}")
-        return None
-
-
-    def process_data(self, zSGroupId, zsVmId):
+    def process_data(self, zs_group_id, zs_vm_id):
         # Step 1: Authenticate and obtain JSESSIONID
         self.authenticate()
 
@@ -130,7 +128,7 @@ class ZscalerApiClient:
         # self.make_api_request(ecgrouplite_url)
         #
         # # Step 3: Read ecvmid
-        ecvm_url: str = f"{self.base_url}/api/v1/ecgroup/{zSGroupId}/vm/{zsVmId}"
+        ecvm_url: str = f"{self.base_url}/api/v1/ecgroup/{zs_group_id}/vm/{zs_vm_id}"
         self.make_api_request(ecvm_url)
 
         # Step 4: Delete the ecvmid
@@ -168,9 +166,9 @@ def test_zscaler_resouce_deletion():
     start_time = time.time()
     zscaler_api = ZscalerApiClient(api_key, username, password, base_url)
     # Test data
-    zSGroupId = 1234
-    zsVmId = 4567
-    zscaler_api.process_data(zSGroupId, zsVmId)
+    zs_group_id: int = 1234
+    zs_vm_id = 4567
+    zscaler_api.process_data(zs_group_id, zs_vm_id)
     end_time = time.time()
     execution_time = end_time - start_time
     logger.info(f"Time taken: {execution_time} seconds")

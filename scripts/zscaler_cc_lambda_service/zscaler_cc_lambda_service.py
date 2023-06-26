@@ -6,6 +6,7 @@ import utils.event_processor
 from utils.metric_dimensions import test_dimensions
 from utils.secret_manager import get_secret_value
 from zscaler_client.zscaler_api_client import test_zscaler_resouce_deletion
+from version import VERSION
 
 # Configure the logger
 logger = logging.getLogger()
@@ -39,7 +40,7 @@ def test_all():
 
 def lambda_handler(event, context):
     # dump the event and context
-    logger.info(f'Zscaler lambda_handler: event={event} and context={context}')
+    logger.info(f'Zscaler lambda_handler: VERSION: {VERSION} event={event} and context={context}')
 
     result = utils.event_processor.process_data(event)
 
