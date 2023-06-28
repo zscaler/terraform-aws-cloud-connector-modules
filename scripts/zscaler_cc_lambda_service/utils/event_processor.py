@@ -2,7 +2,7 @@ import datetime
 import json
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from typing import List
 from urllib.parse import urlparse
 
@@ -368,25 +368,35 @@ def retrieve_all_dimensions():
 def is_stats_reported_unhealthy(datapoints):
     hc_data_points = int(os.environ.get('HC_DATA_POINTS', '10'))
     hc_unhealthy_threshold = int(os.environ.get('HC_UNHEALTHY_THRESHOLD', '7'))
+
     if hc_unhealthy_threshold:
         if datapoints is None or not datapoints:
             missing_datapoints_unhealthy = bool(os.environ.get('MISSING_DATAPOINTS_UNHEALTHY', 'True'))
             if missing_datapoints_unhealthy:
-                logger.info(f'Either none or empty and hence marking instance as unhealthy')
+                logger.info('Either none or empty and hence marking instance as unhealthy')
                 return True
 
-    datapoint_to_evaluate = len(datapoints)
-    logger.info(f"number of datapoints to evaluate: {datapoint_to_evaluate}")
-    if datapoint_to_evaluate <= hc_data_points:
-        # need to have min. number of datapoints otherwise skip
+    datapoints_to_evaluate = len(datapoints)
+    logger.info(f"Number of datapoints to evaluate: {datapoints_to_evaluate}")
+
+    if datapoints_to_evaluate <= hc_data_points:
+        # Need to have a minimum number of datapoints; otherwise, skip
         return False
 
-    count = 0
+    consecutive_count = 0
+    max_consecutive_count = 0
+    count_less_than_100 = 0
+
     for datapoint in datapoints:
         if datapoint['Average'] < 100:
-            count += 1
+            consecutive_count += 1
+            if consecutive_count > max_consecutive_count:
+                max_consecutive_count = consecutive_count
+            count_less_than_100 += 1
+        else:
+            consecutive_count = 0
 
-    if count >= hc_unhealthy_threshold:
+    if count_less_than_100 >= hc_unhealthy_threshold or max_consecutive_count >= 5:
         return True
     else:
         return False
@@ -517,12 +527,13 @@ def process_lifecycle_termination_events(event):
     logger.info(f"instance_id: {instance_id}")
 
     # Determine if the instance is part of a warmed pool and is being terminated
-    if event['detail']['LifecycleTransition'] == 'autoscaling:EC2_INSTANCE_TERMINATING' and event['detail'][
-        'LifecycleHookName'] == hook_name:
+    if event['detail']['LifecycleTransition'] == 'autoscaling:EC2_INSTANCE_TERMINATING' and event['detail']['LifecycleHookName'] == hook_name:
         response = autoscaling_client.describe_auto_scaling_instances(InstanceIds=[instance_id])
         logger.info(f"describe_auto_scaling_instances: {response}")
         instances = response['AutoScalingInstances']
-        if instances and instances[0]['LifecycleState'] == 'Warmed:Terminating:Wait':
+        # if instances and instances[0]['LifecycleState'] == 'Warmed:Terminating:Wait':
+        # handle terminating events and not just warmed:Terminating ones
+        if instances:
             get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instance_id)
 
             success = complete_lifecycle_action(hook_name, asg_name, token, instance_id)
@@ -545,6 +556,10 @@ def process_lifecycle_termination_events(event):
 
 
 def complete_lifecycle_action(hook_name, asg_name, token, instance_id):
+    retry_attempts = 5
+    retry_delay = 60  # Initial delay in seconds
+    max_delay = 300  # Maximum delay in seconds
+
     try:
         if hook_name is None:
             # Get the termination lifecycle hook name from the ASG
@@ -555,30 +570,35 @@ def complete_lifecycle_action(hook_name, asg_name, token, instance_id):
                     hook_name = hook['LifecycleHookName']
                     break
 
-        if token is None:
-            response = autoscaling_client.complete_lifecycle_action(
-                LifecycleHookName=hook_name,
-                AutoScalingGroupName=asg_name,
-                LifecycleActionResult='CONTINUE',
-                InstanceId=instance_id
-            )
-        else:
-            response = autoscaling_client.complete_lifecycle_action(
-                LifecycleHookName=hook_name,
-                AutoScalingGroupName=asg_name,
-                LifecycleActionToken=token,
-                LifecycleActionResult='CONTINUE',
-                InstanceId=instance_id
-            )
+        for attempt in range(retry_attempts):
+            if token is None:
+                response = autoscaling_client.complete_lifecycle_action(
+                    LifecycleHookName=hook_name,
+                    AutoScalingGroupName=asg_name,
+                    LifecycleActionResult='CONTINUE',
+                    InstanceId=instance_id
+                )
+            else:
+                response = autoscaling_client.complete_lifecycle_action(
+                    LifecycleHookName=hook_name,
+                    AutoScalingGroupName=asg_name,
+                    LifecycleActionToken=token,
+                    LifecycleActionResult='CONTINUE',
+                    InstanceId=instance_id
+                )
 
-        logger.debug(f"Lifecycle action response: {response}")
+            logger.debug(f"Lifecycle action response: {response}")
 
-        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
-            logger.info("Lifecycle action completed successfully.")
-            return True
-        else:
-            logger.warning("Failed to complete the lifecycle action.")
-            return False
+            if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                logger.info("Lifecycle action completed successfully.")
+                return True
+
+            logger.warning("Failed to complete the lifecycle action. Retrying...")
+            time.sleep(retry_delay)
+            retry_delay = min(2 * retry_delay, max_delay)
+
+        logger.warning("Exceeded maximum retry attempts. Failed to complete the lifecycle action.")
+        return False
 
     except Exception as e:
         logger.warning("Failed to complete the lifecycle action.")
