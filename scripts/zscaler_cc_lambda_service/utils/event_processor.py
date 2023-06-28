@@ -2,12 +2,15 @@ import datetime
 import json
 import logging
 import os
-from datetime import datetime, timedelta, time
+import time
+from datetime import datetime, timedelta
 from typing import List
 from urllib.parse import urlparse
 
 import boto3
 import botocore
+from botocore.exceptions import ClientError
+
 
 from utils.metric_dimensions import retrieve_dimensions
 from utils.secret_manager import get_secret_value
@@ -64,7 +67,7 @@ def process_data(event):
     return "Data processed successfully"
 
 
-def read_environment_variables() -> object:
+def read_environment_variables():
     # Read Environment Variables
     logger.info(f'## ENVIRONMENT VARIABLES')
     log_group_name = os.environ.get('AWS_LAMBDA_LOG_GROUP_NAME', 'local-log-group')
@@ -250,6 +253,7 @@ def getstats_cloud_connector_gw_health(cgh_asgname, cgh_instanceid, dimensions):
     endtime = datetime.utcnow()
     # configured time +
     starttime = endtime - timedelta(minutes=hc_data_points + 2)
+    response = []
     try:
         response = cloudwatch_client.get_metric_statistics(
             Namespace=custom_namespace,
@@ -568,37 +572,53 @@ def complete_lifecycle_action(hook_name, asg_name, token, instance_id):
             for hook in hooks:
                 if hook['LifecycleTransition'] == 'autoscaling:EC2_INSTANCE_TERMINATING':
                     hook_name = hook['LifecycleHookName']
-                    break
 
-        for attempt in range(retry_attempts):
-            if token is None:
-                response = autoscaling_client.complete_lifecycle_action(
-                    LifecycleHookName=hook_name,
-                    AutoScalingGroupName=asg_name,
-                    LifecycleActionResult='CONTINUE',
-                    InstanceId=instance_id
-                )
+        # Check if the instance is in a 'Terminating:Wait' or 'Warmed:Terminating:Wait' state
+        response = autoscaling_client.describe_auto_scaling_instances(InstanceIds=[instance_id])
+        if 'AutoScalingInstances' in response:
+            asg_instance = response['AutoScalingInstances'][0]
+            lifecycle_state = asg_instance['LifecycleState']
+            if lifecycle_state.startswith('Terminating:Wait') or lifecycle_state.startswith('Warmed:Terminating:Wait'):
+                for attempt in range(retry_attempts):
+                    try:
+                        if token is None:
+                            response = autoscaling_client.complete_lifecycle_action(
+                                LifecycleHookName=hook_name,
+                                AutoScalingGroupName=asg_name,
+                                LifecycleActionResult='CONTINUE',
+                                InstanceId=instance_id
+                            )
+                        else:
+                            response = autoscaling_client.complete_lifecycle_action(
+                                LifecycleHookName=hook_name,
+                                AutoScalingGroupName=asg_name,
+                                LifecycleActionToken=token,
+                                LifecycleActionResult='CONTINUE',
+                                InstanceId=instance_id
+                            )
+
+                        logger.debug(f"Lifecycle action response: {response}")
+
+                        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                            logger.info("Lifecycle action completed successfully.")
+                            return True
+
+                    except Exception as e:
+                        logger.warning("Failed to complete the lifecycle action.")
+                        logger.exception(e)
+
+                    logger.warning("Retrying...")
+                    time.sleep(retry_delay)
+                    retry_delay = min(2 * retry_delay, max_delay)
+
+                logger.warning("Exceeded maximum retry attempts. Failed to complete the lifecycle action.")
+                return False
             else:
-                response = autoscaling_client.complete_lifecycle_action(
-                    LifecycleHookName=hook_name,
-                    AutoScalingGroupName=asg_name,
-                    LifecycleActionToken=token,
-                    LifecycleActionResult='CONTINUE',
-                    InstanceId=instance_id
-                )
-
-            logger.debug(f"Lifecycle action response: {response}")
-
-            if response['ResponseMetadata']['HTTPStatusCode'] == 200:
-                logger.info("Lifecycle action completed successfully.")
-                return True
-
-            logger.warning("Failed to complete the lifecycle action. Retrying...")
-            time.sleep(retry_delay)
-            retry_delay = min(2 * retry_delay, max_delay)
-
-        logger.warning("Exceeded maximum retry attempts. Failed to complete the lifecycle action.")
-        return False
+                logger.warning(f"Instance is not in the expected 'Terminating:Wait' or 'Warmed:Terminating:Wait' state. Current state: {lifecycle_state}")
+                return False
+        else:
+            logger.warning("Failed to retrieve instance information. Skipping lifecycle action.")
+            return False
 
     except Exception as e:
         logger.warning("Failed to complete the lifecycle action.")
