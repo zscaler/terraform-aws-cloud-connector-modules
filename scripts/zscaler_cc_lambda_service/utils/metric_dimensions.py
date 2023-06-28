@@ -1,5 +1,6 @@
 import boto3
 import logging
+from typing import List, Dict, Tuple, Any
 
 # Configure the logger
 logger = logging.getLogger()
@@ -19,9 +20,10 @@ logger.addHandler(handler)
 cloudwatch_client = boto3.client('cloudwatch')
 
 
-def retrieve_dimensions(namespace, metric_name, dimension_pairs):
+def retrieve_dimensions(namespace: str, metric_name: str, dimension_pairs: List[Tuple[str, str]]) \
+        -> List[Dict[str, str]]:
     # Retrieve all metrics matching the namespace and metric name
-    dimensions = []
+    dimensions: List[Dict[str, str]] = []
     for name, value in dimension_pairs:
         if value is None:
             return []
@@ -30,23 +32,30 @@ def retrieve_dimensions(namespace, metric_name, dimension_pairs):
             'Value': value
         })
 
-    # response = cloudwatch_client.list_metrics(Namespace=namespace, MetricName=metric_name,
-    #   Dimensions=dimensions)
-    response = cloudwatch_client.list_metrics(Namespace=namespace,
-                                              Dimensions=dimensions)
+    logger.info(f"Retrieving dimensions for namespace: {namespace}, metric_name: {metric_name}, "
+                f"dimensions: {dimensions}")
 
-    # Process the response and retrieve the dimensions
-    metrics = response['Metrics']
-    dimensions_list = []
-    for metric in metrics:
-        dimensions = metric['Dimensions']
-        dimensions_dict = {dimension['Name']: dimension['Value'] for dimension in dimensions}
+    try:
+        response: Dict[str, Any] = cloudwatch_client.list_metrics(Namespace=namespace, Dimensions=dimensions)
+        if 'Metrics' in response:
+            metrics: List[Dict[str, Any]] = response['Metrics']
+            dimensions_list: List[Dict[str, str]] = []
+            for metric in metrics:
+                dimensions = metric['Dimensions']
+                dimensions_dict = {dimension['Name']: dimension['Value'] for dimension in dimensions}
 
-        # Check if the metric dimensions match all the specified key names and values
-        if all(dimensions_dict.get(key) == value for key, value in dimension_pairs):
-            dimensions_list.append(dimensions_dict)
+                # Check if the metric dimensions match all the specified key names and values
+                if all(dimensions_dict.get(key) == value for key, value in dimension_pairs):
+                    dimensions_list.append(dimensions_dict)
 
-    return dimensions_list
+            return dimensions_list
+        else:
+            logger.error(f"Failed to retrieve dimensions. Response: {response}")
+            return []
+
+    except Exception as e:
+        logger.error(f"Error occurred: {str(e)}")
+        return []
 
 
 def test_dimensions():
