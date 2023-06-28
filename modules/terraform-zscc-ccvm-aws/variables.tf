@@ -39,27 +39,25 @@ variable "user_data" {
 variable "ccvm_instance_type" {
   type        = string
   description = "Cloud Connector Instance Type"
-  default     = "m5.large"
+  default     = "m5n.large"
   validation {
     condition = (
       var.ccvm_instance_type == "t3.medium" ||
-      var.ccvm_instance_type == "m5.large" ||
-      var.ccvm_instance_type == "c5.large" ||
-      var.ccvm_instance_type == "c5a.large" ||
-      var.ccvm_instance_type == "m5.2xlarge" ||
-      var.ccvm_instance_type == "c5.2xlarge" ||
-      var.ccvm_instance_type == "m5.4xlarge" ||
-      var.ccvm_instance_type == "c5.4xlarge"
+      var.ccvm_instance_type == "m5n.large" ||
+      var.ccvm_instance_type == "m5a.large" ||
+      var.ccvm_instance_type == "m5n.2xlarge" ||
+      var.ccvm_instance_type == "m5a.2xlarge" ||
+      var.ccvm_instance_type == "m5n.4xlarge" ||
+      var.ccvm_instance_type == "m5a.4xlarge"
     )
     error_message = "Input ccvm_instance_type must be set to an approved vm instance type."
   }
 }
 
-
 locals {
-  small_cc_instance  = ["t3.medium", "m5.large", "c5.large", "c5a.large", "m5.2xlarge", "c5.2xlarge", "m5.4xlarge", "c5.4xlarge"]
-  medium_cc_instance = ["m5.2xlarge", "c5.2xlarge", "m5.4xlarge", "c5.4xlarge"]
-  large_cc_instance  = ["m5.4xlarge", "c5.4xlarge"]
+  small_cc_instance  = ["t3.medium", "m5n.large", "m5a.large", "m5n.2xlarge", "m5a.2xlarge", "m5n.4xlarge", "m5a.4xlarge"]
+  medium_cc_instance = ["m5n.2xlarge", "m5a.2xlarge", "m5n.4xlarge", "m5a.4xlarge"]
+  large_cc_instance  = ["m5n.4xlarge", "m5a.4xlarge"]
 
   valid_cc_create = (
     contains(local.small_cc_instance, var.ccvm_instance_type) && var.cc_instance_size == "small" ||
