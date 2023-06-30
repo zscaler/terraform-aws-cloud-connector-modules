@@ -200,6 +200,14 @@ resource "aws_cloudwatch_event_target" "asg_cloudwatch_scheduler_event_target" {
   arn       = aws_lambda_function.asg_lambda_function.arn
 }
 
+resource "aws_lambda_permission" "asg_cloudwatch_scheduler_event_permission" {
+  statement_id  = "lambda-permission-${aws_cloudwatch_event_rule.asg_cloudwatch_scheduler_event_rule.id}"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.asg_lambda_function.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.asg_cloudwatch_scheduler_event_rule.arn
+}
+
 
 ################################################################################
 # Create Cloudwatch Event Rules and Targets for Lifecycle changes
@@ -225,8 +233,8 @@ resource "aws_cloudwatch_event_target" "asg_cloudwatch_lifecycle_event_target" {
   arn       = aws_lambda_function.asg_lambda_function.arn
 }
 
-resource "aws_lambda_permission" "asg_lambda_lifecycle_permission" {
-  statement_id  = "AllowExecutionFromCloudWatch"
+resource "aws_lambda_permission" "asg_cloudwatch_lifecycle_permission" {
+  statement_id  = "lambda-permission-${aws_cloudwatch_event_rule.asg_cloudwatch_lifecycle_event_rule.id}"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.asg_lambda_function.function_name
   principal     = "events.amazonaws.com"
@@ -259,7 +267,7 @@ resource "aws_cloudwatch_event_target" "asg_cloudwatch_instance_termination_even
 }
 
 resource "aws_lambda_permission" "asg_cloudwatch_instance_termination_permission" {
-  statement_id  = "AllowExecutionFromCloudWatch2"
+  statement_id  = "lambda-permission-${aws_cloudwatch_event_rule.asg_cloudwatch_instance_termination_event_rule.id}"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.asg_lambda_function.function_name
   principal     = "events.amazonaws.com"
