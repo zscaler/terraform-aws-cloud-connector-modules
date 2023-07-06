@@ -11,7 +11,6 @@ import boto3
 import botocore
 from botocore.exceptions import ClientError
 
-
 from utils.metric_dimensions import retrieve_dimensions
 from utils.secret_manager import get_secret_value
 from zscaler_client.zscaler_api_client import ZscalerApiClient
@@ -82,7 +81,8 @@ def read_environment_variables():
     hc_data_points = os.environ.get('HC_DATA_POINTS', '10')
     hc_unhealthy_threshold = os.environ.get('HC_UNHEALTHY_THRESHOLD', '7')
     logger.info(
-        f'#asg_list# {asg_list} #cc_url# {cc_url} #secret_name# {secret_name} #hc_data_points# {hc_data_points} #hc_unhealthy_threshold# {hc_unhealthy_threshold}')
+        f'#asg_list# {asg_list} #cc_url# {cc_url} #secret_name# {secret_name} #hc_data_points# {hc_data_points}'
+        f'#hc_unhealthy_threshold# {hc_unhealthy_threshold}')
 
 
 def process_scheduled_event(event):
@@ -193,7 +193,7 @@ def log_instance_info(instance_id, asg_name):
 
 def process_fault_management_event(event):
     logger.info(f"event: {event}")
-    hc_data_points = int(os.environ.get('HC_DATA_POINTS', '10'))
+    # hc_data_points = int(os.environ.get("HC_DATA_POINTS", "10"))
     # Get the Auto Scaling group name
     try:
         asg_names = get_asg_names()
@@ -201,8 +201,10 @@ def process_fault_management_event(event):
         for asg_name in asg_names:
             # instances, warm_pool_instances = get_instances_in_service(asg_name)
             instances, warm_pool_instances = get_instances_by_pool_membership(asg_name)
+            # Note: instances returned is list of detailed instance and is not list of InstanceId's
+            #
             # TODO check which is correct
-            instances_minus_warmpool = get_inservice_instances_not_in_warm_pool(asg_name)
+            # instances_minus_warmpool = get_inservice_instances_not_in_warm_pool(asg_name)
             # instances = get_in_service_instances(asg_name)
             for instance in instances:
                 # instance_id = instance['InstanceId']
@@ -211,7 +213,9 @@ def process_fault_management_event(event):
                 # query the custom health metric for this pair and get 10 entries at least. If HC_UNHEALTHY_THRESHOLD
                 # out of HC_DATA_POINTS entries are unhealthy these are in env than mark instance as unhealthy
                 base_url, dimensions = get_dimensions_for_health_metrics(asg_name, instance_id['InstanceId'])
-                health_stats_datapoints_results = getstats_cloud_connector_gw_health(asg_name, instance_id, dimensions)
+                health_stats_datapoints_results = getstats_cloud_connector_gw_health(asg_name,
+                                                                                     instance_id.get('InstanceId'),
+                                                                                     dimensions)
                 # TODO check if instance is up for at least 10 minutes
                 # not needed as we already check if instance uptime is 10 minute
                 # if not is_instance_in_service_for_x_amount_of_time(instance_id, hc_data_points):
@@ -224,7 +228,7 @@ def process_fault_management_event(event):
                                 f'{instance_id} asg_name: {asg_name} '
                                 f'health_stats_datapoints_results: {health_stats_datapoints_results}')
                     # delete the Zscaler resource as well
-                    get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instance_id)
+                    get_asg_instance_metadata_and_delete_zscaler_cloud_resource(asg_name, instance_id.get('InstanceId'))
                 else:
                     logger.info(f'if_unhealthy_ask_autoscaling_to_replace_instance(): returned False, for instance: '
                                 f'{instance_id} asg_name: {asg_name} hence it is HEALTHY')
@@ -269,7 +273,7 @@ def getstats_cloud_connector_gw_health(cgh_asgname, cgh_instanceid, dimensions):
         logger.error(f"An error occurred while retrieving  cloud_connector_aggr_health: {str(e)} ")
     logger.info(
         f"cloud_connector_aggr_health for {cgh_asgname}, "
-        "{cgh_instanceid} after get_metric_statistics response is : {response}")
+        f"{cgh_instanceid} after get_metric_statistics response is : {response}")
     # Sort data points by timestamp
     datapoints = sorted(response['Datapoints'], key=lambda x: x['Timestamp'], reverse=True)
     if len(datapoints) == 0:
@@ -285,7 +289,7 @@ def getstats_cloud_connector_gw_health(cgh_asgname, cgh_instanceid, dimensions):
         average = datapoints[0]['Average']
         timestamp = datapoints[0]['Timestamp']
         logger.info(
-            f"[cloud_connector_aggr_health for {cgh_asgname}, {cgh_instanceid}] Sum for FIRST datapoint Only : {average} "
+            f"[cloud_connector_aggr_health for {cgh_asgname}, {cgh_instanceid}] FIRST datapoint: {average} "
             f"at {timestamp}")
     else:
         logger.info(f"[cloud_connector_aggr_health for {cgh_asgname}, {cgh_instanceid}] No data available ")
@@ -406,21 +410,47 @@ def is_stats_reported_unhealthy(datapoints):
         return False
 
 
-def if_unhealthy_ask_autoscaling_to_replace_instance(instance_id, asg_name, health_stats_recent_datapoints_results):
-    # Check if HC_UNHEALTHY_THRESHOLD out of HC_DATA_POINTS health probe results are 0 %
-
-    if is_stats_reported_unhealthy(health_stats_recent_datapoints_results):
-        logger.info(f"process_results found asg_name: {asg_name} instance {instance_id} unhealthy datapoint count of'"
-                    f" {health_stats_recent_datapoints_results.count(0)}")
-        # Set the custom Auto Scaling group health check for the instance as unhealthy
-        logger.info(f'Found instance {instance_id} in asg {asg_name} Unhealthy, breaching threshold'
-                    f'sending message to autoscaling orchestration svc to terminate the instance')
+def set_instance_unhealthy(instance_id):
+    try:
         autoscaling_client.set_instance_health(
             InstanceId=instance_id,
             HealthStatus='Unhealthy',
             ShouldRespectGracePeriod=False
         )
         return True
+    except Exception as e:
+        logger.error(f"Failed to set instance {instance_id} as unhealthy.")
+        logger.exception(e)
+        return False
+
+
+def if_unhealthy_ask_autoscaling_to_replace_instance(instance_id, asg_name, health_stats_recent_datapoints_results):
+    try:
+        # Check if HC_UNHEALTHY_THRESHOLD out of HC_DATA_POINTS health probe results are 0 %
+        if is_stats_reported_unhealthy(health_stats_recent_datapoints_results):
+            instance_id_str = instance_id.get('InstanceId')
+            if instance_id_str:
+                logger.info(f"process_results found asg_name: {asg_name} instance {instance_id_str} "
+                            f"unhealthy datapoint count of {health_stats_recent_datapoints_results.count(0)}")
+                # Set the custom Auto Scaling group health check for the instance as unhealthy
+                logger.info(f'Found instance {instance_id_str} in ASG {asg_name} Unhealthy, breaching threshold, '
+                            f'sending message to autoscaling orchestration service to terminate the instance')
+                if set_instance_unhealthy(instance_id_str):
+                    return True
+                else:
+                    logger.warning(f"Failed to set instance {instance_id_str} as unhealthy. Skipping lifecycle action.")
+                    return False
+            else:
+                logger.warning("Instance ID not found in the provided dictionary. Skipping lifecycle action.")
+                return False
+        else:
+            logger.info(f"Instance {instance_id.get('InstanceId')} in ASG {asg_name} is healthy.")
+            return False
+
+    except Exception as e:
+        logger.error("An unexpected error occurred while processing instance health status.")
+        logger.exception(e)
+        return False
 
 
 def is_instance_in_service_for_x_amount_of_time(instance_id, inservice_age):
@@ -529,9 +559,14 @@ def process_lifecycle_termination_events(event):
     hook_name = event['detail']['LifecycleHookName']
     logger.info(f"hook_name: {hook_name} asgName: {asg_name}")
     logger.info(f"instance_id: {instance_id}")
-
+    message = 'Autoscale Lifecycle action completed and Zscaler cloud resources cleaned up successfully'
+    response = {
+        'statusCode': 200,
+        'body': message
+    }
     # Determine if the instance is part of a warmed pool and is being terminated
-    if event['detail']['LifecycleTransition'] == 'autoscaling:EC2_INSTANCE_TERMINATING' and event['detail']['LifecycleHookName'] == hook_name:
+    if event['detail']['LifecycleTransition'] == 'autoscaling:EC2_INSTANCE_TERMINATING' and event['detail'][
+        'LifecycleHookName'] == hook_name:
         response = autoscaling_client.describe_auto_scaling_instances(InstanceIds=[instance_id])
         logger.info(f"describe_auto_scaling_instances: {response}")
         instances = response['AutoScalingInstances']
@@ -544,18 +579,17 @@ def process_lifecycle_termination_events(event):
 
             if success:
                 # Handle successful completion of the lifecycle action
-                print("Lifecycle action completed successfully.")
+                message = "Lifecycle action completed successfully."
+                logger.info(f"message: {message}")
             else:
                 # Handle failure in completing the lifecycle action
-                print("Failed to complete the lifecycle action.")
+                message = "Failed to complete the lifecycle action."
+                logger.info(f"message: {message}")
 
         else:
-            logger.info(f"life cycle action NOT  Warmed:Terminating:Wait and IGNORING it")
+            message = "life cycle action NOT  Warmed:Terminating:Wait or Terminating:Wait and hence Ignoring it"
+            logger.info(f"message: {message}")
 
-    response = {
-        'statusCode': 200,
-        'body': 'Autoscale Lifecycle action completed and Zscaler cloud resources cleaned up successfully'
-    }
     return response
 
 
@@ -614,7 +648,9 @@ def complete_lifecycle_action(hook_name, asg_name, token, instance_id):
                 logger.warning("Exceeded maximum retry attempts. Failed to complete the lifecycle action.")
                 return False
             else:
-                logger.warning(f"Instance is not in the expected 'Terminating:Wait' or 'Warmed:Terminating:Wait' state. Current state: {lifecycle_state}")
+                logger.warning(
+                    f"Instance is not in the expected 'Terminating:Wait' or 'Warmed:Terminating:Wait' state. "
+                    f"Current state: {lifecycle_state}")
                 return False
         else:
             logger.warning("Failed to retrieve instance information. Skipping lifecycle action.")
