@@ -83,13 +83,13 @@ class ZscalerApiClient:
         while retries < max_retries:
             try:
                 if method == 'get':
-                    response = requests.get(url, headers=headers)
+                    response = requests.get(url, headers=headers, verify=False)
                 elif method == 'post':
-                    response = requests.post(url, json=payload, headers=headers)
+                    response = requests.post(url, json=payload, headers=headers, verify=False)
                 elif method == 'put':
-                    response = requests.put(url, headers=headers)
+                    response = requests.put(url, headers=headers, verify=False)
                 elif method == 'delete':
-                    response = requests.delete(url, headers=headers)
+                    response = requests.delete(url, headers=headers, verify=False)
                     if 200 <= response.status_code < 300:
                         logger.info(f"API request successful. HTTP status code: {response.status_code}")
                         return None  # No JSON content to return for the delete method

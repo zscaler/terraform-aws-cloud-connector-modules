@@ -120,7 +120,7 @@ def invoke_lambda_locally():
     }
 
     # Invoke the lambda_handler with the test event
-    response = lambda_handler(test_termination_event, None)
+    response = lambda_handler(test_scheduled_fault_management_received_event, None)
 
     # Print the response
     print(response)
