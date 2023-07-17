@@ -8,7 +8,7 @@
     - remove secondary IP address from network interface index #1
     - add interface device index #5 for "large" CC.
 
-## v0.2.0 (April 4, 2023)
+## v0.2.0 (June 20, 2023)
 * AWS Provider updated from 4.7.x to 4.59.x for all example templates and child modules
 * terraform-zscc-gwlb-aws custom gwlb_name and target_group_name variables added
 * name_prefix variable default string changed from zsdemo to zscc
