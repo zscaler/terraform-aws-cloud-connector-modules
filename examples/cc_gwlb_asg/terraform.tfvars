@@ -171,9 +171,9 @@
 #warm_pool_min_size                         = 1
 
 ## 26. Specifies the total maximum number of instances that are allowed to be in the warm pool or in any state except Terminated for the Auto Scaling group. Ignored when 'warm_pool_enabled' is false
-##     Uncomment and specify a desired maximum number of Cloud Connectors to maintain deployed in a warm pool
+##     Uncomment and specify a desired maximum number of Cloud Connectors to maintain deployed in a warm pool. Default is null which means use whatever maximum is set at the ASG.
 
-#warm_pool_max_group_prepared_capacity      = 2
+#warm_pool_max_group_prepared_capacity      = null
 
 ## 27. Specifies whether instances in the Auto Scaling group can be returned to the warm pool on scale in
 ##     Uncomment to disable. (Default: true)
