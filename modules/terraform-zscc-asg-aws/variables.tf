@@ -232,3 +232,9 @@ variable "wait_for_capacity_timeout" {
   description = "Maximum duration that Terraform should wait for ASG instances to be healthy before timing out"
   default     = "0"
 }
+
+variable "imdsv2_enabled" {
+  type        = bool
+  description = "true/false whether to force IMDSv2 only for instance bring up. Default is true"
+  default     = true
+}
