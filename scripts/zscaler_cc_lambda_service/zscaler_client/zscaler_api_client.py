@@ -1,3 +1,8 @@
+"""
+Copyright (C) 2007-2023 Zscaler, Inc. All rights reserved.
+Unauthorized copying of this file, via any medium is strictly prohibited
+Proprietary and confidential
+"""
 import logging
 import os
 import time
@@ -32,7 +37,7 @@ class ZscalerApiClient:
         self.jsessionid = None
 
     @staticmethod
-    def obfuscate_api_key(seed):
+    def obfuscate_api_key(seed: object) -> object:
         now = int(time.time() * 1000)
         n = str(now)[-6:]
         r = str(int(n) >> 1).zfill(6)
@@ -45,7 +50,7 @@ class ZscalerApiClient:
         logger.info(f"Timestamp: {now}\tKey: {key}")
         return now, key
 
-    def authenticate(self):
+    def authenticate(self) -> object:
         auth_url = f"{self.base_url}/api/v1/auth"
         timestamp, new_api_key = self.obfuscate_api_key(self.api_key)
         auth_payload = {
@@ -68,7 +73,7 @@ class ZscalerApiClient:
             logger.error(f"Authentication failed. HTTP status code: {response.status_code}")
             exit()
 
-    def make_api_request(self, url, method='get', payload=None):
+    def make_api_request(self, url: object, method: object = 'get', payload: object = None) -> object:
         headers = {
             "Content-Type": "application/json",
             "Accept": "application/json",
@@ -148,10 +153,10 @@ class ZscalerApiClient:
 
 
 def main():
-    test_zscaler_resouce_deletion()
+    test_zscaler_resource_deletion()
 
 
-def test_zscaler_resouce_deletion():
+def test_zscaler_resource_deletion():
     cc_url = os.environ['CC_URL']
 
     secret_name = os.environ['SECRET_NAME']
