@@ -44,3 +44,9 @@ variable "byo_service_security_group_id" {
   description = "Service Security Group ID for Cloud Connector association"
   default     = null
 }
+
+variable "default_security_group" {
+  type        = list(string)
+  description = "Default CIDR list to permit workload traffic destined for Cloud Connector"
+  default     = ["0.0.0.0/0"]
+}

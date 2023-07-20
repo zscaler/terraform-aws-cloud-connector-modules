@@ -74,6 +74,12 @@ variable "bastion_nsg_source_prefix" {
   default     = ["0.0.0.0/0"]
 }
 
+variable "default_security_group" {
+  type        = list(string)
+  description = "Default CIDR list to permit workload traffic destined for Cloud Connector"
+  default     = ["0.0.0.0/0"]
+}
+
 variable "cc_count" {
   type        = number
   description = "Default number of Cloud Connector appliances to create"
