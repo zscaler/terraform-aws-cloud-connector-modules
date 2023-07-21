@@ -328,10 +328,10 @@ done
 
 ccvm_instance_type_default=m5n.large
 while true; do
-    read -r -p "Enter desired AWS EC2 instance type for CC. Recommended types: Small CC (m5n.large or m5a.large); Medium (m5n.2xlarge or m5a.2xlarge); Large (m5n.4xlarge or m5a.4xlarge) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
+    read -r -p "Enter desired AWS EC2 instance type for CC. Recommended types: Small CC (m5n.large or m5a.large)[Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
 ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}    
     case $ccvm_instance_type in
-      t3.medium|m5n.large|m5a.large|c5a.large|m5n.2xlarge|m5a.2xlarge|m5n.4xlarge|m5a.4xlarge)
+      t3.medium|m5n.large|m5a.large|c5a.large|m5n.2xlarge|m5a.2xlarge|m5n.4xlarge|m5a.4xlarge|m6i.large|m6a.large|m6i.4xlarge|m6a.4xlarge|c6i.large|c6a.large|c6i.4xlarge|c6a.4xlarge)
           echo "CC EC2 type: ${ccvm_instance_type}"
           echo "export TF_VAR_ccvm_instance_type=${ccvm_instance_type}" >> .zsecrc
           break
@@ -342,9 +342,9 @@ ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}
     esac
 done
 
-small_cc_instance=("t3.medium" "m5n.large" "m5a.large" "c5a.large" "m5n.2xlarge" "m5a.2xlarge" "m5n.4xlarge" "m5a.4xlarge")
-medium_cc_instance=("m5n.2xlarge" "m5a.2xlarge" "m5n.4xlarge" "m5a.4xlarge")
-large_cc_instance=("m5n.4xlarge" "m5a.4xlarge")
+small_cc_instance=("t3.medium" "m5n.large" "m5a.large" "c5a.large" "m5n.2xlarge" "m5a.2xlarge" "m5n.4xlarge" "m5a.4xlarge" "m6i.large" "m6a.large" "m6i.4xlarge" "m6a.4xlarge" "c6i.large" "c6a.large" "c6i.4xlarge" "c6a.4xlarge")
+medium_cc_instance=("m5n.4xlarge" "m5a.4xlarge" "m6i.4xlarge" "m6a.4xlarge" "c6i.4xlarge" "c6a.4xlarge")
+large_cc_instance=("m5n.4xlarge" "m5a.4xlarge" "m6i.4xlarge" "m6a.4xlarge" "c6i.4xlarge" "c6a.4xlarge")
 
 if [[ ${small_cc_instance[*]} =~ $ccvm_instance_type && "$cc_instance_size" == small ]]; then
 echo "Proceeding. ${ccvm_instance_type} compatible with ${cc_instance_size} Cloud Connector size"
