@@ -1,8 +1,7 @@
-"""
-Copyright (C) 2007-2023 Zscaler, Inc. All rights reserved.
-Unauthorized copying of this file, via any medium is strictly prohibited
-Proprietary and confidential
-"""
+#  Copyright (c) 2023  Zscaler, Inc. All rights reserved.
+#  Unauthorized copying of this file, via any medium is strictly prohibited
+#  Proprietary and confidential
+
 import json
 import logging
 import os
@@ -88,7 +87,7 @@ def invoke_lambda_locally():
             "arn:aws:autoscaling:us-east-1:123456789012:autoScalingGroup:59fcbb81-bd02-485d-80ce-563ef5b237bf:autoScalingGroupName/sampleASG"
         ],
         "detail": {
-            "LifecycleActionToken": "630aa23f-48eb-45e7-aba6-799ea6093a0f",
+            "LifecycleActionToken": "",
             "AutoScalingGroupName": "vkjune8-cc-asg-1-bu4wgv5y",
             "LifecycleHookName": "vkjune8-cc-asg-1-lifecyclehook-terminate-bu4wgv5y",
             "EC2InstanceId": "i-03200d11a5163947e",
