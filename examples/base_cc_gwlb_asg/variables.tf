@@ -259,13 +259,13 @@ variable "warm_pool_enabled" {
 variable "warm_pool_state" {
   type        = string
   description = "Sets the instance state to transition to after the lifecycle hooks finish. Valid values are: Stopped (default) or Running. Ignored when 'warm_pool_enabled' is false"
-  default     = null
+  default     = "Stopped"
 }
 
 variable "warm_pool_min_size" {
   type        = number
   description = "Specifies the minimum number of instances to maintain in the warm pool. This helps you to ensure that there is always a certain number of warmed instances available to handle traffic spikes. Ignored when 'warm_pool_enabled' is false"
-  default     = null
+  default     = 0
 }
 
 variable "warm_pool_max_group_prepared_capacity" {

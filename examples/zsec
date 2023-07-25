@@ -573,7 +573,7 @@ case $warm_pool_response in
 done
 
 if [[ "$dtype" == *"asg"* && "$warm_pool_enabled" == "true" ]]; then
-warm_pool_min_size_default=1
+warm_pool_min_size_default=0
     while true; do
     read -r -p "Enter the minimum number of instances to maintain in the warm pool [Default=$warm_pool_min_size_default]: " warm_pool_min_size_input
 warm_pool_min_size=${warm_pool_min_size_input:-$warm_pool_min_size_default}
@@ -584,7 +584,7 @@ warm_pool_min_size=${warm_pool_min_size_input:-$warm_pool_min_size_default}
           break
       ;;
       *)
-          echo "Invalid Warm Pool Minimum size: ${warm_pool_min_size}. Enter a number 1-10"
+          echo "Invalid Warm Pool Minimum size: ${warm_pool_min_size}. Enter a number 0-10"
       ;;
     esac
 done

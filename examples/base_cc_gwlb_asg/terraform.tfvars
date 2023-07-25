@@ -156,7 +156,7 @@
 ## 25. Specifies the minimum number of instances to maintain in the warm pool. This helps you to ensure that there is always a certain number of warmed instances available to handle traffic spikes. Ignored when 'warm_pool_enabled' is false
 ##     Uncomment and specify a desired minimum number of Cloud Connectors to maintain deployed in a warm pool
 
-#warm_pool_min_size                         = 1
+#warm_pool_min_size                         = 0
 
 ## 26. Specifies the total maximum number of instances that are allowed to be in the warm pool or in any state except Terminated for the Auto Scaling group. Ignored when 'warm_pool_enabled' is false
 ##     Uncomment and specify a desired maximum number of Cloud Connectors to maintain deployed in a warm pool. Default is null which means use whatever maximum is set at the ASG.
