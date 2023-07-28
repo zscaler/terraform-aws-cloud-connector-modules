@@ -590,26 +590,28 @@ warm_pool_min_size=${warm_pool_min_size_input:-$warm_pool_min_size_default}
 done
 
 warm_pool_max_group_prepared_capacity_default=$max_size
-    while true; do
+    while true; do 
     read -r -p "By default, AWS sets the Warm Pool max prepared capacity equal to the ASG max capacity [$max_size]. Would you like to override this? (yes/no): " override_max_prepared
         case $override_max_prepared in 
-	yes|y ) 
+	yes|y )
+    while true; do 
         read -r -p "Enter the maximum number of instances that are allowed to be in the warm pool [Default=$warm_pool_max_group_prepared_capacity_default]: " warm_pool_max_group_prepared_capacity_input
         warm_pool_max_group_prepared_capacity=${warm_pool_max_group_prepared_capacity_input:-$warm_pool_max_group_prepared_capacity_default}
         if [[ "$warm_pool_max_group_prepared_capacity" -lt "$warm_pool_min_size" ]]; then
             echo "Warm Pool Maximum capacity must be greater than or equal to ${warm_pool_min_size}"
-            else
+        else
             case $warm_pool_max_group_prepared_capacity in
             1|2|3|4|5|6|7|8|9|10)
           echo "Warm Pool Maximum capacity: ${warm_pool_max_group_prepared_capacity}"
           echo "export TF_VAR_warm_pool_max_group_prepared_capacity=${warm_pool_max_group_prepared_capacity}" >> .zsecrc
           break
-            ;;
-            *)
+        ;;
+        *)
           echo "Invalid Warm Pool Maximum capacity: ${warm_pool_max_group_prepared_capacity}. Enter a number 1-10"
-            ;;
-            esac
+        ;;
+        esac
         fi
+    done
     break
     ;;
 	no|n )
