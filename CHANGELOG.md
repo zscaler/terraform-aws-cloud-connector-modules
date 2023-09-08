@@ -1,5 +1,15 @@
-## URELEASE (TBD)
+## URELEASED (TBD)
 * Autoscaling support
+    - add: terraform-zscc-asg-aws module
+    - add: terraform-zscc-asg-labda-aws module
+    - change: IAM policies for ASG lifecycle and Cloudwatch metrics
+    - GWLB condition changes for ASG instance based target group requirements
+* Product code change to support service interface (now ENA0) and management interface (now ENA1) swap for both autoscaling and non-autoscaling deployments
+* terraform-zscc-ccvm-aws outputs
+    - rename service_eni_1 output to management_eni
+    - rename private_ip output to forwarding_ip
+    - rename cc_service_private_ip to management_ip
+    - add forwarding_eni
 
 ## UNRELEASED (TBD)
 * Medium and Large Cloud Connector instance support

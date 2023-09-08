@@ -180,7 +180,7 @@ module "cc_sg" {
 
 ################################################################################
 # 5. Create GWLB in all CC subnets/availability zones. Create a Target Group 
-#    and attach primary service IP from all created CCs as registered targets.
+#    and attach primary forwarding IP from all created CCs as registered targets.
 ################################################################################
 module "gwlb" {
   source                = "../../modules/terraform-zscc-gwlb-aws"
@@ -189,7 +189,7 @@ module "gwlb" {
   global_tags           = local.global_tags
   vpc_id                = module.network.vpc_id
   cc_subnet_ids         = module.network.cc_subnet_ids
-  cc_service_ips        = module.cc_vm.cc_service_private_ip
+  cc_service_ips        = module.cc_vm.forwarding_ip
   cc_instance_size      = var.cc_instance_size
   http_probe_port       = var.http_probe_port
   health_check_interval = var.health_check_interval

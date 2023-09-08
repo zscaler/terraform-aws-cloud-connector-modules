@@ -53,7 +53,7 @@ module "network" {
   resource_tag      = random_string.suffix.result
   global_tags       = local.global_tags
   workloads_enabled = true
-  cc_service_enis   = module.cc_vm.service_eni_1
+  cc_service_enis   = module.cc_vm.forwarding_eni
   az_count          = var.az_count
   vpc_cidr          = var.vpc_cidr
   zpa_enabled       = var.zpa_enabled

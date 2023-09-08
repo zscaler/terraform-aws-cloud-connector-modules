@@ -54,7 +54,6 @@ module "network" {
   resource_tag      = random_string.suffix.result
   global_tags       = local.global_tags
   workloads_enabled = true
-  cc_service_enis   = module.cc_vm.service_eni_1
   az_count          = var.az_count
   vpc_cidr          = var.vpc_cidr
   public_subnets    = var.public_subnets
@@ -201,7 +200,7 @@ module "gwlb" {
   global_tags           = local.global_tags
   vpc_id                = module.network.vpc_id
   cc_subnet_ids         = module.network.cc_subnet_ids
-  cc_service_ips        = module.cc_vm.cc_service_private_ip
+  cc_service_ips        = module.cc_vm.forwarding_ip
   cc_instance_size      = var.cc_instance_size
   http_probe_port       = var.http_probe_port
   health_check_interval = var.health_check_interval
