@@ -142,12 +142,6 @@ variable "http_probe_port" {
   }
 }
 
-variable "cc_callhome_enabled" {
-  type        = bool
-  description = "determine whether or not to create the cc-callhome-policy IAM Policy and attach it to the CC IAM Role"
-  default     = true
-}
-
 variable "gwlb_enabled" {
   type        = bool
   default     = true

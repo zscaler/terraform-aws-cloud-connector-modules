@@ -186,14 +186,13 @@ module "cc_asg" {
 #    assigned to ALL Cloud Connectors instead.
 ################################################################################
 module "cc_iam" {
-  source              = "../../modules/terraform-zscc-iam-aws"
-  iam_count           = 1
-  name_prefix         = var.name_prefix
-  resource_tag        = random_string.suffix.result
-  global_tags         = local.global_tags
-  cc_callhome_enabled = var.cc_callhome_enabled
-  asg_enabled         = var.asg_enabled
-  secret_name         = var.secret_name
+  source       = "../../modules/terraform-zscc-iam-aws"
+  iam_count    = 1
+  name_prefix  = var.name_prefix
+  resource_tag = random_string.suffix.result
+  global_tags  = local.global_tags
+  asg_enabled  = var.asg_enabled
+  secret_name  = var.secret_name
 }
 
 
