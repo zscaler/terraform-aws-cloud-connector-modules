@@ -33,7 +33,7 @@ ${join("\n", module.cc_vm.service_eni_1)}
 All NAT GW IPs:
 ${join("\n", module.network.nat_gateway_ips)}
 
-All CC IAM Role ARNs (Please provide this to Zscaler for callhome enablement):
+All CC IAM Role ARNs:
 ${join("\n", module.cc_iam.iam_instance_profile_arn)}
 
 
