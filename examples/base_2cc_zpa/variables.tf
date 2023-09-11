@@ -155,12 +155,6 @@ variable "http_probe_port" {
   }
 }
 
-variable "cc_callhome_enabled" {
-  type        = bool
-  description = "determine whether or not to create the cc-callhome-policy IAM Policy and attach it to the CC IAM Role"
-  default     = true
-}
-
 variable "reuse_security_group" {
   type        = bool
   description = "Specifies whether the SG module should create 1:1 security groups per instance or 1 security group for all instances"
