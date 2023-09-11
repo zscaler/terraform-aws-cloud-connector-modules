@@ -38,6 +38,12 @@ variable "cc_subnets" {
   default     = null
 }
 
+variable "route53_subnets" {
+  type        = list(string)
+  description = "Route 53 Outbound Endpoint Subnets to create in VPC. This is only required if you want to override the default subnets that this code creates via vpc_cidr variable."
+  default     = null
+}
+
 variable "workload_count" {
   type        = number
   description = "Default number of workload VMs to create"
@@ -72,12 +78,6 @@ variable "bastion_nsg_source_prefix" {
   type        = list(string)
   description = "CIDR blocks of trusted networks for bastion host ssh access"
   default     = ["0.0.0.0/0"]
-}
-
-variable "cc_count" {
-  type        = number
-  description = "Default number of Cloud Connector appliances to create"
-  default     = 4
 }
 
 variable "ccvm_instance_type" {
@@ -149,18 +149,25 @@ variable "http_probe_port" {
   }
 }
 
-variable "reuse_security_group" {
+variable "cc_callhome_enabled" {
   type        = bool
-  description = "Specifies whether the SG module should create 1:1 security groups per instance or 1 security group for all instances"
-  default     = false
+  description = "determine whether or not to create the cc-callhome-policy IAM Policy and attach it to the CC IAM Role"
+  default     = true
 }
 
-variable "reuse_iam" {
+variable "zpa_enabled" {
   type        = bool
-  description = "Specifies whether the SG module should create 1:1 IAM per instance or 1 IAM for all instances"
-  default     = false
+  default     = true
+  description = "Configure Route 53 Subnets, Route Tables, and Resolvers for ZPA DNS redirection"
 }
 
+variable "gwlb_enabled" {
+  type        = bool
+  default     = true
+  description = "Default is true. Workload/Route 53 subnet Route Tables will point to network_interface_id via var.cc_service_enis. If true, Route Tables will point to vpc_endpoint_id via var.gwlb_endpoint_ids input."
+}
+
+## GWLB specific variables
 variable "health_check_interval" {
   type        = number
   description = "Interval for GWLB target group health check probing, in seconds, of Cloud Connector targets. Minimum 5 and maximum 300 seconds"
@@ -185,12 +192,6 @@ variable "cross_zone_lb_enabled" {
   default     = false
 }
 
-variable "gwlb_enabled" {
-  type        = bool
-  default     = true
-  description = "Default is true. Workload/Route 53 subnet Route Tables will point to network_interface_id via var.cc_service_enis. If true, Route Tables will point to vpc_endpoint_id via var.gwlb_endpoint_ids input."
-}
-
 variable "acceptance_required" {
   type        = bool
   description = "Whether to require manual acceptance of any VPC Endpoint registration attempts to the Endpoint Service or not. Default is false"
@@ -201,12 +202,6 @@ variable "allowed_principals" {
   type        = list(string)
   description = "List of AWS Principal ARNs who are allowed access to the GWLB Endpoint Service. E.g. [\"arn:aws:iam::1234567890:root\"]`. See https://docs.aws.amazon.com/vpc/latest/privatelink/configure-endpoint-service.html#accept-reject-connection-requests"
   default     = []
-}
-
-variable "deregistration_delay" {
-  type        = number
-  description = "Amount time for Elastic Load Balancing to wait before changing the state of a deregistering target from draining to unused. The range is 0-3600 seconds."
-  default     = 0
 }
 
 variable "flow_stickiness" {
@@ -224,6 +219,12 @@ variable "flow_stickiness" {
   }
 }
 
+variable "deregistration_delay" {
+  type        = number
+  description = "Amount time for Elastic Load Balancing to wait before changing the state of a deregistering target from draining to unused. The range is 0-3600 seconds."
+  default     = 0
+}
+
 variable "rebalance_enabled" {
   type        = bool
   description = "Indicates how the GWLB handles existing flows when a target is deregistered or marked unhealthy. true means rebalance. false means no_rebalance. Default: true"
@@ -232,6 +233,145 @@ variable "rebalance_enabled" {
 
 variable "ami_id" {
   type        = list(string)
-  description = "AMI ID(s) to be used for deploying Cloud Connector appliances. Ideally all VMs should be on the same AMI ID as templates always pull the latest from AWS Marketplace. This variable is provided if a customer desires to override/retain an old ami for existing deployments rather than upgrading and forcing a replacement. It is also inputted as a list to facilitate if a customer desired to manually upgrade select CCs deployed based on the cc_count index"
+  description = "AMI ID(s) to be used for deploying Cloud Connector appliances. Ideally all VMs should be on the same AMI ID as templates always pull the latest from AWS Marketplace. This variable is provided if a customer desires to override/retain an old ami for existing deployments rather than upgrading and forcing a launch template change."
   default     = [""]
+}
+
+# ASG specific variables
+variable "min_size" {
+  type        = number
+  description = "Mininum number of Cloud Connectors to maintain in Autoscaling group"
+  default     = 2
+}
+
+variable "max_size" {
+  type        = number
+  description = "Maxinum number of Cloud Connectors to maintain in Autoscaling group"
+  default     = 4
+  validation {
+    condition = (
+      var.max_size >= 1 && var.max_size <= 10
+    )
+    error_message = "Input max_size must be set to a number between 1 and 10."
+  }
+}
+
+variable "health_check_grace_period" {
+  type        = number
+  description = "The amount of time until EC2 Auto Scaling performs the first health check on new instances after they are put into service. With lifecycle hooks it is immediate. Otheriwse Default is 15 minutes"
+  default     = 0
+}
+
+variable "warm_pool_enabled" {
+  type        = bool
+  description = "If set to true, add a warm pool to the specified Auto Scaling group. See [warm_pool](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group#warm_pool)."
+  default     = false
+}
+
+variable "warm_pool_state" {
+  type        = string
+  description = "Sets the instance state to transition to after the lifecycle hooks finish. Valid values are: Stopped (default) or Hibernated. Ignored when 'warm_pool_enabled' is false"
+  default     = null
+}
+
+variable "warm_pool_min_size" {
+  type        = number
+  description = "Specifies the minimum number of instances to maintain in the warm pool. This helps you to ensure that there is always a certain number of warmed instances available to handle traffic spikes. Ignored when 'warm_pool_enabled' is false"
+  default     = null
+}
+
+variable "warm_pool_max_group_prepared_capacity" {
+  type        = number
+  description = "Specifies the total maximum number of instances that are allowed to be in the warm pool or in any state except Terminated for the Auto Scaling group. Ignored when 'warm_pool_enabled' is false"
+  default     = null
+}
+
+variable "reuse_on_scale_in" {
+  type        = bool
+  description = "Specifies whether instances in the Auto Scaling group can be returned to the warm pool on scale in. Default recommendation is true"
+  default     = true
+}
+
+variable "launch_template_version" {
+  type        = string
+  description = "Launch template version. Can be version number, `$Latest` or `$Default`"
+  default     = "$Latest"
+}
+
+variable "target_cpu_util_value" {
+  type        = number
+  description = "Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number"
+  default     = 80
+}
+
+variable "lifecyclehook_instance_launch_wait_time" {
+  type        = number
+  description = "The maximum amount of time to wait in pending:wait state on instance launch in warmpool"
+  default     = 1800
+}
+
+variable "lifecyclehook_instance_terminate_wait_time" {
+  type        = number
+  description = "The maximum amount of time to wait in terminating:wait state on instance termination"
+  default     = 900
+}
+
+variable "asg_enabled" {
+  type        = bool
+  description = "Determines whether or not to create the cc_autoscale_lifecycle_policy IAM Policy and attach it to the CC IAM Role"
+  default     = true
+}
+
+variable "sns_enabled" {
+  type        = bool
+  description = "Determine whether or not to create autoscaling group notifications. Default is false. If setting this value to true, terraform will also create a new sns topic and topic subscription"
+  default     = false
+}
+
+variable "sns_email_list" {
+  type        = list(string)
+  description = "List of email addresses to input for sns topic subscriptions for autoscaling group notifications. Required if sns_enabled variable is true and byo_sns_topic false"
+  default     = [""]
+}
+
+variable "byo_sns_topic" {
+  type        = bool
+  description = "Determine whether or not to create an AWS SNS topic and topic subscription for email alerts. Setting this variable to true implies you should also set variable sns_enabled to true"
+  default     = false
+}
+
+variable "byo_sns_topic_name" {
+  type        = string
+  description = "Existing SNS Topic friendly name to be used for autoscaling group notifications"
+  default     = ""
+}
+
+variable "protect_from_scale_in" {
+  type        = bool
+  description = "Whether newly launched instances are automatically protected from termination by Amazon EC2 Auto Scaling when scaling in. For more information about preventing instances from terminating on scale in, see Using instance scale-in protection in the Amazon EC2 Auto Scaling User Guide"
+  default     = false
+}
+
+variable "instance_warmup" {
+  type        = number
+  description = "Amount of time, in seconds, until a newly launched instance can contribute to the Amazon CloudWatch metrics. This delay lets an instance finish initializing before Amazon EC2 Auto Scaling aggregates instance metrics, resulting in more reliable usage data. Set this value equal to the amount of time that it takes for resource consumption to become stable after an instance reaches the InService state"
+  default     = 0
+}
+
+variable "asg_lambda_filename" {
+  type        = string
+  description = "Name of the lambda zip file without suffix"
+  default     = "zscaler_cc_lambda_service"
+}
+
+# ZPA/Route53 specific variables
+variable "domain_names" {
+  type        = map(any)
+  description = "Domain names fqdn/wildcard to have Route 53 redirect DNS requests to Cloud Connector for ZPA. Refer to terraform.tfvars ZPA/Route 53 specific variables"
+}
+
+variable "target_address" {
+  type        = list(string)
+  description = "Route 53 DNS queries will be forwarded to these Zscaler Global VIP addresses"
+  default     = ["185.46.212.88", "185.46.212.89"]
 }

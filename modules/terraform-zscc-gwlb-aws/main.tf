@@ -6,7 +6,7 @@ resource "aws_lb_target_group" "gwlb_target_group" {
   port                 = 6081
   protocol             = "GENEVE"
   vpc_id               = var.vpc_id
-  target_type          = "ip"
+  target_type          = var.asg_enabled == true ? "instance" : "ip"
   deregistration_delay = var.deregistration_delay
 
   health_check {

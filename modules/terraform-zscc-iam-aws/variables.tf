@@ -34,6 +34,12 @@ variable "byo_iam_instance_profile_id" {
   default     = null
 }
 
+variable "asg_enabled" {
+  type        = bool
+  description = "Determines whether or not to create the cc_autoscale_lifecycle_policy IAM Policy and attach it to the CC IAM Role"
+  default     = false
+}
+
 variable "secret_name" {
   type        = string
   description = "AWS Secrets Manager Secret Name for Cloud Connector provisioning"

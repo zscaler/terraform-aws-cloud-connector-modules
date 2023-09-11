@@ -1,3 +1,6 @@
+## URELEASE (TBD)
+* Autoscaling support
+
 ## UNRELEASED (TBD)
 * Medium and Large Cloud Connector instance support
 * module terraform-zscc-gwlb-aws:
@@ -25,6 +28,9 @@
 * replace default secretsmanager policy with custom least privilege CCPermitGetSecrets with only required GetSecretValue access to the Secret Manager name specified
 * IMDSv2 required by default for Cloud Connector EC2 instance creation. imdsv2_enabled variable added to terraform-zscc-ccvm-aws module
 * CC mgmt/service security group lifecycle and dependency fixes
+* replace default secretsmanager policy with custom least privilege CCPermitGetSecrets with only required GetSecretValue access to the Secret Manager name specified
+* IMDSv2 required by default for Cloud Connector EC2 instance creation. imdsv2_enabled variable added to terraform-zscc-ccvm-aws module
+* CC mgmt/service security group lifecycle and dependency fixes
 
 ## v0.1.0 (December 15, 2022) 
 * github release refactor from Cloud Connector Portal
@@ -45,5 +51,7 @@
 * added custom subnet definition capabilities via variables cc_subnets, route53_subnets, public_subnets, and workloads_subnets should customer try to override vpc_cidr and the auto cidrsubnet selection becomes incompatible
 * workload and bastion modules changed to AL2 EC2 to enable SSM and require IMDSv2 metadata
 * cc-error-checker changes to run first so errors thrown are less and clearer in the event of a CC deployment configuration error
+* ASG module + deployment types added
 * Support for M/L CC GWLB non-ASG
 * SSM policy modified for least privilege
+* IAM policy for ASG Lifecycle completion
