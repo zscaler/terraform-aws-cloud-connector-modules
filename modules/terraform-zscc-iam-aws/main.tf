@@ -121,6 +121,36 @@ resource "aws_iam_role_policy_attachment" "cc_session_manager_attachment" {
 
 
 ################################################################################
+# Define AWS SQS/SNS Policy
+################################################################################
+data "aws_iam_policy_document" "cc_tags_policy_document" {
+  version = "2012-10-17"
+  statement {
+    sid    = "CCTags"
+    effect = "Allow"
+    actions = [
+      "sqs:CreateQueue",
+      "sns:Subscribe",
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "cc_tags_policy" {
+  count       = var.byo_iam == false ? var.iam_count : 0
+  description = "Policy which permits CCs to subscribe for tags changes"
+  name        = "${var.name_prefix}-cc-${count.index + 1}-tags-${var.resource_tag}"
+  policy      = data.aws_iam_policy_document.cc_tags_policy_document.json
+}
+
+resource "aws_iam_role_policy_attachment" "cc_tags_attachment" {
+  count      = var.byo_iam == false ? var.iam_count : 0
+  policy_arn = aws_iam_policy.cc_tags_policy[count.index].arn
+  role       = aws_iam_role.cc_node_iam_role[count.index].name
+}
+
+
+################################################################################
 # Create CC IAM Role and Host/Instance Profile
 ################################################################################
 resource "aws_iam_role" "cc_node_iam_role" {
