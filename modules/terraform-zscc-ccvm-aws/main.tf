@@ -15,19 +15,21 @@ EOF
 # Create Cloud Connector VM
 ################################################################################
 resource "aws_instance" "cc_vm" {
-  count                       = local.valid_cc_create ? var.cc_count : 0
-  ami                         = element(var.ami_id, count.index)
-  instance_type               = var.ccvm_instance_type
-  iam_instance_profile        = element(var.iam_instance_profile, count.index)
-  vpc_security_group_ids      = [element(var.mgmt_security_group_id, count.index)]
-  subnet_id                   = element(var.mgmt_subnet_id, count.index)
-  key_name                    = var.instance_key
-  associate_public_ip_address = false
-  user_data                   = base64encode(var.user_data)
+  count                = local.valid_cc_create ? var.cc_count : 0
+  ami                  = element(var.ami_id, count.index)
+  instance_type        = var.ccvm_instance_type
+  iam_instance_profile = element(var.iam_instance_profile, count.index)
+  key_name             = var.instance_key
+  user_data            = base64encode(var.user_data)
 
   metadata_options {
     http_endpoint = "enabled"
     http_tokens   = var.imdsv2_enabled ? "required" : "optional"
+  }
+
+  network_interface {
+    device_index         = 0
+    network_interface_id = aws_network_interface.cc_vm_nic_index_0[count.index].id
   }
 
   tags = merge(var.global_tags,
@@ -43,12 +45,27 @@ resource "aws_instance" "cc_vm" {
 #
 # This primary IP Address of this interface will be used for GWLB Target Group
 ################################################################################
-resource "aws_network_interface" "cc_vm_nic_index_1" {
+resource "aws_network_interface" "cc_vm_nic_index_0" {
   count             = local.valid_cc_create ? var.cc_count : 0
-  description       = "next hop forwarding interface"
+  description       = "cc next hop forwarding interface"
   subnet_id         = element(var.service_subnet_id, count.index)
   security_groups   = [element(var.service_security_group_id, count.index)]
   source_dest_check = false
+
+  tags = merge(var.global_tags,
+  { Name = "${var.name_prefix}-cc-vm-${count.index + 1}-${var.resource_tag}-FwdIF" })
+}
+
+
+################################################################################
+# Create Cloud Connector Management Interface 
+################################################################################
+resource "aws_network_interface" "cc_vm_nic_index_1" {
+  count             = local.valid_cc_create ? var.cc_count : 0
+  description       = "cc management interface"
+  subnet_id         = element(var.mgmt_subnet_id, count.index)
+  security_groups   = [element(var.mgmt_security_group_id, count.index)]
+  source_dest_check = true
 
   attachment {
     instance     = aws_instance.cc_vm[count.index].id

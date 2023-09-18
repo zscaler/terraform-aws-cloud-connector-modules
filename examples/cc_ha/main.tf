@@ -56,7 +56,7 @@ module "network" {
   zpa_enabled       = var.zpa_enabled
   workloads_enabled = var.workloads_enabled
   gwlb_enabled      = var.gwlb_enabled
-  cc_service_enis   = module.cc_vm.service_eni_1
+  cc_service_enis   = module.cc_vm.forwarding_eni
   az_count          = var.az_count
   vpc_cidr          = var.vpc_cidr
   public_subnets    = var.public_subnets

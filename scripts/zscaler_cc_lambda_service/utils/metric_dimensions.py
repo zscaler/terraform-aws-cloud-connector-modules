@@ -1,6 +1,12 @@
-import boto3
+"""
+Copyright (C) 2007-2023 Zscaler, Inc. All rights reserved.
+Unauthorized copying of this file, via any medium is strictly prohibited
+Proprietary and confidential
+"""
 import logging
 from typing import List, Dict, Tuple, Any
+
+import boto3
 
 # Configure the logger
 logger = logging.getLogger()
