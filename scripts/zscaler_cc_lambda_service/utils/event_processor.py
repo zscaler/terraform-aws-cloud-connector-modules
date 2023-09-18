@@ -1,10 +1,15 @@
+"""
+Copyright (C) 2007-2023 Zscaler, Inc. All rights reserved.
+Unauthorized copying of this file, via any medium is strictly prohibited
+Proprietary and confidential
+"""
 import datetime
 import json
 import logging
 import os
 import time
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, Dict, Any
 from urllib.parse import urlparse
 
 import boto3
@@ -547,7 +552,20 @@ def extract_zsgroupid_zsvmid_from_dimensions(dimensions):
     return zs_group_id, zs_vm_id
 
 
-def process_lifecycle_termination_events(event):
+def process_lifecycle_termination_events(event: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Process the lifecycle termination events and handle instances being sent to the warm pool instead of termination.
+
+    Args:
+        event (Dict[str, Any]): The event data received from the AWS Auto Scaling service via EventBridge service.
+
+    Returns:
+        Dict[str, Any]: The response indicating the action taken or Done.
+
+    Raises:
+        Exception: If there is an error during the processing.
+
+    """
     logger.info(f"received: {event}")
 
     # Get the instance ID, asg_name from the event
@@ -559,12 +577,27 @@ def process_lifecycle_termination_events(event):
     hook_name = event['detail']['LifecycleHookName']
     logger.info(f"hook_name: {hook_name} asgName: {asg_name}")
     logger.info(f"instance_id: {instance_id}")
-    message = 'Autoscale Lifecycle action completed and Zscaler cloud resources cleaned up successfully'
+    message = 'Handling Lifecycle Termination event'
     response = {
         'statusCode': 200,
         'body': message
     }
-    # Determine if the instance is part of a warmed pool and is being terminated
+    # if warm pool is enabled and re-use policy in use, the instance won't be terminated.
+    # so it should be ignored
+    # Check if the instance is being sent to the warm pool instead of termination
+    if (
+            event['detail']['LifecycleTransition'] == 'autoscaling:EC2_INSTANCE_TERMINATING'
+            and ('Origin' not in event['detail'] or event['detail']['Origin'] == 'AutoScalingGroup')
+            and ('Destination' not in event['detail'] or event['detail']['Destination'] == 'WarmPool')
+    ):
+        message = 'Instance is returned to warm pool and no action is needed'
+        response = {
+            'statusCode': 200,
+            'body': message
+        }
+        return response
+
+    # Otherwise instances are getting terminated: validate, delete the zscaler resource and notify autoscale service
     if event['detail']['LifecycleTransition'] == 'autoscaling:EC2_INSTANCE_TERMINATING' and event['detail'][
         'LifecycleHookName'] == hook_name:
         response = autoscaling_client.describe_auto_scaling_instances(InstanceIds=[instance_id])
@@ -581,15 +614,19 @@ def process_lifecycle_termination_events(event):
                 # Handle successful completion of the lifecycle action
                 message = "Lifecycle action completed successfully."
                 logger.info(f"message: {message}")
+                return response
             else:
                 # Handle failure in completing the lifecycle action
                 message = "Failed to complete the lifecycle action."
                 logger.info(f"message: {message}")
+                return response
 
         else:
             message = "life cycle action NOT  Warmed:Terminating:Wait or Terminating:Wait and hence Ignoring it"
             logger.info(f"message: {message}")
+            return response
 
+    message = 'Autoscale Lifecycle action completed.'
     return response
 
 

@@ -30,7 +30,7 @@ See: [Zscaler Cloud Connector AWS Deployment Guide](https://help.zscaler.com/clo
 ## Deploying the cluster
 (The automated tool can run only from MacOS and Linux. You can also upload all repo contents to the respective public cloud provider Cloud Shells and run directly from there).   
  
-**1. Greenfield Deployments**
+**1. Test/Greenfield Deployments**
 
 (Use this if you are building an entire cluster from ground up.
  Particularly useful for a Customer Demo/PoC or dev-test environment)
@@ -48,7 +48,7 @@ Optional: Edit the terraform.tfvars file under your desired deployment type (ie:
 - verify all resources that will be created/modified and enter "yes" to confirm
 ```
 
-**Greenfield Deployment Types:**
+**Test/Greenfield Deployment Types:**
 
 ```
 Deployment Type: (base | base_1cc | base_1cc_zpa | base_2cc | base_2cc_zpa | base_cc_gwlb | base_cc_gwlb_zpa | base_cc_gwlb_asg | base_cc_gwlb_asg_zpa):
@@ -64,7 +64,7 @@ base_cc_gwlb_asg: Everything from base_cc_gwlb except the number of Cloud Connec
 base_cc_gwlb_asg_zpa: Everything from base_cc_gwlb_asg + Creates 2 Route 53 subnets routing to service ENI of Cloud Connector; Route 53 outbound resolver endpoint; Route 53 resolver rules for ZPA
 ```
 
-**2. Brownfield Deployments**
+**2. Prod/Brownfield Deployments**
 
 (These templates would be most applicable for production deployments and have more customization options than a "base" deployments). They also do not include a bastion or workload hosts deployed.
 
@@ -81,7 +81,7 @@ Optional: Edit the terraform.tfvars file under your desired deployment type (ie:
 - verify all resources that will be created/modified and enter "yes" to confirm
 ```
 
-**Brownfield Deployment Types**
+**Prod/Brownfield Deployment Types**
 
 ```
 Deployment Type: (cc_ha | cc_gwlb | cc_gwlb_asg):

@@ -28,6 +28,7 @@ No modules.
 | Name | Type |
 |------|------|
 | [aws_instance.cc_vm](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
+| [aws_network_interface.cc_vm_nic_index_0](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
 | [aws_network_interface.cc_vm_nic_index_1](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
 | [aws_network_interface.cc_vm_nic_index_2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
 | [aws_network_interface.cc_vm_nic_index_3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
@@ -60,8 +61,9 @@ No modules.
 | Name | Description |
 |------|-------------|
 | <a name="output_availability_zone"></a> [availability\_zone](#output\_availability\_zone) | Instance Availability Zone |
-| <a name="output_cc_service_private_ip"></a> [cc\_service\_private\_ip](#output\_cc\_service\_private\_ip) | Instance Device Index 1 Private IP |
-| <a name="output_id"></a> [id](#output\_id) | Instance ID |
-| <a name="output_private_ip"></a> [private\_ip](#output\_private\_ip) | Instance Private IP |
-| <a name="output_service_eni_1"></a> [service\_eni\_1](#output\_service\_eni\_1) | Instance Device Index 1 Network ID |
+| <a name="output_forwarding_eni"></a> [forwarding\_eni](#output\_forwarding\_eni) | Instance Device Index 0 Network ID |
+| <a name="output_forwarding_ip"></a> [forwarding\_ip](#output\_forwarding\_ip) | Instance Forwarding/Service IP |
+| <a name="output_id"></a> [id](#output\_id) | EC2 Instance ID |
+| <a name="output_management_eni"></a> [management\_eni](#output\_management\_eni) | Instance Device Index 1 Network ID |
+| <a name="output_management_ip"></a> [management\_ip](#output\_management\_ip) | Instance Device Index 1 Private IP |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

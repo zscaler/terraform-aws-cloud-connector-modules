@@ -1,3 +1,7 @@
+#  Copyright (c) 2023  Zscaler, Inc. All rights reserved.
+#  Unauthorized copying of this file, via any medium is strictly prohibited
+#  Proprietary and confidential
+
 import json
 import logging
 import os
@@ -5,8 +9,8 @@ import os
 import utils.event_processor
 from utils.metric_dimensions import test_dimensions
 from utils.secret_manager import get_secret_value
-from zscaler_client.zscaler_api_client import test_zscaler_resouce_deletion
 from version import VERSION
+from zscaler_client.zscaler_api_client import test_zscaler_resource_deletion
 
 # Configure the logger
 logger = logging.getLogger()
@@ -35,10 +39,10 @@ def test_read_from_secretmanager():
 def test_all():
     test_read_from_secretmanager()
     test_dimensions()
-    test_zscaler_resouce_deletion()
+    test_zscaler_resource_deletion()
 
 
-def lambda_handler(event, context):
+def lambda_handler(event: object, context: object) -> object:
     # dump the event and context
     logger.info(f'Zscaler lambda_handler: VERSION: {VERSION} event={event} and context={context}')
 
@@ -72,26 +76,26 @@ def invoke_lambda_locally():
 
     # trying this event for end-end
     test_asg_termination_event = {
-      "version": "0",
-      "id": "468fe059-f4b7-445f-bb22-2a271b94974d",
-      "detail-type": "EC2 Instance-terminate Lifecycle Action",
-      "source": "aws.autoscaling",
-      "account": "123456789012",
-      "time": "2015-12-22T18:43:48Z",
-      "region": "us-east-2",
-      "resources": [
-        "arn:aws:autoscaling:us-east-1:123456789012:autoScalingGroup:59fcbb81-bd02-485d-80ce-563ef5b237bf:autoScalingGroupName/sampleASG"
-      ],
-      "detail": {
-        "LifecycleActionToken": "630aa23f-48eb-45e7-aba6-799ea6093a0f",
-        "AutoScalingGroupName": "vkjune8-cc-asg-1-bu4wgv5y",
-        "LifecycleHookName": "vkjune8-cc-asg-1-lifecyclehook-terminate-bu4wgv5y",
-        "EC2InstanceId": "i-03200d11a5163947e",
-        "LifecycleTransition": "autoscaling:EC2_INSTANCE_TERMINATING"
-      }
+        "version": "0",
+        "id": "468fe059-f4b7-445f-bb22-2a271b94974d",
+        "detail-type": "EC2 Instance-terminate Lifecycle Action",
+        "source": "aws.autoscaling",
+        "account": "123456789012",
+        "time": "2015-12-22T18:43:48Z",
+        "region": "us-east-2",
+        "resources": [
+            "arn:aws:autoscaling:us-east-1:123456789012:autoScalingGroup:59fcbb81-bd02-485d-80ce-563ef5b237bf:autoScalingGroupName/sampleASG"
+        ],
+        "detail": {
+            "LifecycleActionToken": "",
+            "AutoScalingGroupName": "vkjune8-cc-asg-1-bu4wgv5y",
+            "LifecycleHookName": "vkjune8-cc-asg-1-lifecyclehook-terminate-bu4wgv5y",
+            "EC2InstanceId": "i-03200d11a5163947e",
+            "LifecycleTransition": "autoscaling:EC2_INSTANCE_TERMINATING"
+        }
     }
 
-    test_scheduled_fault_management_event =  {
+    test_scheduled_fault_management_event = {
         "id": "cdc73f9d-aea9-11e3-9d5a-835b769c0d9c",
         "detail-type": "Scheduled Event",
         "source": "aws.events",

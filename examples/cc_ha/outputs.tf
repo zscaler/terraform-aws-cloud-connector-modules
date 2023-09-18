@@ -22,13 +22,13 @@ All CC Instance IDs:
 ${join("\n", module.cc_vm.id)}
 
 All CC Management IPs:
-${join("\n", module.cc_vm.private_ip)}
+${join("\n", module.cc_vm.management_ip)}
 
-All CC Primary Service IPs:
-${join("\n", module.cc_vm.cc_service_private_ip)}
+All CC Forwarding/Service IPs:
+${join("\n", module.cc_vm.forwarding_ip)}
 
-All CC Service ENIs:
-${join("\n", module.cc_vm.service_eni_1)}
+All CC Forwarding/Service ENIs:
+${join("\n", module.cc_vm.forwarding_eni)}
 
 All NAT GW IPs:
 ${join("\n", module.network.nat_gateway_ips)}

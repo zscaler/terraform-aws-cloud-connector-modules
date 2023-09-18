@@ -39,14 +39,14 @@ resource "aws_launch_template" "cc_launch_template" {
   }
 
   network_interfaces {
-    description                 = "Interface for service traffic"
+    description                 = "cc next hop forwarding interface"
     device_index                = 0
     security_groups             = [element(var.service_security_group_id, count.index)]
     associate_public_ip_address = false
   }
 
   network_interfaces {
-    description                 = "Interface for management traffic"
+    description                 = "cc management interface"
     device_index                = 1
     security_groups             = [element(var.mgmt_security_group_id, 0)]
     associate_public_ip_address = false

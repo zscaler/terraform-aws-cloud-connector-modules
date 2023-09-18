@@ -30,7 +30,7 @@ ${module.gwlb_endpoint.vpce_service_name}
 GWLB:
 ${module.gwlb.gwlb_arn}
 
-All CC IAM Role ARNs (Please provide this to Zscaler for callhome enablement):
+All CC IAM Role ARNs:
 ${join("\n", module.cc_iam.iam_instance_profile_arn)}
 
 All Autoscaling Group IDs:
