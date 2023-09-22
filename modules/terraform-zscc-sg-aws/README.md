@@ -1,6 +1,6 @@
 # Zscaler Cloud Connector / AWS Security Groups Module
 
-This module creates Security Rules and Groups resources required for successful Cloud Connector deployments. As part of Zscaler provided deployment templates most resources have conditional create options leveraged "byo" variables should a customer want to leverage the module outputs with data reference to resources that may already exist in their AWS environment.
+This module creates Security Rules and Groups resources required for successful Cloud Connector deployments. As part of Zscaler provided deployment templates most resources have conditional create options leveraged "byo" variables should a customer want to leverage the module outputs with data reference to resources that may already exist in their AWS environment. Security Group rules are populated per Zscaler connectivity requirements and minimum access best practices. Please refer to [Zscaler Workload Communications (Cloud/Branch Connector)](https://config.zscaler.com/zscaler.net/cloud-branch-connector).
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements

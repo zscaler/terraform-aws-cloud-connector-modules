@@ -172,3 +172,16 @@
 ## 29. Existing SNS Topic friendly name to be used for autoscaling group notifications assignment
 
 #byo_sns_topic_name                         = "topic-name"
+
+## 30. SSH management access from the local VPC is enabled by default (true). Uncomment if you
+##     want to disable this.
+##     Note: Cloud Connector will only be accessible via AWS Session Manager SSM
+
+#mgmt_ssh_enabled                           = false
+
+## 31. By default, a security group is created and assigned to the CC service interface(s).
+##     There is an optional rule that permits Cloud Connector to forward direct traffic out
+##     on all ports and protocols. (Default: true). Uncomment if you want to restrict
+##     traffic to only the ZIA/ZPA required HTTPS TCP/UDP ports.
+
+#all_ports_egress_enabled                   = false
