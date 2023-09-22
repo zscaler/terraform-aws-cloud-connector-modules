@@ -178,14 +178,10 @@ module "cc_asg" {
 
 
 ################################################################################
-# 5. Create IAM Policy, Roles, and Instance Profiles to be assigned to CC. 
-#    Default behavior will create 1 of each IAM resource per CC VM. Set variable 
-#    "reuse_iam" to true if you would like a single IAM profile created and 
-#    assigned to ALL Cloud Connectors instead.
+# 5. Create IAM Policy, Roles, and Instance Profiles to be assigned to CC
 ################################################################################
 module "cc_iam" {
   source       = "../../modules/terraform-zscc-iam-aws"
-  iam_count    = 1
   name_prefix  = var.name_prefix
   resource_tag = random_string.suffix.result
   global_tags  = local.global_tags
@@ -196,13 +192,10 @@ module "cc_iam" {
 
 ################################################################################
 # 6. Create Security Group and rules to be assigned to CC mgmt and and service 
-#    interface(s). Default behavior will create 1 of each SG resource per CC VM. 
-#    Set variable "reuse_security_group" to true if you would like a single 
-#    security group created and assigned to ALL Cloud Connectors instead.
+#    interface(s)
 ################################################################################
 module "cc_sg" {
   source       = "../../modules/terraform-zscc-sg-aws"
-  sg_count     = 1
   name_prefix  = var.name_prefix
   resource_tag = random_string.suffix.result
   global_tags  = local.global_tags
