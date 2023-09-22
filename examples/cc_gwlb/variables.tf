@@ -248,6 +248,18 @@ variable "deregistration_delay" {
   default     = 0
 }
 
+variable "mgmt_ssh_enabled" {
+  type        = bool
+  description = "Default is true which creates an ingress rule permitting SSH traffic from the local VPC to the CC management interface. If false, the rule is not created. Value ignored if not creating a security group"
+  default     = true
+}
+
+variable "all_ports_egress_enabled" {
+  type        = bool
+  default     = true
+  description = "Default is true which creates an egress rule permitting the CC service interface to forward direct traffic on all ports and protocols. If false, the rule is not created. Value ignored if not creating a security group"
+}
+
 # BYO (Bring-your-own) variables list
 
 variable "byo_vpc" {
