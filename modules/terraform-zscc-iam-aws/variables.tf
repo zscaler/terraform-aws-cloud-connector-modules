@@ -44,3 +44,9 @@ variable "secret_name" {
   type        = string
   description = "AWS Secrets Manager Secret Name for Cloud Connector provisioning"
 }
+
+variable "cloud_tags" {
+  type        = bool
+  description = "Enable cloud tags AWS IAM policy"
+  default     = false
+}
