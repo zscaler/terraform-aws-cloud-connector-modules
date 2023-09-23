@@ -56,20 +56,15 @@
 ##    (Default: m6i.large)
 
 #ccvm_instance_type                         = "t3.medium"
+#ccvm_instance_type                         = "t3a.medium"
 #ccvm_instance_type                         = "m5n.large"
-#ccvm_instance_type                         = "m5a.large"
-#ccvm_instance_type                         = "c5.large"
+#ccvm_instance_type                         = "c5a.large"
 #ccvm_instance_type                         = "m6i.large"
-#ccvm_instance_type                         = "m6a.large"
 #ccvm_instance_type                         = "c6i.large"
-#ccvm_instance_type                         = "c6a.large"
 #ccvm_instance_type                         = "m5n.4xlarge"
-#ccvm_instance_type                         = "m5a.4xlarge"
-#ccvm_instance_type                         = "c5a.4xlarge"
+#ccvm_instance_type                         = "c5.4xlarge"
 #ccvm_instance_type                         = "m6i.4xlarge"
-#ccvm_instance_type                         = "m6a.4xlarge"
 #ccvm_instance_type                         = "c6i.4xlarge"
-#ccvm_instance_type                         = "c6a.4xlarge"
 
 ## 7. The number of Cloud Connector Subnets to create in sequential availability zones. Available input range 1-3 (Default: 2)
 ##    **** NOTE - This value will be ignored if byo_vpc / byo_subnets

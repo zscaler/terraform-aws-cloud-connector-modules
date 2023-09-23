@@ -57,25 +57,20 @@
 ##    (Default: m6i.large)
 
 #ccvm_instance_type                         = "t3.medium"
+#ccvm_instance_type                         = "t3a.medium"
 #ccvm_instance_type                         = "m5n.large"
-#ccvm_instance_type                         = "m5a.large"
-#ccvm_instance_type                         = "c5.large"
+#ccvm_instance_type                         = "c5a.large"
 #ccvm_instance_type                         = "m6i.large"
-#ccvm_instance_type                         = "m6a.large"
 #ccvm_instance_type                         = "c6i.large"
-#ccvm_instance_type                         = "c6a.large"
 #ccvm_instance_type                         = "m5n.4xlarge"
-#ccvm_instance_type                         = "m5a.4xlarge"
-#ccvm_instance_type                         = "c5a.4xlarge"
+#ccvm_instance_type                         = "c5.4xlarge"
 #ccvm_instance_type                         = "m6i.4xlarge"
-#ccvm_instance_type                         = "m6a.4xlarge"
 #ccvm_instance_type                         = "c6i.4xlarge"
-#ccvm_instance_type                         = "c6a.4xlarge"
 
 ## 7. Cloud Connector Instance size selection. Uncomment cc_instance_size line with desired vm size to change
 ##    (Default: "small") 
 ##    **** NOTE - There is a dependency between ccvm_instance_type and cc_instance_size selections ****
-##    If size = "small" any supported EC2 instance type can be deployed, but "m5/c5.large" is ideal
+##    If size = "small" any supported EC2 instance type can be deployed, but "m6i/c6i.large" is ideal
 ##    If size = "medium" only 4xlarge and up EC2 instance types can be deployed
 ##    If size = "large" only 4xlarge EC2 instane types can be deployed 
 ##    **** NOTE - medium and large cc_instance_size is only supported with GWLB deployments. Legacy HA/Lambda deployments must be small.
