@@ -50,7 +50,7 @@ resource "aws_vpc_security_group_egress_rule" "egress_cc_mgmt_tcp_443" {
 
 resource "aws_vpc_security_group_egress_rule" "egress_cc_mgmt_udp_123" {
   count             = var.byo_security_group == false ? var.sg_count : 0
-  description       = "Required: CC outbound UDP 123"
+  description       = "Required: CC outbound NTP"
   security_group_id = aws_security_group.cc_mgmt_sg[count.index].id
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = 123
@@ -124,7 +124,7 @@ resource "aws_vpc_security_group_egress_rule" "egress_cc_service_udp_443" {
 
 resource "aws_vpc_security_group_egress_rule" "egress_cc_service_udp_123" {
   count             = var.byo_security_group == false ? var.sg_count : 0
-  description       = "Required: CC outbound UDP 123"
+  description       = "Required: CC outbound NTP"
   security_group_id = aws_security_group.cc_service_sg[count.index].id
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = 123
