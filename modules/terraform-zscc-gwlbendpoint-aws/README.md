@@ -46,5 +46,7 @@ No modules.
 | Name | Description |
 |------|-------------|
 | <a name="output_gwlbe"></a> [gwlbe](#output\_gwlbe) | GWLB Endpoint ID |
+| <a name="output_vpce_service_arn"></a> [vpce\_service\_arn](#output\_vpce\_service\_arn) | VPC Endpoint Service ARN |
+| <a name="output_vpce_service_id"></a> [vpce\_service\_id](#output\_vpce\_service\_id) | VPC Endpoint Service ID |
 | <a name="output_vpce_service_name"></a> [vpce\_service\_name](#output\_vpce\_service\_name) | VPC Endpoint Service Name |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
