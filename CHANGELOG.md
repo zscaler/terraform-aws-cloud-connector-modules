@@ -42,6 +42,7 @@ FEATURES:
         - add: cc_metrics_policy_document permissions to CC IAM Role
         - add: cc_autoscale_lifecycle_policy_document permissions to CC IAM Role
         - remove: cc_callhome_policy_document as no longer required
+* ZSEC support for AWS region ap-south-2 (Hyderabad)
 
 ENHANCEMENTS:
 * ZSEC bash script inputs for ASG deployments
