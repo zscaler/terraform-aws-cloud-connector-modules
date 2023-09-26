@@ -39,15 +39,18 @@
 #aws_region                                 = "us-west-2"
 
 ## 6. Cloud Connector AWS EC2 Instance size selection. Uncomment ccvm_instance_type line with desired vm size to change.
-##    (Default: c5a.large)
+##    (Default: m6i.large)
 
 #ccvm_instance_type                         = "t3.medium"
-#ccvm_instance_type                         = "c5a.large"
+#ccvm_instance_type                         = "t3a.medium"
 #ccvm_instance_type                         = "m5n.large"
-#ccvm_instance_type                         = "c5a.2xlarge"
-#ccvm_instance_type                         = "m5n.2xlarge"
-#ccvm_instance_type                         = "c5a.4xlarge"
+#ccvm_instance_type                         = "c5a.large"
+#ccvm_instance_type                         = "m6i.large"
+#ccvm_instance_type                         = "c6i.large"
 #ccvm_instance_type                         = "m5n.4xlarge"
+#ccvm_instance_type                         = "c5.4xlarge"
+#ccvm_instance_type                         = "m6i.4xlarge"
+#ccvm_instance_type                         = "c6i.4xlarge"
 
 ## 7. The number of Cloud Connector Subnets to create in sequential availability zones. Available input range 1-3 (Default: 2)
 ##    **** NOTE - This value will be ignored if byo_vpc / byo_subnets
