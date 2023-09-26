@@ -162,12 +162,15 @@ module "cc_iam" {
 #    security group created and assigned to ALL Cloud Connectors instead.
 ################################################################################
 module "cc_sg" {
-  source       = "../../modules/terraform-zscc-sg-aws"
-  sg_count     = var.reuse_security_group == false ? var.cc_count : 1
-  name_prefix  = var.name_prefix
-  resource_tag = random_string.suffix.result
-  global_tags  = local.global_tags
-  vpc_id       = module.network.vpc_id
+  source                   = "../../modules/terraform-zscc-sg-aws"
+  sg_count                 = var.reuse_security_group == false ? var.cc_count : 1
+  name_prefix              = var.name_prefix
+  resource_tag             = random_string.suffix.result
+  global_tags              = local.global_tags
+  vpc_id                   = module.network.vpc_id
+  http_probe_port          = var.http_probe_port
+  mgmt_ssh_enabled         = var.mgmt_ssh_enabled
+  all_ports_egress_enabled = var.all_ports_egress_enabled
 
   byo_security_group = var.byo_security_group
   # optional inputs. only required if byo_security_group set to true

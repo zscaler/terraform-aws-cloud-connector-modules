@@ -73,7 +73,7 @@ resource "aws_network_interface" "cc_vm_nic_index_1" {
   }
 
   tags = merge(var.global_tags,
-  { Name = "${var.name_prefix}-cc-vm-${count.index + 1}-${var.resource_tag}-FwdIF" })
+  { Name = "${var.name_prefix}-cc-vm-${count.index + 1}-${var.resource_tag}-MgmtIF" })
 }
 
 

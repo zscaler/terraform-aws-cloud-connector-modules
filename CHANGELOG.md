@@ -23,6 +23,14 @@
     - remove secondary IP address from network interface index #1
     - add interface device index #5 for "large" CC.
 
+
+* module terraform-zscc-sg-aws changes:
+    - refactor management and service security group with more granular/required rules
+    - add variable mgmt_ssh_enabled if customer wants to restrict management access to only SSM
+    - add variable http_probe_port
+    - add gwlb_enabled default to true
+    - add all_ports_egress_enabled default to true
+
 ## v0.2.0 (June 20, 2023)
 * AWS Provider updated from 4.7.x to 4.59.x for all example templates and child modules
 * terraform-zscc-gwlb-aws custom gwlb_name and target_group_name variables added

@@ -97,17 +97,30 @@
 
 #owner_tag                                  = "username@company.com"
 
-## 11. By default, this script will apply 1 Security Group per Cloud Connector instance. 
+## 11. SSH management access from the local VPC is enabled by default (true). Uncomment if you
+##     want to disable this.
+##     Note: Cloud Connector will only be accessible via AWS Session Manager SSM
+
+#mgmt_ssh_enabled                           = false
+
+## 12. By default, a security group is created and assigned to the CC service interface(s).
+##     There is an optional rule that permits Cloud Connector to forward direct traffic out
+##     on all ports and protocols. (Default: true). Uncomment if you want to restrict
+##     traffic to only the ZIA/ZPA required HTTPS TCP/UDP ports.
+
+#all_ports_egress_enabled                   = false
+
+## 13. By default, this script will apply 1 Security Group per Cloud Connector instance. 
 ##     Uncomment if you want to use the same Security Group for ALL Cloud Connectors (true or false. Default: false)
 
 #reuse_security_group                       = true
 
-## 12. By default, this script will apply 1 IAM Role/Instance Profile per Cloud Connector instance. 
+## 14. By default, this script will apply 1 IAM Role/Instance Profile per Cloud Connector instance. 
 ##     Uncomment if you want to use the same IAM Role/Instance Profile for ALL Cloud Connectors (true or false. Default: false)
 
 #reuse_iam                                  = true
 
-## 13. By default, terraform will always query the AWS Marketplace for the latest Cloud Connector AMI available.
+## 15. By default, terraform will always query the AWS Marketplace for the latest Cloud Connector AMI available.
 ##     This variable is provided if a customer desires to override or retain an old ami for existing deployments rather than upgrading and forcing a replacement. 
 ##     It is also inputted as a list to facilitate if a customer desired to manually upgrade only select CCs deployed based on the cc_count index
 

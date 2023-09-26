@@ -149,6 +149,18 @@ variable "gwlb_enabled" {
   description = "Default is true. Workload/Route 53 subnet Route Tables will point to network_interface_id via var.cc_service_enis. If true, Route Tables will point to vpc_endpoint_id via var.gwlb_endpoint_ids input."
 }
 
+variable "mgmt_ssh_enabled" {
+  type        = bool
+  description = "Default is true which creates an ingress rule permitting SSH traffic from the local VPC to the CC management interface. If false, the rule is not created. Value ignored if not creating a security group"
+  default     = true
+}
+
+variable "all_ports_egress_enabled" {
+  type        = bool
+  default     = true
+  description = "Default is true which creates an egress rule permitting the CC service interface to forward direct traffic on all ports and protocols. If false, the rule is not created. Value ignored if not creating a security group"
+}
+
 ## GWLB specific variables
 variable "health_check_interval" {
   type        = number
