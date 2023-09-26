@@ -33,11 +33,14 @@ ${join("\n", module.cc_vm.forwarding_eni)}
 All NAT GW IPs:
 ${join("\n", module.network.nat_gateway_ips)}
 
-All GWLB Endpoint IDs:
-${join("\n", module.gwlb_endpoint.gwlbe)}
-
 GWLB Endpoint Service Name:
 ${module.gwlb_endpoint.vpce_service_name}
+
+GWLB Endpoint Service ARN:
+${module.gwlb_endpoint.vpce_service_arn}
+
+All GWLB Endpoint IDs:
+${join("\n", module.gwlb_endpoint.gwlbe)}
 
 GWLB:
 ${module.gwlb.gwlb_arn}
