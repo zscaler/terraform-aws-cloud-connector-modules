@@ -1,23 +1,25 @@
-## URELEASED (TBD)
-* Autoscaling support
+## v1.0.0 (TBD)
+* Auto Scaling Group official release
     - add: terraform-zscc-asg-aws module
     - add: terraform-zscc-asg-labda-aws module
     - change: IAM policies for ASG lifecycle and Cloudwatch metrics
     - GWLB condition changes for ASG instance based target group requirements
-* Product code change to support service interface (now ENA0) and management interface (now ENA1) swap for both autoscaling and non-autoscaling deployments
-* terraform-zscc-ccvm-aws outputs
+* Medium and Large Cloud Connector instance official release
+* service interface (now ENA0) and management interface (now ENA1) swap for both autoscaling and non-autoscaling deployments
+* EC2 instance type changes:
+    - new default/recommend EC2 type for small CCs: m6i.large
+    - add: m5n, m6i, m6a, c6i, and c6a family support
+    - remove: m5 family support
+* module terraform-zscc-ccvm-aws outputs changes:
     - rename service_eni_1 output to management_eni
     - rename private_ip output to forwarding_ip
     - rename cc_service_private_ip to management_ip
     - add forwarding_eni
-
-## UNRELEASED (TBD)
-* Medium and Large Cloud Connector instance support
-* module terraform-zscc-gwlb-aws:
+* module terraform-zscc-gwlb-aws changes:
     - resource aws_lb_target_group_attachment.gwlb_target_group_attachment_small renamed to aws_lb_target_group_attachment.gwlb_target_group_attachment
     - rename variable cc_small_service_ips to cc_service_ips
     - remove dedicated CC Medium/Large additional service IP dependencies from target group attachment
-* module terraform-zscc-ccvm-aws:
+* module terraform-zscc-ccvm-aws changes:
     - remove secondary IP address from network interface index #1
     - add interface device index #5 for "large" CC.
 

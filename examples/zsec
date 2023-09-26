@@ -327,12 +327,12 @@ done
     fi
 
 if [[ $cc_instance_size == "small" ]]; then
-ccvm_instance_type_default="c5a.large"
+ccvm_instance_type_default="m6i.large"
 while true; do
-    read -r -p "Enter desired AWS EC2 instance type for $cc_instance_size CC. Recommended types: (c5a.large or m5n.large) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
+    read -r -p "Enter desired AWS EC2 instance type for $cc_instance_size CC. Recommended types: (m6i.large or c6i.large) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
 ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}
     case $ccvm_instance_type in
-      t3.medium|m5n.large|c5a.large|m5n.2xlarge|c5a.2xlarge|m5n.4xlarge|c5a.4xlarge)
+      t3.medium|t3a.medium|m5n.large|c5a.large|m6i.large|c6i.large|m5n.4xlarge|c5.4xlarge|m6i.4xlarge|c6i.4xlarge)
           echo "CC EC2 type: $ccvm_instance_type"
           echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
           break
@@ -344,12 +344,12 @@ ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}
 done
 
 elif [[ $cc_instance_size == "medium" ]]; then
-ccvm_instance_type_default="c5a.4xlarge"
+ccvm_instance_type_default="m6i.4xlarge"
 while true; do
-    read -r -p "Enter desired AWS EC2 instance type for $cc_instance_size CC. Recommended types: (c5a.4xlarge or m5n.4xlarge) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
+    read -r -p "Enter desired AWS EC2 instance type for $cc_instance_size CC. Recommended types: (m6i.4xlarge or c6i.4xlarge) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
 ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}
     case $ccvm_instance_type in
-      m5n.4xlarge|c5a.4xlarge)
+      m5n.4xlarge|c5.4xlarge|m6i.4xlarge|c6i.4xlarge)
           echo "CC EC2 type: $ccvm_instance_type"
           echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
           break
@@ -361,12 +361,12 @@ ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}
 done
 
 elif [[ $cc_instance_size == "large" ]]; then
-ccvm_instance_type_default="c5a.4xlarge"
+ccvm_instance_type_default="m6i.4xlarge"
 while true; do
-    read -r -p "Enter desired AWS EC2 instance type for $cc_instance_size CC. Recommended types: (c5a.4xlarge or m5n.4xlarge) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
+    read -r -p "Enter desired AWS EC2 instance type for $cc_instance_size CC. Recommended types: (m6i.4xlarge or c6i.4xlarge) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
 ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}
     case $ccvm_instance_type in
-      m5n.4xlarge|c5a.4xlarge)
+      m5n.4xlarge|c5.4xlarge|m6i.4xlarge|c6i.4xlarge)
           echo "CC EC2 type: $ccvm_instance_type"
           echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
           break
