@@ -53,7 +53,6 @@ data "aws_internet_gateway" "igw_selected" {
 # Create NAT Gateway and assign EIP per AZ. This will not be created if var.byo_ngw is set to True
 resource "aws_eip" "eip" {
   count      = var.byo_ngw == false ? length(aws_subnet.public_subnet[*].id) : 0
-  vpc        = true
   depends_on = [data.aws_internet_gateway.igw_selected]
 
   tags = merge(var.global_tags,
