@@ -115,3 +115,21 @@ variable "imdsv2_enabled" {
   description = "true/false whether to force IMDSv2 only for instance bring up. Default is true"
   default     = true
 }
+
+variable "ebs_volume_type" {
+  type        = string
+  description = "(Optional) Type of volume. Valid values include standard, gp2, gp3, io1, io2, sc1, or st1. Defaults to gp3"
+  default     = "gp2"
+}
+
+variable "ebs_encryption_enabled" {
+  type        = bool
+  description = "true/false whether to enable EBS encryption on the root volume. Default is true"
+  default     = true
+}
+
+variable "byo_kms_key_alias" {
+  type        = string
+  description = "Requires var.ebs_encryption_enabled to be true. Set to null by default which is the AWS default managed/master key. Set as 'alias/<key-alias>' to use a custom KMS key"
+  default     = null
+}
