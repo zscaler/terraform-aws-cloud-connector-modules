@@ -6,7 +6,6 @@
 ##### Modifying the variables in this file will override any inputs from ZSEC         #####
 #####################################################################################################################
 
-
 #####################################################################################################################
 ##### Cloud Init Userdata Provisioning variables  #####
 #####################################################################################################################
@@ -188,3 +187,15 @@
 ##     traffic to only the ZIA/ZPA required HTTPS TCP/UDP ports.
 
 #all_ports_egress_enabled                   = false
+
+## 32. By default, terraform will configure Cloud Connector with EBS encryption enabled.
+##     Uncomment if you want to disable ebs encryption.
+
+#ebs_encryption_enabled                     = false
+
+## 33. By default, EBS encryptions is set to null which uses the AWS default managed/master key.
+##     Set as 'alias/<key-alias>' to use an existing customer KMS key"
+
+##     Note: this variable is only enforced if ebs_encryption_enabled is set to true
+
+#byo_kms_key_alias                          = "alias/<customer key alias name>"

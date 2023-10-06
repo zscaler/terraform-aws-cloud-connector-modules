@@ -29,6 +29,9 @@ if [[ "$oper" == "up" ]]; then
 
     case $deploy in
       greenfield)
+      echo ""
+      echo "**Caution** These deployments include test workloads and publicly accessible jump hosts and are intended primarily for lab/test environments"
+      echo ""
           break
       ;;
       brownfield)
@@ -477,6 +480,44 @@ else
 fi  
 fi
 
+while true; do
+    read -r -p "Enable EBS volume encryption? (yes/no) Recommendation is yes: " ebs_encryption_response
+case $ebs_encryption_response in 
+	yes|y ) 
+    echo "EBS encryption will be enabled"
+    echo "export TF_VAR_ebs_encryption_enabled=true" >> .zsecrc
+    ebs_encryption_enabled=true
+    break
+    ;;
+	no|n )
+    echo "EBS encryption will be disabled"
+    echo "export TF_VAR_ebs_encryption_enabled=false" >> .zsecrc
+    ebs_encryption_enabled=false
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done 
+
+if [[ "$ebs_encryption_enabled" == true ]]; then
+    echo "Amazon EBS automatically creates a unique AWS managed key in each Region. By default, Amazon EBS uses this KMS key for encryption"
+    while true; do
+    read -r -p "Use your own customer managed KMS key instead? (yes/no): " byo_kms_key_response
+        case $byo_kms_key_response in 
+	        yes|y ) 
+            read -r -p "Enter KMS key alias (e.g. alias/key_name): " byo_kms_key_alias
+            echo "export TF_VAR_byo_kms_key_alias=$byo_kms_key_alias" >> .zsecrc
+            break
+            ;;
+	        no|n )
+            echo "Using default Amazon KMS key..."
+            break
+            ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+        esac
+    done 
+fi
+
 if [[ "$dtype" == *"gwlb"* ]]; then
     echo "GWLB deployment detected"
     while true; do
@@ -733,24 +774,234 @@ fi
 fi
 
 if [[ "$dtype" == "cc"* ]]; then
+    echo "Configure Networking Infrastructure..."
+    while true; do
+    read -r -p "Are you deploying to an existing VPC in $aws_region? (yes/no): " byo_vpc_response
+        case $byo_vpc_response in 
+	        yes|y ) 
+            echo "Using an existing VPC..."
+            echo "export TF_VAR_byo_vpc=true" >> .zsecrc
+            byo_vpc=true
+            read -r -p "Enter existing VPC ID (E.g vpc-0588ce674df615334): " byo_vpc_id
+            echo "You entered $byo_vpc_id"
+            echo "export TF_VAR_byo_vpc_id=$byo_vpc_id" >> .zsecrc
+        break
+        ;;
+	        no|n )
+            echo "Terraform will create new VPC, subnets, IGW, and NAT Gateways"
+            echo "export TF_VAR_byo_vpc=false" >> .zsecrc
+        break
+        ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+        esac
+    done
+fi
+
+# Query for existing subnet IDs if byo_vpc true
+if [[ "$byo_vpc" == "true" ]]; then
+    echo "Attemping deployment to existing VPC $byo_vpc_id..."
+    while true; do
+        read -r -p "Are you deploying to existing subnets in $byo_vpc_id? (yes/no): " byo_subnet_response
+        case $byo_subnet_response in 
+            yes|y ) 
+            echo "Using existing subnets for Cloud Connector..."
+            echo "export TF_VAR_byo_subnets=true" >> .zsecrc
+            if [[ "$az_count" == "1" ]]; then
+                read -r -p "$az_count availability zone chosen. Please enter the desired subnet ID (E.g subnet-05c32f4aa6bc02f8f): " byo_subnet_ids
+                echo "You entered $byo_subnet_ids"
+                echo "export TF_VAR_byo_subnet_ids='[\"${byo_subnet_ids}\"]'" >> .zsecrc
+            elif [[ "$az_count" == "2" ]]; then
+                echo "$az_count availability zones chosen"
+                read -r -p "Please enter the first subnet ID (E.g subnet-05c32f4aa6bc02f8f): " subnet_1
+                echo "You entered $subnet_1"
+                read -r -p "Please enter the second subnet ID (E.g subnet-05c32f4aa6bc02f8f): " subnet_2
+                echo "You entered $subnet_2"
+                echo "export TF_VAR_byo_subnet_ids='[\"${subnet_1}\",\"${subnet_2}\"]'" >> .zsecrc
+            elif [[ "$az_count" == "3" ]]; then
+                echo "$az_count availability zones chosen"
+                read -r -p "Please enter the first subnet ID (E.g subnet-05c32f4aa6bc02f8f): " subnet_1
+                echo "You entered $subnet_1"
+                read -r -p "Please enter the second subnet ID (E.g subnet-05c32f4aa6bc02f8f): " subnet_2
+                echo "You entered $subnet_2"
+                read -r -p "Please enter the third subnet ID (E.g subnet-05c32f4aa6bc02f8f): " subnet_3
+                echo "You entered $subnet_3"
+                echo "export TF_VAR_byo_subnet_ids='[\"${subnet_1}\",\"${subnet_2}\",\"${subnet_3}\"]'" >> .zsecrc
+            fi
+        break
+        ;;
+	        no|n )
+            echo "Terraform will attempt to create new subnets in $byo_vpc_id"
+            echo "export TF_VAR_byo_subnets=false" >> .zsecrc
+            byo_subnets=false
+        break
+        ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+        esac
+    done
+fi
+
+#Query for subnet creation range override
+if [[ "$byo_subnets" == "false" ]]; then
+    echo "Existing VPC $byo_vpc_id selected, but subnets need created..."
+    echo "By default, Terraform assumeds VPC CIDR is a /16 and will try to create /24 subnets within"
+    while true; do
+        read -r -p "Do you want to manually define the CC subnet ranges? (yes/no): " change_cc_cidr_response
+        case $change_cc_cidr_response in 
+	        yes|y )
+            echo "Configuring each Cloud Connector subnet range..."
+            if [[ "$az_count" == "1" ]]; then
+                read -r -p "$az_count availability zone chosen. Please enter the desired subnet range that falls within $byo_vpc_id CIDR (E.g 10.2.0.0/24): " cc_subnets_1
+                echo "You entered $cc_subnets_1"
+                echo "export TF_VAR_cc_subnets='[\"${cc_subnets_1}\"]'" >> .zsecrc
+            elif [[ "$az_count" == "2" ]]; then
+                echo "$az_count availability zones chosen"
+                read -r -p "Please enter the first subnet range (E.g 10.2.0.0/24): " cc_subnets_1
+                echo "You entered $cc_subnets_1"
+                read -r -p "Please enter the second subnet range (E.g 10.2.1.0/24): " cc_subnets_2
+                echo "You entered $cc_subnets_2"
+                echo "export TF_VAR_cc_subnets='[\"${cc_subnets_1}\",\"${cc_subnets_2}\"]'" >> .zsecrc
+            elif [[ "$az_count" == "3" ]]; then
+                echo "$az_count availability zones chosen"
+                read -r -p "Please enter the first subnet range (E.g 10.2.0.0/24): " cc_subnets_1
+                echo "You entered $cc_subnets_1"
+                read -r -p "Please enter the second subnet ID (E.g 10.2.1.0/24): " cc_subnets_2
+                echo "You entered $cc_subnets_2"
+                read -r -p "Please enter the third subnet range (E.g 10.2.2.0/24): " cc_subnets_3
+                echo "You entered $cc_subnets_3"
+                echo "export TF_VAR_cc_subnets='[\"${cc_subnets_1}\",\"${cc_subnets_2}\",\"${cc_subnets_3}\"]'" >> .zsecrc
+            fi
+        break
+        ;;
+	        no|n )
+            echo "Terraform will attempt to automatically create new subnets in $byo_vpc_id"
+        break
+        ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+        esac
+    done 
+fi
+
+if [[ "$dtype" == "cc"* ]]; then
    while true; do
     read -r -p "Enable Route 53 configuration for ZPA? (yes/no): " zpa_response
-case $zpa_response in 
-	yes|y ) 
-    echo "Enabling Route 53 module..."
-    zpa_enabled=true
-    echo "export TF_VAR_zpa_enabled=$zpa_enabled" >> .zsecrc
-    break
-    ;;
-	no|n )
-    echo "No ZPA enablement..."
-    zpa_enabled=false
-    echo "export TF_VAR_zpa_enabled=$zpa_enabled" >> .zsecrc
-    break
-    ;;
-	* ) echo "invalid response. Please enter yes or no";;
-    esac
-done 
+        case $zpa_response in 
+	        yes|y ) 
+            echo "Enabling Route 53 module..."
+            zpa_enabled=true
+            echo "export TF_VAR_zpa_enabled=$zpa_enabled" >> .zsecrc
+        break
+        ;;
+	        no|n )
+            echo "No ZPA enablement..."
+            zpa_enabled=false
+            echo "export TF_VAR_zpa_enabled=$zpa_enabled" >> .zsecrc
+        break
+        ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+        esac
+    done 
+fi
+
+if [[ "$byo_subnets" == "false" && "$zpa_enabled" == "true" ]]; then
+    while true; do
+        read -r -p "Do you want to manually define the Route 53 subnet ranges? (yes/no): " change_r53_cidr_response
+        case $change_r53_cidr_response in 
+	        yes|y )
+            echo "Configuring each Route 53 subnet range..."
+            if [[ "$az_count" == "1" ]]; then
+                read -r -p "$az_count availability zone chosen. Please enter the desired subnet range that falls within $byo_vpc_id CIDR (E.g 10.2.0.0/24): " r53_subnets_1
+                echo "You entered $r53_subnets_1"
+                echo "export TF_VAR_route53_subnets='[\"${cc_subnets_1}\"]'" >> .zsecrc
+            elif [[ "$az_count" == "2" ]]; then
+                echo "$az_count availability zones chosen"
+                read -r -p "Please enter the first subnet range (E.g 10.2.0.0/24): " r53_subnets_1
+                echo "You entered $r53_subnets_1"
+                read -r -p "Please enter the second subnet range (E.g 10.2.1.0/24): " r53_subnets_2
+                echo "You entered $r53_subnets_2"
+                echo "export TF_VAR_route53_subnets='[\"${r53_subnets_1}\",\"${r53_subnets_2}\"]'" >> .zsecrc
+            elif [[ "$az_count" == "3" ]]; then
+                echo "$az_count availability zones chosen"
+                read -r -p "Please enter the first subnet range (E.g 10.2.0.0/24): " r53_subnets_1
+                echo "You entered $r53_subnets_1"
+                read -r -p "Please enter the second subnet range (E.g 10.2.1.0/24): " r53_subnets_2
+                echo "You entered $r53_subnets_2"
+                read -r -p "Please enter the third subnet range (E.g 10.2.2.0/24): " r53_subnets_3
+                echo "You entered $r53_subnets_3"
+                echo "export TF_VAR_route53_subnets='[\"${r53_subnets_1}\",\"${r53_subnets_2}\",\"${r53_subnets_3}\"]'" >> .zsecrc
+            fi
+        break
+        ;;
+	        no|n )
+            echo "Terraform will attempt to automatically create new subnets in $byo_vpc_id"
+        break
+        ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+        esac
+    done 
+fi   
+
+# Query for existing IGW IDs if byo_vpc true
+if [[ "$byo_vpc" == "true" ]]; then
+    while true; do
+        read -r -p "Does $byo_vpc_id already have an IGW (Internet Gateway)? (yes/no): " byo_igw_response
+        case $byo_igw_response in 
+	        yes|y ) 
+            echo "Using an existing IGW..."
+            echo "export TF_VAR_byo_igw=true" >> .zsecrc
+            byo_igw=true
+            read -r -p "Enter existing IGW ID (E.g igw-090313c21ffed44d3): " byo_igw_id
+            echo "export TF_VAR_byo_igw_id=$byo_igw_id" >> .zsecrc
+        break
+        ;;
+	        no|n )
+            echo "Terraform will attempt to create a new IGW in $byo_vpc_id"
+            echo "export TF_VAR_byo_igw=false" >> .zsecrc
+        break
+        ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+        esac
+    done
+fi
+
+# Query for existing NAT GW IDs if byo_vpc true
+if [[ "$byo_vpc" == "true" ]]; then
+    while true; do
+        read -r -p "Does $byo_vpc_id already have NAT Gateways in public subnets? (yes/no): " byo_ngw_response
+        case $byo_ngw_response in 
+	        yes|y ) 
+            echo "Using existing NAT Gateways for Cloud Connector route tables..."
+            echo "export TF_VAR_byo_ngw=true" >> .zsecrc
+            if [[ "$az_count" == "1" ]]; then
+                read -r -p "$az_count availability zone chosen. Please enter the desired NAT Gateway ID (E.g nat-0e1351f3e8025a30e): " ngw_1
+                echo "You entered $ngw_1"
+                echo "export TF_VAR_byo_ngw_ids='[\"${ngw_1}\"]'" >> .zsecrc
+            elif [[ "$az_count" == "2" ]]; then
+                echo "$az_count availability zones chosen"
+                read -r -p "Please enter the first NAT Gateway ID (E.g nat-0e1351f3e8025a30e): " ngw_1
+                echo "You entered $ngw_1"
+                read -r -p "Please enter the second NAT Gateway ID (E.g nat-0e1351f3e8025a30e): " ngw_2
+                echo "You entered $ngw_2"
+                echo "export TF_VAR_byo_ngw_ids='[\"${ngw_1}\",\"${ngw_2}\"]'" >> .zsecrc
+            elif [[ "$az_count" == "3" ]]; then
+                echo "$az_count availability zones chosen"
+                read -r -p "Please enter the first NAT Gateway ID (E.g nat-0e1351f3e8025a30e): " ngw_1
+                echo "You entered $ngw_1"
+                read -r -p "Please enter the second NAT Gateway ID (E.g nat-0e1351f3e8025a30e): " ngw_2
+                echo "You entered $ngw_2"
+                read -r -p "Please enter the third NAT Gateway ID (E.g nat-0e1351f3e8025a30e): " ngw_3
+                echo "You entered $ngw_3"
+                echo "export TF_VAR_byo_ngw_ids='[\"${ngw_1}\",\"${ngw_2}\",\"${ngw_3}\"]'" >> .zsecrc
+            fi
+        break
+            ;;
+	        no|n )
+            echo "Terraform will attempt to create new public subnets and NAT Gateway resources in $byo_vpc_id"
+            echo "export TF_VAR_byo_ngw=false" >> .zsecrc
+        break
+            ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+        esac
+    done
 fi
 
 if [[ "$zpa_enabled" == "true" || "$dtype" == *"zpa" ]]; then
