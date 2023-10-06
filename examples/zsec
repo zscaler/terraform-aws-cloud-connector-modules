@@ -29,6 +29,9 @@ if [[ "$oper" == "up" ]]; then
 
     case $deploy in
       greenfield)
+      echo ""
+      echo "**Caution** These deployments include test workloads and publicly accessible jump hosts and are intended primarily for lab/test environments"
+      echo ""
           break
       ;;
       brownfield)
@@ -475,6 +478,44 @@ else
     echo "Delete .zsecrc file and re-run zsec up..."
     exit 1
 fi  
+fi
+
+while true; do
+    read -r -p "Enable EBS volume encryption? (yes/no) Recommendation is yes: " ebs_encryption_response
+case $ebs_encryption_response in 
+	yes|y ) 
+    echo "EBS encryption will be enabled"
+    echo "export TF_VAR_ebs_encryption_enabled=true" >> .zsecrc
+    ebs_encryption_enabled=true
+    break
+    ;;
+	no|n )
+    echo "EBS encryption will be disabled"
+    echo "export TF_VAR_ebs_encryption_enabled=false" >> .zsecrc
+    ebs_encryption_enabled=false
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done 
+
+if [[ "$ebs_encryption_enabled" == true ]]; then
+    echo "Amazon EBS automatically creates a unique AWS managed key in each Region. By default, Amazon EBS uses this KMS key for encryption"
+    while true; do
+    read -r -p "Use your own customer managed KMS key instead? (yes/no): " byo_kms_key_response
+        case $byo_kms_key_response in 
+	        yes|y ) 
+            read -r -p "Enter KMS key alias (e.g. alias/key_name): " byo_kms_key_alias
+            echo "export TF_VAR_byo_kms_key_alias=$byo_kms_key_alias" >> .zsecrc
+            break
+            ;;
+	        no|n )
+            echo "Using default Amazon KMS key..."
+            break
+            ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+        esac
+    done 
 fi
 
 if [[ "$dtype" == *"gwlb"* ]]; then
