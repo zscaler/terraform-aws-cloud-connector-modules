@@ -203,3 +203,21 @@ variable "all_ports_egress_enabled" {
   default     = true
   description = "Default is true which creates an egress rule permitting the CC service interface to forward direct traffic on all ports and protocols. If false, the rule is not created. Value ignored if not creating a security group"
 }
+
+variable "ebs_volume_type" {
+  type        = string
+  description = "(Optional) Type of volume. Valid values include standard, gp2, gp3, io1, io2, sc1, or st1. Defaults to gp3"
+  default     = "gp3"
+}
+
+variable "ebs_encryption_enabled" {
+  type        = bool
+  description = "true/false whether to enable EBS encryption on the root volume. Default is true"
+  default     = true
+}
+
+variable "byo_kms_key_alias" {
+  type        = string
+  description = "Requires var.ebs_encryption_enabled to be true. Set to null by default which is the AWS default managed/master key. Set as 'alias/<key-alias>' to use a custom KMS key"
+  default     = null
+}
