@@ -2,10 +2,9 @@
 ## Uncomment and change the below variables according to your specific environment
 
 #####################################################################################################################
-##### Variables 1-14 are populated automically if terraform is ran via ZSEC bash script.   ##### 
-##### Modifying the variables in this file will override any inputs from ZSEC             #####
+##### Variables are populated automically if terraform is ran via ZSEC bash script.   ##### 
+##### Modifying the variables in this file will override any inputs from ZSEC         #####
 #####################################################################################################################
-
 
 #####################################################################################################################
 ##### Cloud Init Userdata Provisioning variables  #####
@@ -128,3 +127,15 @@
 ##           Leave this variable commented out unless you are absolutely certain why/that you need to set it and only temporarily.
 
 #ami_id                                     = ["ami-123456789"]
+
+## 16. By default, terraform will configure Cloud Connector with EBS encryption enabled.
+##     Uncomment if you want to disable ebs encryption.
+
+#ebs_encryption_enabled                     = false
+
+## 17. By default, EBS encryptions is set to null which uses the AWS default managed/master key.
+##     Set as 'alias/<key-alias>' to use an existing customer KMS key"
+
+##     Note: this variable is only enforced if ebs_encryption_enabled is set to true
+
+#byo_kms_key_alias                          = "alias/<customer key alias name>"

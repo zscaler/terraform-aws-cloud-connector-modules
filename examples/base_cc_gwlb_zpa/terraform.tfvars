@@ -1,26 +1,10 @@
 ## This is only a sample terraform.tfvars file.
 ## Uncomment and change the below variables according to your specific environment
 
-
 #####################################################################################################################
-##### ZPA/Route 53 specific variables #####
+##### Variables are populated automically if terraform is ran via ZSEC bash script.   ##### 
+##### Modifying the variables in this file will override any inputs from ZSEC         #####
 #####################################################################################################################
-## *** Provide the domain names you want Route53 to redirect to Cloud Connector for ZPA interception. Only applicable for base + zpa or zpa_enabled = true
-##     deployment types where Route53 subnets, Resolver Rules, and Outbound Endpoints are being created. Two example domains are populated to show the 
-##     mapping structure and syntax. ZPA Module will read through each to create a resolver rule per domain_name entry. Ucomment domain_names variable and
-##     add any additional appsegXX mappings as needed.
-
-#domain_names = {
-#  appseg1 = "app1.com"
-#  appseg2 = "app2.com"
-#}
-
-
-#####################################################################################################################
-##### Variables 1-21 are populated automically if terraform is ran via ZSEC bash script.   ##### 
-##### Modifying the variables in this file will override any inputs from ZSEC             #####
-#####################################################################################################################
-
 
 #####################################################################################################################
 ##### Cloud Init Userdata Provisioning variables  #####
@@ -184,3 +168,30 @@
 ##           Leave this variable commented out unless you are absolutely certain why/that you need to set it and only temporarily.
 
 #ami_id                                     = ["ami-123456789"]
+
+## 23. By default, terraform will configure Cloud Connector with EBS encryption enabled.
+##     Uncomment if you want to disable ebs encryption.
+
+#ebs_encryption_enabled                     = false
+
+## 24. By default, EBS encryptions is set to null which uses the AWS default managed/master key.
+##     Set as 'alias/<key-alias>' to use an existing customer KMS key"
+
+##     Note: this variable is only enforced if ebs_encryption_enabled is set to true
+
+#byo_kms_key_alias                          = "alias/<customer key alias name>"
+
+
+#####################################################################################################################
+##### ZPA/Route 53 specific variables #####
+#####################################################################################################################
+## 25. Provide the domain names you want Route53 to redirect to Cloud Connector for ZPA interception. Only applicable for base + zpa or zpa_enabled = true
+##     deployment types where Route53 subnets, Resolver Rules, and Outbound Endpoints are being created. Two example domains are populated to show the 
+##     mapping structure and syntax. ZPA Module will read through each to create a resolver rule per domain_name entry. Ucomment domain_names variable and
+##     add any additional appsegXX mappings as needed.
+
+#domain_names = {
+#  appseg1 = "app1.com"
+#  appseg2 = "app2.com"
+#}
+
