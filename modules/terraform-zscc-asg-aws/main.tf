@@ -12,6 +12,22 @@ EOF
 
 
 ################################################################################
+# Retrieve the default AWS KMS key in the current region for EBS encryption
+################################################################################
+data "aws_ebs_default_kms_key" "current_kms_key" {
+  count = var.ebs_encryption_enabled ? 1 : 0
+}
+
+################################################################################
+# Retrieve an alias for the KMS key for EBS encryption
+################################################################################
+data "aws_kms_alias" "current_kms_arn" {
+  count = var.ebs_encryption_enabled ? 1 : 0
+  name  = coalesce(var.byo_kms_key_alias, data.aws_ebs_default_kms_key.current_kms_key[0].key_arn)
+}
+
+
+################################################################################
 # Create launch template for Cloud Connector autoscaling group instance creation. 
 # Mgmt and service interface device indexes are swapped to support ASG + GWLB 
 # instance association
@@ -23,6 +39,7 @@ resource "aws_launch_template" "cc_launch_template" {
   instance_type = var.ccvm_instance_type
   key_name      = var.instance_key
   user_data     = base64encode(var.user_data)
+  ebs_optimized = true
 
   iam_instance_profile {
     name = element(var.iam_instance_profile, count.index)
@@ -56,6 +73,17 @@ resource "aws_launch_template" "cc_launch_template" {
     http_endpoint          = "enabled"
     http_tokens            = var.imdsv2_enabled ? "required" : "optional"
     instance_metadata_tags = "enabled"
+  }
+
+  block_device_mappings {
+    device_name = "/dev/sda1"
+
+    ebs {
+      delete_on_termination = true
+      encrypted             = var.ebs_encryption_enabled
+      kms_key_id            = var.ebs_encryption_enabled ? data.aws_kms_alias.current_kms_arn[0].target_key_arn : null
+      volume_type           = var.ebs_volume_type
+    }
   }
 
   tags = merge(var.global_tags)

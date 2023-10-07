@@ -145,6 +145,9 @@ module "cc_asg" {
   mgmt_security_group_id    = module.cc_sg.mgmt_security_group_id
   service_security_group_id = module.cc_sg.service_security_group_id
   ami_id                    = contains(var.ami_id, "") ? [data.aws_ami.cloudconnector.id] : var.ami_id
+  ebs_volume_type           = var.ebs_volume_type
+  ebs_encryption_enabled    = var.ebs_encryption_enabled
+  byo_kms_key_alias         = var.byo_kms_key_alias
 
   max_size                  = var.max_size
   min_size                  = var.min_size

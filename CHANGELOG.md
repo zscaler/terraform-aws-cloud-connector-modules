@@ -46,6 +46,8 @@ FEATURES:
 
 ENHANCEMENTS:
 * ZSEC bash script inputs for ASG deployments
+* ZSEC bash script inputs for brownfield/byo network environments
+* CC VM EBS changes: Volume type default now gp3 and AWS KMS encryption support enabled by default
 
 ## v0.2.0 (June 20, 2023)
 * AWS Provider updated from 4.7.x to 4.59.x for all example templates and child modules

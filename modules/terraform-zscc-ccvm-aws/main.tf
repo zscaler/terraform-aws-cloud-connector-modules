@@ -12,6 +12,22 @@ EOF
 
 
 ################################################################################
+# Retrieve the default AWS KMS key in the current region for EBS encryption
+################################################################################
+data "aws_ebs_default_kms_key" "current_kms_key" {
+  count = var.ebs_encryption_enabled ? 1 : 0
+}
+
+################################################################################
+# Retrieve an alias for the KMS key for EBS encryption
+################################################################################
+data "aws_kms_alias" "current_kms_arn" {
+  count = var.ebs_encryption_enabled ? 1 : 0
+  name  = coalesce(var.byo_kms_key_alias, data.aws_ebs_default_kms_key.current_kms_key[0].key_arn)
+}
+
+
+################################################################################
 # Create Cloud Connector VM
 ################################################################################
 resource "aws_instance" "cc_vm" {
@@ -21,6 +37,7 @@ resource "aws_instance" "cc_vm" {
   iam_instance_profile = element(var.iam_instance_profile, count.index)
   key_name             = var.instance_key
   user_data            = base64encode(var.user_data)
+  ebs_optimized        = true
 
   metadata_options {
     http_endpoint = "enabled"
@@ -30,6 +47,16 @@ resource "aws_instance" "cc_vm" {
   network_interface {
     device_index         = 0
     network_interface_id = aws_network_interface.cc_vm_nic_index_0[count.index].id
+  }
+
+  root_block_device {
+    delete_on_termination = true
+    encrypted             = var.ebs_encryption_enabled
+    kms_key_id            = var.ebs_encryption_enabled ? data.aws_kms_alias.current_kms_arn[0].target_key_arn : null
+    volume_type           = var.ebs_volume_type
+    tags = merge(var.global_tags,
+      { Name = "${var.name_prefix}-cc-vm-${count.index + 1}-ebs-${var.resource_tag}" }
+    )
   }
 
   tags = merge(var.global_tags,

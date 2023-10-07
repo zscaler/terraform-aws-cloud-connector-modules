@@ -145,6 +145,10 @@ module "cc_vm" {
   iam_instance_profile      = module.cc_iam.iam_instance_profile_id
   mgmt_security_group_id    = module.cc_sg.mgmt_security_group_id
   service_security_group_id = module.cc_sg.service_security_group_id
+  ebs_volume_type           = var.ebs_volume_type
+  ebs_encryption_enabled    = var.ebs_encryption_enabled
+  byo_kms_key_alias         = var.byo_kms_key_alias
+
 
   depends_on = [
     local_file.user_data_file,
