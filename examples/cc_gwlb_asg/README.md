@@ -1,4 +1,4 @@
-# Zscaler "cc_gwlb_asg" deployment type
+# Zscaler Custom Deployment Template with Auto Scaling and Gateway Load Balancer (cc_gwlb_asg)
 
 This deployment type is intended for brownfield/production purposes. By default, it will create 1 new VPC with 2 public subnets and 2 Cloud Connector private subnets; 1 IGW; 2 NAT Gateways; Cloud Connector Autoscaling Group + Launch Template spanning all CC subnets routing to the NAT Gateway in their same AZ; generates local key pair .pem file for ssh access; Customizable minimum/maximum number of Cloud Connectors and subnets deployed, ability to use existing resources (VPC, subnets, IGW, NAT Gateways), toggle ZPA/R53 resources; generates local key pair .pem file for ssh access; Gateway Load Balancer with Instance based target group and health checks; VPC Endpoint Service; 2 GWLB Endpoints (1 in each Cloud Connector subnet)
 
