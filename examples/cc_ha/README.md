@@ -1,4 +1,4 @@
-# Zscaler "cc_ha" deployment type (deprecated)
+# Zscaler Custom Deployment Template with HA (cc_ha) (deprecated)
 
 - **Note** This is only available as reference for legacy users. Zscaler's recommended deployment method is Gateway Load Balancer (GWLB), which distributes traffic across multiple Cloud Connectors and achieves high availability. Please refer to [**Custom Deployment template with GWLB**](../cc_gwlb).
 

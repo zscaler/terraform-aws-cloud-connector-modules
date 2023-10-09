@@ -71,13 +71,13 @@ Use the [**Starter Deployment Template with GWLB**](examples/base_cc_gwlb) to de
 
 Use the [**Starter Deployment Template with GWLB**](examples/base_cc_gwlb_zpa) to deploy your Cloud Connectors in a new VPC and to load balance traffic across multiple Cloud Connectors. Zscaler\'s recommended deployment method is Gateway Load Balancer (GWLB). GWLB distributes traffic across multiple Cloud Connectors and achieves high availability. Route 53 endpoints redirect DNS resolver capability for ZPA.
 
-### **Starter Deployment Template with Auto Scaling groups (ASG) and Gateway Load Balancer (GWLB)**
+### **Starter Deployment Template with Auto Scaling and Gateway Load Balancer (GWLB)**
 
 Use the [**Starter Deployment Template with ASG and GWLB**](examples/base_cc_gwlb_asg) to deploy your Cloud Connectors in a new VPC and to load balance traffic across multiple Cloud Connectors. Zscaler\'s recommended deployment method is Gateway Load Balancer (GWLB). GWLB distributes traffic across multiple Cloud Connectors and achieves high availability. For added resiliency and elasticity, Cloud Connectors are deployed via a Launch Template configured Auto Scaling group.
 
-### **Starter Deployment Template with Auto Scaling groups (ASG), Gateway Load Balancer (GWLB) and ZPA**
+### **Starter Deployment Template with Auto Scaling, Gateway Load Balancer (GWLB) and ZPA**
 
-Use the [**Starter Deployment Template with ASG and GWLB**](examples/base_cc_gwlb_asg_zpa) to deploy your Cloud Connectors in a new VPC and to load balance traffic across multiple Cloud Connectors. Zscaler\'s recommended deployment method is Gateway Load Balancer (GWLB). GWLB distributes traffic across multiple Cloud Connectors and achieves high availability. For added resiliency and elasticity, Cloud Connectors are deployed via a Launch Template configured Auto Scaling group. Route 53 endpoints redirect DNS resolver capability for ZPA.
+Use the [**Starter Deployment Template with ASG, GWLB and ZPA**](examples/base_cc_gwlb_asg_zpa) to deploy your Cloud Connectors in a new VPC and to load balance traffic across multiple Cloud Connectors. Zscaler\'s recommended deployment method is Gateway Load Balancer (GWLB). GWLB distributes traffic across multiple Cloud Connectors and achieves high availability. For added resiliency and elasticity, Cloud Connectors are deployed via a Launch Template configured Auto Scaling group. Route 53 endpoints redirect DNS resolver capability for ZPA.
 
 ## **Brownfield Deployment**
 
@@ -88,6 +88,6 @@ deployment. They also do not include a bastion or workload hosts deployed. See [
 
 Use the [**Custom Deployment template with GWLB**](examples/cc_gwlb) to deploy your Cloud Connector in a new or existing VPC and load balance traffic across multiple Cloud Connectors. Zscaler\'s recommended deployment method is Gateway Load Balancer (GWLB). GWLB distributes traffic across multiple Cloud Connectors and achieves high availability. Optional ZPA/Route 53 add-on capabilities.
 
-### **Custom Deployment Template with Auto Scaling groups (ASG) and Gateway Load Balancer (GWLB)**
+### **Custom Deployment Template with Auto Scaling and Gateway Load Balancer (GWLB)**
 
 Use the [**Custom Deployment template with GWLB**](examples/cc_gwlb_asg) to deploy your Cloud Connector in a new or existing VPC and load balance traffic across multiple Cloud Connectors. Zscaler\'s recommended deployment method is Gateway Load Balancer (GWLB). GWLB distributes traffic across multiple Cloud Connectors and achieves high availability. For added resiliency and elasticity, Cloud Connectors are deployed via a Launch Template configured Auto Scaling group. Optional ZPA/Route 53 add-on capabilities.

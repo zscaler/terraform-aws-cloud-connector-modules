@@ -1,4 +1,4 @@
-# Zscaler "Base_2cc" deployment type (deprecated)
+# Zscaler Starter Deployment Template with HA (Base_2cc) (deprecated)
 
 - **Note** This is only available as reference for legacy users. Zscaler's recommended deployment method is Gateway Load Balancer (GWLB), which distributes traffic across multiple Cloud Connectors and achieves high availability. Please refer to [**Starter Deployment Template with GWLB**](../base_cc_gwlb).
 

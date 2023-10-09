@@ -1,4 +1,4 @@
-# Zscaler "Base_cc_gwlb_asg_zpa" deployment type
+# Zscaler Starter Deployment Template with Auto Scaling, Gateway Load Balancer and ZPA (Base_cc_gwlb_asg_zpa)
 
 This deployment type is intended for greenfield/pov/lab purposes. It will deploy a fully functioning sandbox environment in a new VPC with test workload VMs. Full set of resources provisioned listed below, but this will effectively create all network infrastructure dependencies for an AWS environment. By default, it will create 1 new VPC with 2 public subnets and 2 Cloud Connector private subnets; 1 IGW; 2 NAT Gateways; Cloud Connector Autoscaling Group + Launch Template spanning all CC subnets routing to the NAT Gateway in their same AZ; generates local key pair .pem file for ssh access; Customizable minimum/maximum number of Cloud Connectors and subnets deployed; generates local key pair .pem file for ssh access; Gateway Load Balancer with Instance based target group and health checks; VPC Endpoint Service; 2 GWLB Endpoints (1 in each Cloud Connector subnet); workload private subnet routes pointing to the GWLB Endpoint in their same AZ.<br>
 
