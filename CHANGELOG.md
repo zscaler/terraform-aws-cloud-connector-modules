@@ -1,4 +1,4 @@
-## v1.0.0 (TBD)
+## v1.0.0 (October 19, 2023)
 BREAKING CHANGES:
 * Zscaler Cloud Connector AMI version > ZS6.1.25.0 support for default interface swap of both autoscaling and non-autoscaling deployments. Service interface is now ENA0 and Management interface is now ENA1. 
 
