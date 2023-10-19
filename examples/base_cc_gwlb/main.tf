@@ -146,6 +146,9 @@ module "cc_vm" {
   iam_instance_profile      = module.cc_iam.iam_instance_profile_id
   mgmt_security_group_id    = module.cc_sg.mgmt_security_group_id
   service_security_group_id = module.cc_sg.service_security_group_id
+  ebs_volume_type           = var.ebs_volume_type
+  ebs_encryption_enabled    = var.ebs_encryption_enabled
+  byo_kms_key_alias         = var.byo_kms_key_alias
 
   depends_on = [
     local_file.user_data_file,
@@ -161,13 +164,12 @@ module "cc_vm" {
 #    assigned to ALL Cloud Connectors instead.
 ################################################################################
 module "cc_iam" {
-  source              = "../../modules/terraform-zscc-iam-aws"
-  iam_count           = var.reuse_iam == false ? var.cc_count : 1
-  name_prefix         = var.name_prefix
-  resource_tag        = random_string.suffix.result
-  global_tags         = local.global_tags
-  cc_callhome_enabled = var.cc_callhome_enabled
-  secret_name         = var.secret_name
+  source       = "../../modules/terraform-zscc-iam-aws"
+  iam_count    = var.reuse_iam == false ? var.cc_count : 1
+  name_prefix  = var.name_prefix
+  resource_tag = random_string.suffix.result
+  global_tags  = local.global_tags
+  secret_name  = var.secret_name
 }
 
 
@@ -178,12 +180,15 @@ module "cc_iam" {
 #    security group created and assigned to ALL Cloud Connectors instead.
 ################################################################################
 module "cc_sg" {
-  source       = "../../modules/terraform-zscc-sg-aws"
-  sg_count     = var.reuse_security_group == false ? var.cc_count : 1
-  name_prefix  = var.name_prefix
-  resource_tag = random_string.suffix.result
-  global_tags  = local.global_tags
-  vpc_id       = module.network.vpc_id
+  source                   = "../../modules/terraform-zscc-sg-aws"
+  sg_count                 = var.reuse_security_group == false ? var.cc_count : 1
+  name_prefix              = var.name_prefix
+  resource_tag             = random_string.suffix.result
+  global_tags              = local.global_tags
+  vpc_id                   = module.network.vpc_id
+  http_probe_port          = var.http_probe_port
+  mgmt_ssh_enabled         = var.mgmt_ssh_enabled
+  all_ports_egress_enabled = var.all_ports_egress_enabled
 }
 
 
@@ -192,25 +197,22 @@ module "cc_sg" {
 #    and attach primary service IP from all created CCs as registered targets.
 ################################################################################
 module "gwlb" {
-  source                   = "../../modules/terraform-zscc-gwlb-aws"
-  gwlb_name                = "${var.name_prefix}-cc-gwlb-${random_string.suffix.result}"
-  target_group_name        = "${var.name_prefix}-cc-target-${random_string.suffix.result}"
-  global_tags              = local.global_tags
-  vpc_id                   = module.network.vpc_id
-  cc_subnet_ids            = module.network.cc_subnet_ids
-  cc_small_service_ips     = module.cc_vm.cc_service_private_ip
-  cc_med_lrg_service_1_ips = module.cc_vm.cc_med_lrg_service_1_private_ip
-  cc_med_lrg_service_2_ips = module.cc_vm.cc_med_lrg_service_2_private_ip
-  cc_lrg_service_3_ips     = module.cc_vm.cc_lrg_service_3_private_ip
-  cc_instance_size         = var.cc_instance_size
-  http_probe_port          = var.http_probe_port
-  health_check_interval    = var.health_check_interval
-  healthy_threshold        = var.healthy_threshold
-  unhealthy_threshold      = var.unhealthy_threshold
-  cross_zone_lb_enabled    = var.cross_zone_lb_enabled
-  deregistration_delay     = var.deregistration_delay
-  flow_stickiness          = var.flow_stickiness
-  rebalance_enabled        = var.rebalance_enabled
+  source                = "../../modules/terraform-zscc-gwlb-aws"
+  gwlb_name             = "${var.name_prefix}-cc-gwlb-${random_string.suffix.result}"
+  target_group_name     = "${var.name_prefix}-cc-target-${random_string.suffix.result}"
+  global_tags           = local.global_tags
+  vpc_id                = module.network.vpc_id
+  cc_subnet_ids         = module.network.cc_subnet_ids
+  cc_service_ips        = module.cc_vm.forwarding_ip
+  cc_instance_size      = var.cc_instance_size
+  http_probe_port       = var.http_probe_port
+  health_check_interval = var.health_check_interval
+  healthy_threshold     = var.healthy_threshold
+  unhealthy_threshold   = var.unhealthy_threshold
+  cross_zone_lb_enabled = var.cross_zone_lb_enabled
+  deregistration_delay  = var.deregistration_delay
+  flow_stickiness       = var.flow_stickiness
+  rebalance_enabled     = var.rebalance_enabled
 }
 
 

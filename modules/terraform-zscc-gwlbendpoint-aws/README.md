@@ -8,13 +8,13 @@ This module creates Gateway Load Balancer Endpoint (GWLBE) and VPC Endpoint Serv
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 4.59.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.59, <= 5.17 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 4.59.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.59, <= 5.17 |
 
 ## Modules
 
@@ -46,5 +46,7 @@ No modules.
 | Name | Description |
 |------|-------------|
 | <a name="output_gwlbe"></a> [gwlbe](#output\_gwlbe) | GWLB Endpoint ID |
+| <a name="output_vpce_service_arn"></a> [vpce\_service\_arn](#output\_vpce\_service\_arn) | VPC Endpoint Service ARN |
+| <a name="output_vpce_service_id"></a> [vpce\_service\_id](#output\_vpce\_service\_id) | VPC Endpoint Service ID |
 | <a name="output_vpce_service_name"></a> [vpce\_service\_name](#output\_vpce\_service\_name) | VPC Endpoint Service Name |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
