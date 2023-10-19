@@ -29,6 +29,9 @@ if [[ "$oper" == "up" ]]; then
 
     case $deploy in
       greenfield)
+      echo ""
+      echo "**Caution** These deployments include test workloads and publicly accessible jump hosts and are intended primarily for lab/test environments"
+      echo ""
           break
       ;;
       brownfield)
@@ -41,10 +44,10 @@ if [[ "$oper" == "up" ]]; then
   done
 
     while [ "$deploy" == "greenfield" ]; do
-     read -r -p "Deployment Type: ( base | base_1cc | base_1cc_zpa | base_2cc | base_2cc_zpa | base_cc_gwlb | base_cc_gwlb_zpa ): " dtype
+     read -r -p "Deployment Type: ( base | base_1cc | base_1cc_zpa | base_2cc | base_2cc_zpa | base_cc_gwlb | base_cc_gwlb_zpa | base_cc_gwlb_asg | base_cc_gwlb_asg_zpa ): " dtype
 
     case $dtype in
-      base|base_1cc|base_1cc_zpa|base_2cc|base_2cc_zpa|base_cc_gwlb|base_cc_gwlb_zpa)
+      base|base_1cc|base_1cc_zpa|base_2cc|base_2cc_zpa|base_cc_gwlb|base_cc_gwlb_zpa|base_cc_gwlb_asg|base_cc_gwlb_asg_zpa)
           echo "Deployment Type: ${dtype}"
           break
       ;;
@@ -55,10 +58,10 @@ if [[ "$oper" == "up" ]]; then
   done
 
   while [ "$deploy" == "brownfield" ]; do
-     read -r -p "Deployment Type: ( cc_ha | cc_gwlb ) : " dtype
+     read -r -p "Deployment Type: ( cc_ha | cc_gwlb | cc_gwlb_asg ) : " dtype
 
     case $dtype in
-      cc_ha|cc_gwlb)
+      cc_ha|cc_gwlb|cc_gwlb_asg)
           echo "Deployment Type: ${dtype}"
           break
       ;;
@@ -131,7 +134,7 @@ case $mfa_response in
     esac
 done 
 
-aws_regions=["af-south-1","ap-east-1","ap-northeast-1","ap-northeast-2","ap-northeast-3","ap-south-1","ap-southeast-1","ap-southeast-2","ca-central-1","cn-north-1","cn-northwest-1","eu-central-1","eu-north-1","eu-south-1","eu-west-1","eu-west-2","eu-west-3","me-south-1","sa-east-1","us-east-1","us-east-2","us-gov-east-1","us-gov-west-1","us-west-1","us-west-2"]
+aws_regions=["af-south-1","ap-east-1","ap-northeast-1","ap-northeast-2","ap-northeast-3","ap-south-1","ap-south-2","ap-southeast-1","ap-southeast-2","ca-central-1","cn-north-1","cn-northwest-1","eu-central-1","eu-north-1","eu-south-1","eu-west-1","eu-west-2","eu-west-3","me-south-1","sa-east-1","us-east-1","us-east-2","us-gov-east-1","us-gov-west-1","us-west-1","us-west-2"]
 # if .zsecrc is not present we'll assume that AWS env was never set
 if [[ $dtype == "base" && ! -e ./.zsecrc ]]; then
     # Get MFA session token
@@ -305,7 +308,7 @@ done
 fi
 
     cc_instance_size_default=small
-while true; do
+while [[ "$dtype" != *"asg"* ]]; do
     read -r -p "Enter CC Instance Size. Valid input = small, medium, or large. This needs to match the size chosen in the CC provisioning template [Default=$cc_instance_size_default]: " cc_instance_size_input
 cc_instance_size=${cc_instance_size_input:-$cc_instance_size_default}
     case $cc_instance_size in
@@ -320,42 +323,65 @@ cc_instance_size=${cc_instance_size_input:-$cc_instance_size_default}
     esac
 done
     if [[ "$dtype" == *"asg"* ]]; then
-    echo "Autoscaling deployment type identified. Only small CC instance sizes are currently support. Make sure that the CC provisioning template specified has small selected."
+    echo "Autoscaling deployment type identified. Only small CC instance sizes are currently supported. Make sure that the CC provisioning template specified has small selected."
     echo "Setting cc_instance_size to small"
     echo "export TF_VAR_cc_instance_size=small" >> .zsecrc
     cc_instance_size=small
     fi
 
-ccvm_instance_type_default=m5.large
+if [[ $cc_instance_size == "small" ]]; then
+ccvm_instance_type_default="m6i.large"
 while true; do
-    read -r -p "Enter desired AWS EC2 instance type for CC. Recommended types: Small CC (m5.large or c5.large); Medium (m5.2xlarge or c5.2xlarge); Large (m5.4xlarge or c5.4xlarge) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
-ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}    
+    read -r -p "Enter desired AWS EC2 instance type for $cc_instance_size CC. Recommended types: (m6i.large or c6i.large) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
+ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}
     case $ccvm_instance_type in
-      t3.medium|m5.large|c5.large|c5a.large|m5.2xlarge|c5.2xlarge|m5.4xlarge|c5.4xlarge)
-          echo "CC EC2 type: ${ccvm_instance_type}"
-          echo "export TF_VAR_ccvm_instance_type=${ccvm_instance_type}" >> .zsecrc
+      t3.medium|t3a.medium|m5n.large|c5a.large|m6i.large|c6i.large|m5n.4xlarge|c5.4xlarge|m6i.4xlarge|c6i.4xlarge)
+          echo "CC EC2 type: $ccvm_instance_type"
+          echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
           break
       ;;
       *)
-          echo "Invalid Cloud Connector VM type: ${ccvm_instance_type}. Please enter an approved VM type"
+          echo "EC2 type $ccvm_instance_type not compatible with Cloud Connector size $cc_instance_size. Please enter an approved VM type"
       ;;
     esac
 done
 
-small_cc_instance=("t3.medium" "m5.large" "c5.large" "c5a.large" "m5.2xlarge" "c5.2xlarge" "m5.4xlarge" "c5.4xlarge")
-medium_cc_instance=("m5.2xlarge" "c5.2xlarge" "m5.4xlarge" "c5.4xlarge")
-large_cc_instance=("m5.4xlarge" "c5.4xlarge")
+elif [[ $cc_instance_size == "medium" ]]; then
+ccvm_instance_type_default="m6i.4xlarge"
+while true; do
+    read -r -p "Enter desired AWS EC2 instance type for $cc_instance_size CC. Recommended types: (m6i.4xlarge or c6i.4xlarge) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
+ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}
+    case $ccvm_instance_type in
+      m5n.4xlarge|c5.4xlarge|m6i.4xlarge|c6i.4xlarge)
+          echo "CC EC2 type: $ccvm_instance_type"
+          echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
+          break
+      ;;
+      *)
+          echo "EC2 type $ccvm_instance_type not compatible with Cloud Connector size $cc_instance_size. Please enter an approved VM type"
+      ;;
+    esac
+done
 
-if [[ ${small_cc_instance[*]} =~ $ccvm_instance_type && "$cc_instance_size" == small ]]; then
-echo "Proceeding. ${ccvm_instance_type} compatible with ${cc_instance_size} Cloud Connector size"
-elif [[ ${medium_cc_instance[*]} =~ $ccvm_instance_type && "$cc_instance_size" == medium ]]; then
-echo "Proceeding. ${ccvm_instance_type} compatible with ${cc_instance_size} Cloud Connector size"
-elif [[ ${large_cc_instance[*]} =~ $ccvm_instance_type && "$cc_instance_size" == large ]]; then
-echo "Proceeding. ${ccvm_instance_type} compatible with ${cc_instance_size} Cloud Connector size"
-elif [[ $dtype == base ]]; then
-echo "Proceeding with no CCs to deploy"
+elif [[ $cc_instance_size == "large" ]]; then
+ccvm_instance_type_default="m6i.4xlarge"
+while true; do
+    read -r -p "Enter desired AWS EC2 instance type for $cc_instance_size CC. Recommended types: (m6i.4xlarge or c6i.4xlarge) [Default=$ccvm_instance_type_default]: " ccvm_instance_type_input
+ccvm_instance_type=${ccvm_instance_type_input:-$ccvm_instance_type_default}
+    case $ccvm_instance_type in
+      m5n.4xlarge|c5.4xlarge|m6i.4xlarge|c6i.4xlarge)
+          echo "CC EC2 type: $ccvm_instance_type"
+          echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
+          break
+      ;;
+      *)
+          echo "EC2 type $ccvm_instance_type not compatible with Cloud Connector size $cc_instance_size. Please enter an approved VM type"
+      ;;
+    esac
+done
+
 else
-    echo "Invalid CC deployment. ${ccvm_instance_type} not compatible with ${cc_instance_size} Cloud Connector size"
+    echo "Invalid CC deployment. $ccvm_instance_type not compatible with $cc_instance_size Cloud Connector size"
     echo "Delete .zsecrc file and re-run zsec up..."
     exit 1
 fi
@@ -382,6 +408,8 @@ if [[ "$dtype" == "base_1"* ]]; then
     echo "${dtype} will deploy one Cloud Connector in ${aws_region}"  
 elif [[ "$dtype" == "base_2"* || "$dtype" == "cc_ha" ]]; then  
     echo "${dtype} will deploy two Cloud Connectors in ${aws_region}"  
+elif [[ "$dtype" == *"asg"* ]]; then
+    echo "Autoscaling deployment type identified. Proceeding to ASG configurations" 
 elif [[ "$dtype" == *"gwlb"* ]]; then
     read -p "Enter how many Cloud Connectors to deploy? [Default=$cc_count_default]: " cc_count_input
 cc_count=${cc_count_input:-$cc_count_default}
@@ -395,6 +423,42 @@ else
 fi  
 fi
 
+min_size_default=2
+    while [[ "$dtype" == *"asg"* ]]; do
+    read -r -p "Enter the minumum number of Cloud Connectors to maintain in an Autoscaling group [Default=$min_size_default]: " min_size_input
+min_size=${min_size_input:-$min_size_default}
+    case $min_size in
+      1|2|3|4|5|6|7|8|9|10)
+          echo "Cloud Connector Mininum size: ${min_size}"
+          echo "export TF_VAR_min_size=${min_size}" >> .zsecrc
+          break
+      ;;
+      *)
+          echo "Invalid ASG Minimum size: ${min_size}. Enter a number 1-10"
+      ;;
+    esac
+done
+
+max_size_default=4
+    while [[ "$dtype" == *"asg"* ]]; do
+    read -r -p "Enter the maximum number of Cloud Connectors to maintain in an Autoscaling group [Default=$max_size_default]: " max_size_input
+max_size=${max_size_input:-$max_size_default}
+    if [[ "$max_size" -lt "$min_size" ]]; then
+    echo "Max size must be greater than or equal to ${min_size}"
+    else
+        case $max_size in
+        1|2|3|4|5|6|7|8|9|10)
+          echo "Cloud Connector Maximum size: ${max_size}"
+          echo "export TF_VAR_max_size=${max_size}" >> .zsecrc
+          break
+      ;;
+      *)
+          echo "Invalid ASG Maximum size: ${max_size}. Enter a number 1-10"
+      ;;
+    esac
+    fi
+done
+
 az_count_default=2
 if [[ "$dtype" == "base_1"* ]]; then
     echo "${dtype} will deploy resources in one Availability Zone subnet in ${aws_region}"  
@@ -402,13 +466,56 @@ else
     read -r -p "Enter how many Availability Zone subnets [1-3] to deploy across? [Default=$az_count_default]: " az_count_input
 az_count=${az_count_input:-$az_count_default}
 if ((az_count >= 1 && az_count <= 3)); then
+    if [[ "$dtype" == *"asg"* ]]; then
+    echo "${dtype} will deploy $az_count Autoscale Groups (one per AZ) in ${aws_region} each with a minimum of $min_size Cloud Connectors"
+    echo "export TF_VAR_az_count=${az_count}" >> .zsecrc
+    else
     echo "${dtype} will deploy ${cc_count} Cloud Connectors across ${az_count} Availabiliy Zone subnets in ${aws_region}"
     echo "export TF_VAR_az_count=${az_count}" >> .zsecrc
+    fi
 else
     echo "invalid az_count value. Must be a number between 1 and 3"
     echo "Delete .zsecrc file and re-run zsec up..."
     exit 1
 fi  
+fi
+
+while true; do
+    read -r -p "Enable EBS volume encryption? (yes/no) Recommendation is yes: " ebs_encryption_response
+case $ebs_encryption_response in 
+	yes|y ) 
+    echo "EBS encryption will be enabled"
+    echo "export TF_VAR_ebs_encryption_enabled=true" >> .zsecrc
+    ebs_encryption_enabled=true
+    break
+    ;;
+	no|n )
+    echo "EBS encryption will be disabled"
+    echo "export TF_VAR_ebs_encryption_enabled=false" >> .zsecrc
+    ebs_encryption_enabled=false
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done 
+
+if [[ "$ebs_encryption_enabled" == true ]]; then
+    echo "Amazon EBS automatically creates a unique AWS managed key in each Region. By default, Amazon EBS uses this KMS key for encryption"
+    while true; do
+    read -r -p "Use your own customer managed KMS key instead? (yes/no): " byo_kms_key_response
+        case $byo_kms_key_response in 
+	        yes|y ) 
+            read -r -p "Enter KMS key alias (e.g. alias/key_name): " byo_kms_key_alias
+            echo "export TF_VAR_byo_kms_key_alias=$byo_kms_key_alias" >> .zsecrc
+            break
+            ;;
+	        no|n )
+            echo "Using default Amazon KMS key..."
+            break
+            ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+        esac
+    done 
 fi
 
 if [[ "$dtype" == *"gwlb"* ]]; then
@@ -470,25 +577,431 @@ case $flow_stickiness in
 done 
 fi
 
-if [[ "$dtype" == "cc"* ]]; then
-   while true; do
-    read -r -p "Enable Route 53 configuration for ZPA? (yes/no): " zpa_response
-case $zpa_response in 
+target_cpu_util_value_default=80
+while [[ "$dtype" == *"asg"* ]]; do
+    read -r -p "Enter desired ASG Target Tracking CPU % Utilization target [Default=$target_cpu_util_value_default]: " target_cpu_util_value_input
+target_cpu_util_value=${target_cpu_util_value_input:-$target_cpu_util_value_default}
+ if [[ "$target_cpu_util_value" -lt 1 || "$target_cpu_util_value" -gt 100 ]]; then
+    echo "Target tracking percentage must be a number between 1-100"
+    else
+        case $target_cpu_util_value in
+        *) 
+        echo "ASG CPU Utilization Target Value set to ${target_cpu_util_value}"
+        echo "export TF_VAR_target_cpu_util_value=${target_cpu_util_value}" >> .zsecrc 
+        break
+        ;;
+    esac
+    fi
+done
+
+while [[ "$dtype" == *"asg"* ]]; do
+    read -r -p "Do you want Warm Pool enabled on the Autoscaling Group? (yes/no): " warm_pool_response
+case $warm_pool_response in 
 	yes|y ) 
-    echo "Enabling Route 53 module..."
-    zpa_enabled=true
-    echo "export TF_VAR_zpa_enabled=$zpa_enabled" >> .zsecrc
+    echo "Warm Pool enabled. Proceeding with configurations..."
+    echo "export TF_VAR_warm_pool_enabled=true" >> .zsecrc 
+    warm_pool_enabled=true
     break
     ;;
 	no|n )
-    echo "No ZPA enablement..."
-    zpa_enabled=false
-    echo "export TF_VAR_zpa_enabled=$zpa_enabled" >> .zsecrc
+    echo "Warm Pool not enabled. Proceeding..."
+    echo "export TF_VAR_warm_pool_enabled=false" >> .zsecrc 
+    warm_pool_enabled=false
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done
+
+if [[ "$dtype" == *"asg"* && "$warm_pool_enabled" == "true" ]]; then
+warm_pool_min_size_default=0
+    while true; do
+    read -r -p "Enter the minimum number of instances to maintain in the warm pool [Default=$warm_pool_min_size_default]: " warm_pool_min_size_input
+warm_pool_min_size=${warm_pool_min_size_input:-$warm_pool_min_size_default}
+    case $warm_pool_min_size in
+      0|1|2|3|4|5|6|7|8|9|10)
+          echo "Warm Pool Mininum size: ${warm_pool_min_size}"
+          echo "export TF_VAR_warm_pool_min_size=${warm_pool_min_size}" >> .zsecrc
+          break
+      ;;
+      *)
+          echo "Invalid Warm Pool Minimum size: ${warm_pool_min_size}. Enter a number 0-10"
+      ;;
+    esac
+done
+
+warm_pool_max_group_prepared_capacity_default=$max_size
+    while true; do 
+    read -r -p "By default, AWS sets the Warm Pool max prepared capacity equal to the ASG max capacity [$max_size]. Would you like to override this? (yes/no): " override_max_prepared
+        case $override_max_prepared in 
+	yes|y )
+    while true; do 
+        read -r -p "Enter the maximum number of instances that are allowed to be in the warm pool [Default=$warm_pool_max_group_prepared_capacity_default]: " warm_pool_max_group_prepared_capacity_input
+        warm_pool_max_group_prepared_capacity=${warm_pool_max_group_prepared_capacity_input:-$warm_pool_max_group_prepared_capacity_default}
+        if [[ "$warm_pool_max_group_prepared_capacity" -lt "$warm_pool_min_size" ]]; then
+            echo "Warm Pool Maximum capacity must be greater than or equal to ${warm_pool_min_size}"
+        else
+            case $warm_pool_max_group_prepared_capacity in
+            1|2|3|4|5|6|7|8|9|10)
+          echo "Warm Pool Maximum capacity: ${warm_pool_max_group_prepared_capacity}"
+          echo "export TF_VAR_warm_pool_max_group_prepared_capacity=${warm_pool_max_group_prepared_capacity}" >> .zsecrc
+          break
+        ;;
+        *)
+          echo "Invalid Warm Pool Maximum capacity: ${warm_pool_max_group_prepared_capacity}. Enter a number 1-10"
+        ;;
+        esac
+        fi
+    done
+    break
+    ;;
+	no|n )
+    echo "Warm Pool Maximum Capacity using ASG Maximum Defaults..."
     break
     ;;
 	* ) echo "invalid response. Please enter yes or no";;
     esac
 done 
+
+warm_pool_state_default=Stopped
+    while true; do
+    read -r -p "Enter the desired Warm Pool instance state to transition to after the lifecycle hooks finish [Default=$warm_pool_state_default]: " warm_pool_state_input
+warm_pool_state=${warm_pool_state_input:-$warm_pool_state_default}
+    case $warm_pool_state in
+      Stopped|Running)
+          echo "Warm Pool State: ${warm_pool_state}"
+          echo "export TF_VAR_warm_pool_state=${warm_pool_state}" >> .zsecrc
+          break
+      ;;
+      *)
+          echo "Invalid Warm Pool State: ${warm_pool_state}. Enter either Stopped or Running"
+      ;;
+    esac
+done
+
+    while true; do
+    read -r -p "Do you want ASG instances to return to the warm pool on scale in? (yes/no) Recommendation is yes: " reuse_on_scale_in_response
+case $reuse_on_scale_in_response in 
+	yes|y ) 
+    echo "Reuse on scale in enabled"
+    echo "export TF_VAR_reuse_on_scale_in=true" >> .zsecrc 
+    break
+    ;;
+	no|n )
+    echo "Reuse on scale not enabled. Proceeding..."
+    echo "export TF_VAR_reuse_on_scale_in=false" >> .zsecrc 
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done 
+fi
+
+
+if [[ "$dtype" == *"asg"* ]]; then
+ while true; do
+    read -r -p "Do you want enable ASG notifications? (yes/no): " asg_notification_response
+case $asg_notification_response in 
+	yes|y ) 
+    echo "Enabling ASG notifications..."
+    echo "export TF_VAR_sns_enabled=true" >> .zsecrc 
+        while true; do
+            read -r -p "Do you have an existing SNS Topic configured to use for ASG notifications? (yes/no): " byo_topic_response
+            case $byo_topic_response in
+            yes|y )
+            echo "export TF_VAR_byo_sns_topic=true" >> .zsecrc 
+            read -r -p "Enter the SNS Topic name: " byo_topic_name
+            echo "export TF_VAR_byo_sns_topic_name=$byo_topic_name" >> .zsecrc
+            break
+            ;;
+	        no|n )
+            echo "Terraform will create a new sns topic and topic subscription for ASG email notification..."
+            email_input=true
+            break
+            ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+            esac
+        done 
+    break
+    ;;
+	no|n )
+    echo "Skipping ASG notifications..."
+    echo "export TF_VAR_sns_enabled=false" >> .zsecrc 
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done 
+
+if [[ "$email_input" == "true" ]]; then
+array=()
+email_list="'["
+counter=0
+while true; do
+read -r -p "How many email addresses do you need to configure for ASG Notifications? " email_list_number
+if [[ $email_list_number == 0 ]]; then
+    echo "Invalid input. Please enter a whole number for the number of email addresses you will be adding..."
+elif [[ $email_list_number =~ ^[0-9]+$ ]]; then
+    echo "$email_list_number email addresses to enter..."
+    break
+else
+    echo "Invalid input. Please enter a whole number for the number of email addresses you will be adding..."
+fi
+done
+    echo "Warning: each email address entered must manually accept the AWS SNS email received after resource creation"
+for i in $(seq $email_list_number); do
+read -r -p "Enter a single email address: " email_address
+    if [[ $email_address = *" "* ]]; then
+        echo "Spaces not allowed. Please enter only one email at a time. Delete .zsecrc file and re-run zsec up..."
+        exit 1
+    elif [[ $email_address == '' ]]; then
+        echo "Empty entries are not allowed. Delete .zsecrc file and re-run zsec up..."
+        exit 1
+    elif [[ $email_address != *"@"* ]]; then
+        echo "Invalid email address format. Missing @ symbol. Delete .zsecrc file and re-run zsec up..."
+        exit 1
+    elif [[ $email_address == "*"* ]]; then
+        echo "Invalid format. Email addresses cannot start with a star/wildcard (*). Delete .zsecrc file and re-run zsec up..."
+        exit 1
+    fi
+array+=("$email_address")
+    counter=$(( $counter + 1 ))
+    email_list+="\"$email_address\","
+done
+email_list+="]'"
+echo "export TF_VAR_sns_email_list=${email_list}" >> .zsecrc
+fi
+fi
+
+if [[ "$dtype" == "cc"* ]]; then
+    echo "Configure Networking Infrastructure..."
+    while true; do
+    read -r -p "Are you deploying to an existing VPC in $aws_region? (yes/no): " byo_vpc_response
+        case $byo_vpc_response in 
+	        yes|y ) 
+            echo "Using an existing VPC..."
+            echo "export TF_VAR_byo_vpc=true" >> .zsecrc
+            byo_vpc=true
+            read -r -p "Enter existing VPC ID (E.g vpc-0588ce674df615334): " byo_vpc_id
+            echo "You entered $byo_vpc_id"
+            echo "export TF_VAR_byo_vpc_id=$byo_vpc_id" >> .zsecrc
+        break
+        ;;
+	        no|n )
+            echo "Terraform will create new VPC, subnets, IGW, and NAT Gateways"
+            echo "export TF_VAR_byo_vpc=false" >> .zsecrc
+        break
+        ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+        esac
+    done
+fi
+
+# Query for existing subnet IDs if byo_vpc true
+if [[ "$byo_vpc" == "true" ]]; then
+    echo "Attemping deployment to existing VPC $byo_vpc_id..."
+    while true; do
+        read -r -p "Are you deploying to existing subnets in $byo_vpc_id? (yes/no): " byo_subnet_response
+        case $byo_subnet_response in 
+            yes|y ) 
+            echo "Using existing subnets for Cloud Connector..."
+            echo "export TF_VAR_byo_subnets=true" >> .zsecrc
+            if [[ "$az_count" == "1" ]]; then
+                read -r -p "$az_count availability zone chosen. Please enter the desired subnet ID (E.g subnet-05c32f4aa6bc02f8f): " byo_subnet_ids
+                echo "You entered $byo_subnet_ids"
+                echo "export TF_VAR_byo_subnet_ids='[\"${byo_subnet_ids}\"]'" >> .zsecrc
+            elif [[ "$az_count" == "2" ]]; then
+                echo "$az_count availability zones chosen"
+                read -r -p "Please enter the first subnet ID (E.g subnet-05c32f4aa6bc02f8f): " subnet_1
+                echo "You entered $subnet_1"
+                read -r -p "Please enter the second subnet ID (E.g subnet-05c32f4aa6bc02f8f): " subnet_2
+                echo "You entered $subnet_2"
+                echo "export TF_VAR_byo_subnet_ids='[\"${subnet_1}\",\"${subnet_2}\"]'" >> .zsecrc
+            elif [[ "$az_count" == "3" ]]; then
+                echo "$az_count availability zones chosen"
+                read -r -p "Please enter the first subnet ID (E.g subnet-05c32f4aa6bc02f8f): " subnet_1
+                echo "You entered $subnet_1"
+                read -r -p "Please enter the second subnet ID (E.g subnet-05c32f4aa6bc02f8f): " subnet_2
+                echo "You entered $subnet_2"
+                read -r -p "Please enter the third subnet ID (E.g subnet-05c32f4aa6bc02f8f): " subnet_3
+                echo "You entered $subnet_3"
+                echo "export TF_VAR_byo_subnet_ids='[\"${subnet_1}\",\"${subnet_2}\",\"${subnet_3}\"]'" >> .zsecrc
+            fi
+        break
+        ;;
+	        no|n )
+            echo "Terraform will attempt to create new subnets in $byo_vpc_id"
+            echo "export TF_VAR_byo_subnets=false" >> .zsecrc
+            byo_subnets=false
+        break
+        ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+        esac
+    done
+fi
+
+#Query for subnet creation range override
+if [[ "$byo_subnets" == "false" ]]; then
+    echo "Existing VPC $byo_vpc_id selected, but subnets need created..."
+    echo "By default, Terraform assumeds VPC CIDR is a /16 and will try to create /24 subnets within"
+    while true; do
+        read -r -p "Do you want to manually define the CC subnet ranges? (yes/no): " change_cc_cidr_response
+        case $change_cc_cidr_response in 
+	        yes|y )
+            echo "Configuring each Cloud Connector subnet range..."
+            if [[ "$az_count" == "1" ]]; then
+                read -r -p "$az_count availability zone chosen. Please enter the desired subnet range that falls within $byo_vpc_id CIDR (E.g 10.2.0.0/24): " cc_subnets_1
+                echo "You entered $cc_subnets_1"
+                echo "export TF_VAR_cc_subnets='[\"${cc_subnets_1}\"]'" >> .zsecrc
+            elif [[ "$az_count" == "2" ]]; then
+                echo "$az_count availability zones chosen"
+                read -r -p "Please enter the first subnet range (E.g 10.2.0.0/24): " cc_subnets_1
+                echo "You entered $cc_subnets_1"
+                read -r -p "Please enter the second subnet range (E.g 10.2.1.0/24): " cc_subnets_2
+                echo "You entered $cc_subnets_2"
+                echo "export TF_VAR_cc_subnets='[\"${cc_subnets_1}\",\"${cc_subnets_2}\"]'" >> .zsecrc
+            elif [[ "$az_count" == "3" ]]; then
+                echo "$az_count availability zones chosen"
+                read -r -p "Please enter the first subnet range (E.g 10.2.0.0/24): " cc_subnets_1
+                echo "You entered $cc_subnets_1"
+                read -r -p "Please enter the second subnet ID (E.g 10.2.1.0/24): " cc_subnets_2
+                echo "You entered $cc_subnets_2"
+                read -r -p "Please enter the third subnet range (E.g 10.2.2.0/24): " cc_subnets_3
+                echo "You entered $cc_subnets_3"
+                echo "export TF_VAR_cc_subnets='[\"${cc_subnets_1}\",\"${cc_subnets_2}\",\"${cc_subnets_3}\"]'" >> .zsecrc
+            fi
+        break
+        ;;
+	        no|n )
+            echo "Terraform will attempt to automatically create new subnets in $byo_vpc_id"
+        break
+        ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+        esac
+    done 
+fi
+
+if [[ "$dtype" == "cc"* ]]; then
+   while true; do
+    read -r -p "Enable Route 53 configuration for ZPA? (yes/no): " zpa_response
+        case $zpa_response in 
+	        yes|y ) 
+            echo "Enabling Route 53 module..."
+            zpa_enabled=true
+            echo "export TF_VAR_zpa_enabled=$zpa_enabled" >> .zsecrc
+        break
+        ;;
+	        no|n )
+            echo "No ZPA enablement..."
+            zpa_enabled=false
+            echo "export TF_VAR_zpa_enabled=$zpa_enabled" >> .zsecrc
+        break
+        ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+        esac
+    done 
+fi
+
+if [[ "$byo_subnets" == "false" && "$zpa_enabled" == "true" ]]; then
+    while true; do
+        read -r -p "Do you want to manually define the Route 53 subnet ranges? (yes/no): " change_r53_cidr_response
+        case $change_r53_cidr_response in 
+	        yes|y )
+            echo "Configuring each Route 53 subnet range..."
+            if [[ "$az_count" == "1" ]]; then
+                read -r -p "$az_count availability zone chosen. Please enter the desired subnet range that falls within $byo_vpc_id CIDR (E.g 10.2.0.0/24): " r53_subnets_1
+                echo "You entered $r53_subnets_1"
+                echo "export TF_VAR_route53_subnets='[\"${cc_subnets_1}\"]'" >> .zsecrc
+            elif [[ "$az_count" == "2" ]]; then
+                echo "$az_count availability zones chosen"
+                read -r -p "Please enter the first subnet range (E.g 10.2.0.0/24): " r53_subnets_1
+                echo "You entered $r53_subnets_1"
+                read -r -p "Please enter the second subnet range (E.g 10.2.1.0/24): " r53_subnets_2
+                echo "You entered $r53_subnets_2"
+                echo "export TF_VAR_route53_subnets='[\"${r53_subnets_1}\",\"${r53_subnets_2}\"]'" >> .zsecrc
+            elif [[ "$az_count" == "3" ]]; then
+                echo "$az_count availability zones chosen"
+                read -r -p "Please enter the first subnet range (E.g 10.2.0.0/24): " r53_subnets_1
+                echo "You entered $r53_subnets_1"
+                read -r -p "Please enter the second subnet range (E.g 10.2.1.0/24): " r53_subnets_2
+                echo "You entered $r53_subnets_2"
+                read -r -p "Please enter the third subnet range (E.g 10.2.2.0/24): " r53_subnets_3
+                echo "You entered $r53_subnets_3"
+                echo "export TF_VAR_route53_subnets='[\"${r53_subnets_1}\",\"${r53_subnets_2}\",\"${r53_subnets_3}\"]'" >> .zsecrc
+            fi
+        break
+        ;;
+	        no|n )
+            echo "Terraform will attempt to automatically create new subnets in $byo_vpc_id"
+        break
+        ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+        esac
+    done 
+fi   
+
+# Query for existing IGW IDs if byo_vpc true
+if [[ "$byo_vpc" == "true" ]]; then
+    while true; do
+        read -r -p "Does $byo_vpc_id already have an IGW (Internet Gateway)? (yes/no): " byo_igw_response
+        case $byo_igw_response in 
+	        yes|y ) 
+            echo "Using an existing IGW..."
+            echo "export TF_VAR_byo_igw=true" >> .zsecrc
+            byo_igw=true
+            read -r -p "Enter existing IGW ID (E.g igw-090313c21ffed44d3): " byo_igw_id
+            echo "export TF_VAR_byo_igw_id=$byo_igw_id" >> .zsecrc
+        break
+        ;;
+	        no|n )
+            echo "Terraform will attempt to create a new IGW in $byo_vpc_id"
+            echo "export TF_VAR_byo_igw=false" >> .zsecrc
+        break
+        ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+        esac
+    done
+fi
+
+# Query for existing NAT GW IDs if byo_vpc true
+if [[ "$byo_vpc" == "true" ]]; then
+    while true; do
+        read -r -p "Does $byo_vpc_id already have NAT Gateways in public subnets? (yes/no): " byo_ngw_response
+        case $byo_ngw_response in 
+	        yes|y ) 
+            echo "Using existing NAT Gateways for Cloud Connector route tables..."
+            echo "export TF_VAR_byo_ngw=true" >> .zsecrc
+            if [[ "$az_count" == "1" ]]; then
+                read -r -p "$az_count availability zone chosen. Please enter the desired NAT Gateway ID (E.g nat-0e1351f3e8025a30e): " ngw_1
+                echo "You entered $ngw_1"
+                echo "export TF_VAR_byo_ngw_ids='[\"${ngw_1}\"]'" >> .zsecrc
+            elif [[ "$az_count" == "2" ]]; then
+                echo "$az_count availability zones chosen"
+                read -r -p "Please enter the first NAT Gateway ID (E.g nat-0e1351f3e8025a30e): " ngw_1
+                echo "You entered $ngw_1"
+                read -r -p "Please enter the second NAT Gateway ID (E.g nat-0e1351f3e8025a30e): " ngw_2
+                echo "You entered $ngw_2"
+                echo "export TF_VAR_byo_ngw_ids='[\"${ngw_1}\",\"${ngw_2}\"]'" >> .zsecrc
+            elif [[ "$az_count" == "3" ]]; then
+                echo "$az_count availability zones chosen"
+                read -r -p "Please enter the first NAT Gateway ID (E.g nat-0e1351f3e8025a30e): " ngw_1
+                echo "You entered $ngw_1"
+                read -r -p "Please enter the second NAT Gateway ID (E.g nat-0e1351f3e8025a30e): " ngw_2
+                echo "You entered $ngw_2"
+                read -r -p "Please enter the third NAT Gateway ID (E.g nat-0e1351f3e8025a30e): " ngw_3
+                echo "You entered $ngw_3"
+                echo "export TF_VAR_byo_ngw_ids='[\"${ngw_1}\",\"${ngw_2}\",\"${ngw_3}\"]'" >> .zsecrc
+            fi
+        break
+            ;;
+	        no|n )
+            echo "Terraform will attempt to create new public subnets and NAT Gateway resources in $byo_vpc_id"
+            echo "export TF_VAR_byo_ngw=false" >> .zsecrc
+        break
+            ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+        esac
+    done
 fi
 
 if [[ "$zpa_enabled" == "true" || "$dtype" == *"zpa" ]]; then

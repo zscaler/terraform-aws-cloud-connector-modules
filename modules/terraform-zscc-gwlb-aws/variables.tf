@@ -3,27 +3,9 @@ variable "vpc_id" {
   description = "Cloud Connector VPC ID"
 }
 
-variable "cc_small_service_ips" {
+variable "cc_service_ips" {
   type        = list(string)
-  description = "Cloud Connector Small instance size service IPs"
-  default     = []
-}
-
-variable "cc_med_lrg_service_1_ips" {
-  type        = list(string)
-  description = "Cloud Connector Medium/Large instance size service-1 IPs"
-  default     = []
-}
-
-variable "cc_med_lrg_service_2_ips" {
-  type        = list(string)
-  description = "Cloud Connector Medium/Large instance size service-2 IPs"
-  default     = []
-}
-
-variable "cc_lrg_service_3_ips" {
-  type        = list(string)
-  description = "Cloud Connector Large instance size service-3 IPs"
+  description = "Cloud Connector forwarding service IPs"
   default     = []
 }
 
@@ -86,6 +68,12 @@ variable "cc_instance_size" {
     )
     error_message = "Input cc_instance_size must be set to an approved cc instance type."
   }
+}
+
+variable "asg_enabled" {
+  type        = bool
+  description = "Determines whether to set gwlb target group target_type to 'instance' or 'ip'. If set to true, ASG uses 'instance' and no aws_lb_target_group_attachment resources need to be created"
+  default     = false
 }
 
 variable "gwlb_name" {

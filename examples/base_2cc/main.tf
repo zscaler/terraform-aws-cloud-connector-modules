@@ -54,7 +54,7 @@ module "network" {
   resource_tag      = random_string.suffix.result
   global_tags       = local.global_tags
   workloads_enabled = true
-  cc_service_enis   = module.cc_vm.service_eni_1
+  cc_service_enis   = module.cc_vm.forwarding_eni
   az_count          = var.az_count
   vpc_cidr          = var.vpc_cidr
   public_subnets    = var.public_subnets
@@ -145,6 +145,9 @@ module "cc_vm" {
   iam_instance_profile      = module.cc_iam.iam_instance_profile_id
   mgmt_security_group_id    = module.cc_sg.mgmt_security_group_id
   service_security_group_id = module.cc_sg.service_security_group_id
+  ebs_volume_type           = var.ebs_volume_type
+  ebs_encryption_enabled    = var.ebs_encryption_enabled
+  byo_kms_key_alias         = var.byo_kms_key_alias
 
   depends_on = [
     local_file.user_data_file,
@@ -160,13 +163,12 @@ module "cc_vm" {
 #    assigned to ALL Cloud Connectors instead.
 ################################################################################
 module "cc_iam" {
-  source              = "../../modules/terraform-zscc-iam-aws"
-  iam_count           = var.reuse_iam == false ? var.cc_count : 1
-  name_prefix         = var.name_prefix
-  resource_tag        = random_string.suffix.result
-  global_tags         = local.global_tags
-  cc_callhome_enabled = var.cc_callhome_enabled
-  secret_name         = var.secret_name
+  source       = "../../modules/terraform-zscc-iam-aws"
+  iam_count    = var.reuse_iam == false ? var.cc_count : 1
+  name_prefix  = var.name_prefix
+  resource_tag = random_string.suffix.result
+  global_tags  = local.global_tags
+  secret_name  = var.secret_name
 }
 
 
@@ -177,12 +179,16 @@ module "cc_iam" {
 #    security group created and assigned to ALL Cloud Connectors instead.
 ################################################################################
 module "cc_sg" {
-  source       = "../../modules/terraform-zscc-sg-aws"
-  sg_count     = var.reuse_security_group == false ? var.cc_count : 1
-  name_prefix  = var.name_prefix
-  resource_tag = random_string.suffix.result
-  global_tags  = local.global_tags
-  vpc_id       = module.network.vpc_id
+  source                   = "../../modules/terraform-zscc-sg-aws"
+  sg_count                 = var.reuse_security_group == false ? var.cc_count : 1
+  name_prefix              = var.name_prefix
+  resource_tag             = random_string.suffix.result
+  global_tags              = local.global_tags
+  vpc_id                   = module.network.vpc_id
+  http_probe_port          = var.http_probe_port
+  mgmt_ssh_enabled         = var.mgmt_ssh_enabled
+  gwlb_enabled             = false
+  all_ports_egress_enabled = var.all_ports_egress_enabled
 }
 
 

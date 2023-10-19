@@ -8,7 +8,7 @@ This module creates all AWS EC2 instance and network interface resources needed 
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 4.59.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.59, <= 5.17 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.2.0 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.1.0 |
 
@@ -16,7 +16,7 @@ This module creates all AWS EC2 instance and network interface resources needed 
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 4.59.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.59, <= 5.17 |
 | <a name="provider_null"></a> [null](#provider\_null) | ~> 3.1.0 |
 
 ## Modules
@@ -28,20 +28,27 @@ No modules.
 | Name | Type |
 |------|------|
 | [aws_instance.cc_vm](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
+| [aws_network_interface.cc_vm_nic_index_0](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
 | [aws_network_interface.cc_vm_nic_index_1](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
 | [aws_network_interface.cc_vm_nic_index_2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
 | [aws_network_interface.cc_vm_nic_index_3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
 | [aws_network_interface.cc_vm_nic_index_4](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
+| [aws_network_interface.cc_vm_nic_index_5](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
 | [null_resource.error_checker](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
+| [aws_ebs_default_kms_key.current_kms_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ebs_default_kms_key) | data source |
+| [aws_kms_alias.current_kms_arn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/kms_alias) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_ami_id"></a> [ami\_id](#input\_ami\_id) | AMI ID(s) to be used for deploying Cloud Connector appliances. Ideally all VMs should be on the same AMI ID as templates always pull the latest from AWS Marketplace. This variable is provided if a customer desires to override/retain an old ami for existing deployments rather than upgrading and forcing a replacement. It is also inputted as a list to facilitate if a customer desired to manually upgrade select CCs deployed based on the cc\_count index | `list(string)` | n/a | yes |
+| <a name="input_byo_kms_key_alias"></a> [byo\_kms\_key\_alias](#input\_byo\_kms\_key\_alias) | Requires var.ebs\_encryption\_enabled to be true. Set to null by default which is the AWS default managed/master key. Set as 'alias/<key-alias>' to use a custom KMS key | `string` | `null` | no |
 | <a name="input_cc_count"></a> [cc\_count](#input\_cc\_count) | Default number of Cloud Connector appliances to create | `number` | `1` | no |
-| <a name="input_cc_instance_size"></a> [cc\_instance\_size](#input\_cc\_instance\_size) | Cloud Connector Instance size. Determined by and needs to match  the Cloud Connector Portal provisioning template configuration | `string` | `"small"` | no |
-| <a name="input_ccvm_instance_type"></a> [ccvm\_instance\_type](#input\_ccvm\_instance\_type) | Cloud Connector Instance Type | `string` | `"m5.large"` | no |
+| <a name="input_cc_instance_size"></a> [cc\_instance\_size](#input\_cc\_instance\_size) | Cloud Connector Instance size. Determined by and needs to match the Cloud Connector Portal provisioning template configuration | `string` | `"small"` | no |
+| <a name="input_ccvm_instance_type"></a> [ccvm\_instance\_type](#input\_ccvm\_instance\_type) | Cloud Connector Instance Type | `string` | `"m6i.large"` | no |
+| <a name="input_ebs_encryption_enabled"></a> [ebs\_encryption\_enabled](#input\_ebs\_encryption\_enabled) | true/false whether to enable EBS encryption on the root volume. Default is true | `bool` | `true` | no |
+| <a name="input_ebs_volume_type"></a> [ebs\_volume\_type](#input\_ebs\_volume\_type) | (Optional) Type of volume. Valid values include standard, gp2, gp3, io1, io2, sc1, or st1. Defaults to gp3 | `string` | `"gp3"` | no |
 | <a name="input_global_tags"></a> [global\_tags](#input\_global\_tags) | Populate any custom user defined tags from a map | `map(string)` | `{}` | no |
 | <a name="input_iam_instance_profile"></a> [iam\_instance\_profile](#input\_iam\_instance\_profile) | IAM instance profile ID assigned to Cloud Connector | `list(string)` | n/a | yes |
 | <a name="input_imdsv2_enabled"></a> [imdsv2\_enabled](#input\_imdsv2\_enabled) | true/false whether to force IMDSv2 only for instance bring up. Default is true | `bool` | `true` | no |
@@ -59,14 +66,9 @@ No modules.
 | Name | Description |
 |------|-------------|
 | <a name="output_availability_zone"></a> [availability\_zone](#output\_availability\_zone) | Instance Availability Zone |
-| <a name="output_cc_lrg_service_3_private_ip"></a> [cc\_lrg\_service\_3\_private\_ip](#output\_cc\_lrg\_service\_3\_private\_ip) | Instance Device Index 4 Private IP |
-| <a name="output_cc_med_lrg_service_1_private_ip"></a> [cc\_med\_lrg\_service\_1\_private\_ip](#output\_cc\_med\_lrg\_service\_1\_private\_ip) | Instance Device Index 2 Private IP |
-| <a name="output_cc_med_lrg_service_2_private_ip"></a> [cc\_med\_lrg\_service\_2\_private\_ip](#output\_cc\_med\_lrg\_service\_2\_private\_ip) | Instance Device Index 3 Private IP |
-| <a name="output_cc_service_private_ip"></a> [cc\_service\_private\_ip](#output\_cc\_service\_private\_ip) | Instance Device Index 1 Private IP |
-| <a name="output_id"></a> [id](#output\_id) | Instance ID |
-| <a name="output_private_ip"></a> [private\_ip](#output\_private\_ip) | Instance Private IP |
-| <a name="output_service_eni_1"></a> [service\_eni\_1](#output\_service\_eni\_1) | Instance Device Index 1 Network ID |
-| <a name="output_service_eni_2"></a> [service\_eni\_2](#output\_service\_eni\_2) | Instance Device Index 2 Network ID |
-| <a name="output_service_eni_3"></a> [service\_eni\_3](#output\_service\_eni\_3) | Instance Device Index 3 Network ID |
-| <a name="output_service_eni_4"></a> [service\_eni\_4](#output\_service\_eni\_4) | Instance Device Index 4 Network ID |
+| <a name="output_forwarding_eni"></a> [forwarding\_eni](#output\_forwarding\_eni) | Instance Device Index 0 Network ID |
+| <a name="output_forwarding_ip"></a> [forwarding\_ip](#output\_forwarding\_ip) | Instance Forwarding/Service IP |
+| <a name="output_id"></a> [id](#output\_id) | EC2 Instance ID |
+| <a name="output_management_eni"></a> [management\_eni](#output\_management\_eni) | Instance Device Index 1 Network ID |
+| <a name="output_management_ip"></a> [management\_ip](#output\_management\_ip) | Instance Device Index 1 Private IP |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
