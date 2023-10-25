@@ -99,6 +99,7 @@ data "aws_iam_policy_document" "cc_tags_policy_document" {
     actions = [
       "sqs:CreateQueue",
       "sns:Subscribe",
+      "sns:DeleteQueue"
     ]
     resources = ["*"]
   }
@@ -114,6 +115,7 @@ resource "aws_iam_policy" "cc_tags_policy" {
 resource "aws_iam_role_policy_attachment" "cc_tags_attachment" {
   count      = var.byo_iam == false && var.cloud_tags == true ? var.iam_count : 0
   policy_arn = aws_iam_policy.cc_tags_policy[count.index].arn
+  role       = aws_iam_role.cc_node_iam_role[count.index].name
 }
 
 ################################################################################
