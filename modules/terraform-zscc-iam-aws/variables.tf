@@ -22,12 +22,6 @@ variable "iam_count" {
   default     = 1
 }
 
-variable "cc_callhome_enabled" {
-  type        = bool
-  description = "Determine whether or not to create the cc-callhome-policy IAM Policy and attach it to the CC IAM Role"
-  default     = "true"
-}
-
 variable "byo_iam" {
   type        = bool
   description = "Bring your own IAM Instance Profile for Cloud Connector. Setting this variable to true will effectively instruct this module to not create any resources and only reference data resources from values provided in byo_iam_instance_profile_id"
@@ -38,6 +32,12 @@ variable "byo_iam_instance_profile_id" {
   type        = list(string)
   description = "Existing IAM Instance Profile IDs for Cloud Connector association"
   default     = null
+}
+
+variable "asg_enabled" {
+  type        = bool
+  description = "Determines whether or not to create the cc_autoscale_lifecycle_policy IAM Policy and attach it to the CC IAM Role"
+  default     = false
 }
 
 variable "secret_name" {

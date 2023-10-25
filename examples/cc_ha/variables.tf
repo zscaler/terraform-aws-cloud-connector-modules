@@ -71,17 +71,19 @@ variable "cc_count" {
 variable "ccvm_instance_type" {
   type        = string
   description = "Cloud Connector Instance Type"
-  default     = "m5.large"
+  default     = "m6i.large"
   validation {
     condition = (
       var.ccvm_instance_type == "t3.medium" ||
-      var.ccvm_instance_type == "m5.large" ||
-      var.ccvm_instance_type == "c5.large" ||
+      var.ccvm_instance_type == "t3a.medium" ||
+      var.ccvm_instance_type == "m5n.large" ||
       var.ccvm_instance_type == "c5a.large" ||
-      var.ccvm_instance_type == "m5.2xlarge" ||
-      var.ccvm_instance_type == "c5.2xlarge" ||
-      var.ccvm_instance_type == "m5.4xlarge" ||
-      var.ccvm_instance_type == "c5.4xlarge"
+      var.ccvm_instance_type == "m6i.large" ||
+      var.ccvm_instance_type == "c6i.large" ||
+      var.ccvm_instance_type == "c5.4xlarge" ||
+      var.ccvm_instance_type == "m5n.4xlarge" ||
+      var.ccvm_instance_type == "m6i.4xlarge" ||
+      var.ccvm_instance_type == "c6i.4xlarge"
     )
     error_message = "Input ccvm_instance_type must be set to an approved vm instance type."
   }
@@ -89,7 +91,7 @@ variable "ccvm_instance_type" {
 
 variable "cc_instance_size" {
   type        = string
-  description = "Cloud Connector Instance size. Determined by and needs to match  the Cloud Connector Portal provisioning template configuration"
+  description = "Cloud Connector Instance size. Determined by and needs to match the Cloud Connector Portal provisioning template configuration"
   default     = "small"
   validation {
     condition = (
@@ -103,9 +105,9 @@ variable "cc_instance_size" {
 
 # Validation to ensure that ccvm_instance_type and cc_instance_size are set appropriately
 locals {
-  small_cc_instance  = ["t3.medium", "m5.large", "c5.large", "c5a.large", "m5.2xlarge", "c5.2xlarge", "m5.4xlarge", "c5.4xlarge"]
-  medium_cc_instance = ["m5.2xlarge", "c5.2xlarge", "m5.4xlarge", "c5.4xlarge"]
-  large_cc_instance  = ["m5.4xlarge", "c5.4xlarge"]
+  small_cc_instance  = ["t3.medium", "t3a.medium", "m5n.large", "c5a.large", "m6i.large", "c6i.large", "c5.4xlarge", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge"]
+  medium_cc_instance = ["c5.4xlarge", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge"]
+  large_cc_instance  = ["c5.4xlarge", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge"]
 
   valid_cc_create = (
     contains(local.small_cc_instance, var.ccvm_instance_type) && var.cc_instance_size == "small" ||
@@ -135,12 +137,6 @@ variable "http_probe_port" {
     )
     error_message = "Input http_probe_port must be set to a single value of 80 or any number between 1024-65535."
   }
-}
-
-variable "cc_callhome_enabled" {
-  type        = bool
-  description = "determine whether or not to create the cc-callhome-policy IAM Policy and attach it to the CC IAM Role"
-  default     = true
 }
 
 variable "reuse_security_group" {
@@ -191,6 +187,35 @@ variable "ami_id" {
   default     = [""]
 }
 
+variable "mgmt_ssh_enabled" {
+  type        = bool
+  description = "Default is true which creates an ingress rule permitting SSH traffic from the local VPC to the CC management interface. If false, the rule is not created. Value ignored if not creating a security group"
+  default     = true
+}
+
+variable "all_ports_egress_enabled" {
+  type        = bool
+  default     = true
+  description = "Default is true which creates an egress rule permitting the CC service interface to forward direct traffic on all ports and protocols. If false, the rule is not created. Value ignored if not creating a security group"
+}
+
+variable "ebs_volume_type" {
+  type        = string
+  description = "(Optional) Type of volume. Valid values include standard, gp2, gp3, io1, io2, sc1, or st1. Defaults to gp3"
+  default     = "gp3"
+}
+
+variable "ebs_encryption_enabled" {
+  type        = bool
+  description = "true/false whether to enable EBS encryption on the root volume. Default is true"
+  default     = true
+}
+
+variable "byo_kms_key_alias" {
+  type        = string
+  description = "Requires var.ebs_encryption_enabled to be true. Set to null by default which is the AWS default managed/master key. Set as 'alias/<key-alias>' to use a custom KMS key"
+  default     = null
+}
 
 # BYO (Bring-your-own) variables list
 
