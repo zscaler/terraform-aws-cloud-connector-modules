@@ -133,11 +133,6 @@ variable "cc_vm_prov_url" {
   description = "Zscaler Cloud Connector Provisioning URL"
 }
 
-variable "secret_name" {
-  type        = string
-  description = "AWS Secrets Manager Secret Name for Cloud Connector provisioning"
-}
-
 variable "http_probe_port" {
   type        = number
   description = "Port number for Cloud Connector cloud init to enable listener port for HTTP probe from GWLB Target Group"
@@ -196,5 +191,38 @@ variable "ebs_encryption_enabled" {
 variable "byo_kms_key_alias" {
   type        = string
   description = "Requires var.ebs_encryption_enabled to be true. Set to null by default which is the AWS default managed/master key. Set as 'alias/<key-alias>' to use a custom KMS key"
+  default     = null
+}
+
+variable "byo_secret" {
+  type        = bool
+  description = "True/False to conditionally create a new secret. Default is false meaning create a new resource"
+  default     = false
+}
+
+variable "secret_name" {
+  type        = string
+  description = "AWS Secrets Manager Secret Name for Cloud Connector provisioning. This could be a new name or existing depending on byo_secret value"
+  default     = ""
+}
+
+variable "zscaler_username" {
+  type        = string
+  sensitive   = true
+  description = "Zscaler Cloud Connector deploy username. Only required/used if var.byo_secret is false"
+  default     = null
+}
+
+variable "zscaler_password" {
+  type        = string
+  sensitive   = true
+  description = "Zscaler Cloud Connector deploy password. Only required/used if var.byo_secret is false"
+  default     = null
+}
+
+variable "zscaler_api_key" {
+  type        = string
+  sensitive   = true
+  description = "Zscaler Cloud Connector api key. Only required/used if var.byo_secret is false"
   default     = null
 }

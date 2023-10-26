@@ -103,7 +103,7 @@ locals {
   userdata = <<USERDATA
 [ZSCALER]
 CC_URL=${var.cc_vm_prov_url}
-SECRET_NAME=${var.secret_name}
+SECRET_NAME=${var.byo_secret ? var.secret_name : coalesce(var.secret_name, module.cc_secret.secret_name)}
 HTTP_PROBE_PORT=${var.http_probe_port}
 USERDATA
 }
@@ -168,7 +168,7 @@ module "cc_iam" {
   name_prefix  = var.name_prefix
   resource_tag = random_string.suffix.result
   global_tags  = local.global_tags
-  secret_name  = var.secret_name
+  secret_name  = var.byo_secret ? var.secret_name : coalesce(var.secret_name, module.cc_secret.secret_name)
 }
 
 
@@ -207,6 +207,24 @@ module "cc_lambda" {
   cc_vm1_rte_list = [module.network.workload_route_table_ids[0]]
   cc_vm2_rte_list = [module.network.workload_route_table_ids[1]]
   http_probe_port = var.http_probe_port
+}
+
+
+################################################################################
+# 8. Conditionally create AWS Secrets Manager Secret and values.
+#    If byo_secret = true, module will just output the arn from the friendly
+#    name for use in minimal IAM access for CC IAM Role.
+################################################################################
+module "cc_secret" {
+  source           = "../../modules/terraform-zscc-secretsmanager-aws"
+  name_prefix      = var.name_prefix
+  resource_tag     = random_string.suffix.result
+  global_tags      = local.global_tags
+  byo_secret       = var.byo_secret
+  secret_name      = var.secret_name      # only required if byo_secret = true
+  zscaler_api_key  = var.zscaler_api_key  # only required if byo_secret = false
+  zscaler_username = var.zscaler_username # only required if byo_secret = false
+  zscaler_password = var.zscaler_password # only required if byo_secret = false
 }
 
 
