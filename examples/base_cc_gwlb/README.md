@@ -61,6 +61,7 @@ From base_cc_gwlb directory execute:
 |------|--------|---------|
 | <a name="module_bastion"></a> [bastion](#module\_bastion) | ../../modules/terraform-zscc-bastion-aws | n/a |
 | <a name="module_cc_iam"></a> [cc\_iam](#module\_cc\_iam) | ../../modules/terraform-zscc-iam-aws | n/a |
+| <a name="module_cc_secret"></a> [cc\_secret](#module\_cc\_secret) | ../../modules/terraform-zscc-secretsmanager-aws | n/a |
 | <a name="module_cc_sg"></a> [cc\_sg](#module\_cc\_sg) | ../../modules/terraform-zscc-sg-aws | n/a |
 | <a name="module_cc_vm"></a> [cc\_vm](#module\_cc\_vm) | ../../modules/terraform-zscc-ccvm-aws | n/a |
 | <a name="module_gwlb"></a> [gwlb](#module\_gwlb) | ../../modules/terraform-zscc-gwlb-aws | n/a |
@@ -93,6 +94,7 @@ From base_cc_gwlb directory execute:
 | <a name="input_az_count"></a> [az\_count](#input\_az\_count) | Default number of subnets to create based on availability zone | `number` | `2` | no |
 | <a name="input_bastion_nsg_source_prefix"></a> [bastion\_nsg\_source\_prefix](#input\_bastion\_nsg\_source\_prefix) | CIDR blocks of trusted networks for bastion host ssh access | `list(string)` | <pre>[<br>  "0.0.0.0/0"<br>]</pre> | no |
 | <a name="input_byo_kms_key_alias"></a> [byo\_kms\_key\_alias](#input\_byo\_kms\_key\_alias) | Requires var.ebs\_encryption\_enabled to be true. Set to null by default which is the AWS default managed/master key. Set as 'alias/<key-alias>' to use a custom KMS key | `string` | `null` | no |
+| <a name="input_byo_secret"></a> [byo\_secret](#input\_byo\_secret) | True/False to conditionally create a new secret. Default is false meaning create a new resource | `bool` | `false` | no |
 | <a name="input_cc_count"></a> [cc\_count](#input\_cc\_count) | Default number of Cloud Connector appliances to create | `number` | `4` | no |
 | <a name="input_cc_instance_size"></a> [cc\_instance\_size](#input\_cc\_instance\_size) | Cloud Connector Instance size. Determined by and needs to match the Cloud Connector Portal provisioning template configuration | `string` | `"small"` | no |
 | <a name="input_cc_subnets"></a> [cc\_subnets](#input\_cc\_subnets) | Cloud Connector Subnets to create in VPC. This is only required if you want to override the default subnets that this code creates via vpc\_cidr variable. | `list(string)` | `null` | no |
@@ -115,12 +117,15 @@ From base_cc_gwlb directory execute:
 | <a name="input_rebalance_enabled"></a> [rebalance\_enabled](#input\_rebalance\_enabled) | Indicates how the GWLB handles existing flows when a target is deregistered or marked unhealthy. true means rebalance. false means no\_rebalance. Default: true | `bool` | `true` | no |
 | <a name="input_reuse_iam"></a> [reuse\_iam](#input\_reuse\_iam) | Specifies whether the SG module should create 1:1 IAM per instance or 1 IAM for all instances | `bool` | `false` | no |
 | <a name="input_reuse_security_group"></a> [reuse\_security\_group](#input\_reuse\_security\_group) | Specifies whether the SG module should create 1:1 security groups per instance or 1 security group for all instances | `bool` | `false` | no |
-| <a name="input_secret_name"></a> [secret\_name](#input\_secret\_name) | AWS Secrets Manager Secret Name for Cloud Connector provisioning | `string` | n/a | yes |
+| <a name="input_secret_name"></a> [secret\_name](#input\_secret\_name) | AWS Secrets Manager Secret Name for Cloud Connector provisioning. This could be a new name or existing depending on byo\_secret value | `string` | `""` | no |
 | <a name="input_tls_key_algorithm"></a> [tls\_key\_algorithm](#input\_tls\_key\_algorithm) | algorithm for tls\_private\_key resource | `string` | `"RSA"` | no |
 | <a name="input_unhealthy_threshold"></a> [unhealthy\_threshold](#input\_unhealthy\_threshold) | The number of unsuccessful health checks required before an healthy target becomes unhealthy. Minimum 2 and maximum 10 | `number` | `3` | no |
 | <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | VPC IP CIDR Range. All subnet resources that might get created (public, workload, cloud connector) are derived from this /16 CIDR. If you require creating a VPC smaller than /16, you may need to explicitly define all other subnets via public\_subnets, workload\_subnets, cc\_subnets, and route53\_subnets variables | `string` | `"10.1.0.0/16"` | no |
 | <a name="input_workload_count"></a> [workload\_count](#input\_workload\_count) | Default number of workload VMs to create | `number` | `2` | no |
 | <a name="input_workloads_subnets"></a> [workloads\_subnets](#input\_workloads\_subnets) | Workload Subnets to create in VPC. This is only required if you want to override the default subnets that this code creates via vpc\_cidr variable. | `list(string)` | `null` | no |
+| <a name="input_zscaler_api_key"></a> [zscaler\_api\_key](#input\_zscaler\_api\_key) | Zscaler Cloud Connector api key. Only required/used if var.byo\_secret is false | `string` | `null` | no |
+| <a name="input_zscaler_password"></a> [zscaler\_password](#input\_zscaler\_password) | Zscaler Cloud Connector deploy password. Only required/used if var.byo\_secret is false | `string` | `null` | no |
+| <a name="input_zscaler_username"></a> [zscaler\_username](#input\_zscaler\_username) | Zscaler Cloud Connector deploy username. Only required/used if var.byo\_secret is false | `string` | `null` | no |
 
 ## Outputs
 

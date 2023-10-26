@@ -432,9 +432,34 @@ fi
     read -r -p "Enter CC Provisioning URL (E.g. connector.zscaler.net/api/v1/provUrl?name=aws_prov_url): " cc_vm_prov_url
     echo "Provisioning URL entered is: $cc_vm_prov_url. Make sure this matches the CC Instance Size $cc_instance_size chosen."
     echo "export TF_VAR_cc_vm_prov_url=${cc_vm_prov_url}" >> .zsecrc
-    read -r -p "Enter AWS Secrets Manager Secret Name from Secrets Manager (E.g ZS/CC/credentials/aws_cc_secret_name): " secret_name
-    echo "Secret Manager name entered is: $secret_name"
-    echo "export TF_VAR_secret_name=${secret_name}" >> .zsecrc
+    
+while true; do
+    read -r -p "Create new Secrets Manager Secret in $aws_region? (yes/no): " byo_secret_response
+    case $byo_secret_response in 
+        yes|y ) 
+        echo "Terraform will create a new Secret with Zscaler authentication credentials..."
+        read -r -p "Enter the Zscaler Administrator user Cloud Connector should use (e.g. cc-deploy@company.com): " zscaler_username
+        read -r -p "Enter the password for $zscaler_username: " zscaler_password
+        read -r -p "Enter the API Key for your Zscaler Cloud Connector tenant: " zscaler_api_key
+        echo "Warning: Both this script (.zsecrc) and Terraform (terraform.tfstate) will store these values in cleartext..."
+        echo "Make sure to save these deployment details in a secure location and not share with anyone..."
+        echo "export TF_VAR_zscaler_username=$zscaler_username" >> .zsecrc
+        echo "export TF_VAR_zscaler_password=$zscaler_password" >> .zsecrc
+        echo "export TF_VAR_zscaler_api_key=$zscaler_api_key" >> .zsecrc
+        echo "export TF_VAR_byo_secret=false" >> .zsecrc
+    break
+        ;;
+        no|n )
+        read -r -p "Enter existing Secret Name from Secrets Manager (E.g ZS/CC/credentials/aws_cc_secret_name): " secret_name
+        echo "Secret name entered is: $secret_name"
+        echo "export TF_VAR_secret_name=${secret_name}" >> .zsecrc
+        echo "export TF_VAR_byo_secret=true" >> .zsecrc
+    break
+        ;;
+        * ) echo "invalid response. Please enter yes or no";;
+    esac
+done 
+    
 http_probe_port_default=50000
     read -r -p "Enter CC service health probe TCP port number. Valid input = 80 or any number between 1024-65535 [Default=$http_probe_port_default]: " http_probe_port_input
 http_probe_port=${http_probe_port_input:-$http_probe_port_default}
@@ -1131,7 +1156,7 @@ fi
 
 if [[ $dtype != "base" ]]; then
     echo "Checking Cloud Connector provisioning info"
-  if [ -z "$TF_VAR_cc_vm_prov_url" ] || [ -z "$TF_VAR_secret_name" ] || [ -z "$TF_VAR_http_probe_port" ] || [ -z "$TF_VAR_cc_instance_size" ] || [ -z "$TF_VAR_ccvm_instance_type" ]; then
+  if [ -z "$TF_VAR_cc_vm_prov_url" ] || [ -z "$TF_VAR_http_probe_port" ] || [ -z "$TF_VAR_cc_instance_size" ] || [ -z "$TF_VAR_ccvm_instance_type" ]; then
     echo "Cloud Connector provisioning info is missing. Remove .zsecrc file and rerun $0 $1"
     exit 1
   fi
