@@ -61,7 +61,7 @@
 
 #zonal_asg_enabled                          = false
 
-## 9. The minumum number of Cloud Connectors to maintain in an Autoscaling group. (Default: 2)
+## 9. The minimum number of Cloud Connectors to maintain in an Autoscaling group. (Default: 2)
 ##    Recommendation is to maintain HA/Zonal resliency so for example if az_count = 2 and cross_zone_lb_enabled is false the minimum number of CCs you would want for a
 ##    production deployment would be 4
 
