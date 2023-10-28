@@ -1,3 +1,14 @@
+## TBD (UNRELEASED)
+FEATURES:
+* Add: variable zonal_asg_enabled boolean. Expectations:
+    - If false, then create only one Auto Scaling Group for all availability zones inputted per var.cc_subnet_ids
+    - If true, then create one Auto Scaling Group per subnet availability zones inputted
+    - Note: Single ASG is simpler to manage and recommended especially when enabling cross-zone gateway load balancing. ASG per AZ may be desirable for more consistent and granular control over scaling in/out.
+* Add: all capacity and warm pool metrics to Auto Scaling Group enabled_metrics
+
+ENHANCEMENTS:
+* ZSEC bash script prompts for Auto Scaling Group zonal configuration
+
 ## v1.0.0 (October 19, 2023)
 BREAKING CHANGES:
 * Zscaler Cloud Connector AMI version > ZS6.1.25.0 support for default interface swap of both autoscaling and non-autoscaling deployments. Service interface is now ENA0 and Management interface is now ENA1. 
