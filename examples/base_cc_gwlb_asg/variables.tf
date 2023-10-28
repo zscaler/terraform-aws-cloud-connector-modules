@@ -375,3 +375,9 @@ variable "asg_lambda_filename" {
   description = "Name of the lambda zip file without suffix"
   default     = "zscaler_cc_lambda_service"
 }
+
+variable "zonal_asg_enabled" {
+  type        = bool
+  description = "By default, Terraform will create one Auto Scaling Group per subnet/availability zone. Set to false if you would rather create a single Auto Scaling Group containing multiple subnets/availability zones"
+  default     = false
+}
