@@ -56,32 +56,37 @@
 
 #az_count                                   = 2
 
-## 8. The minumum number of Cloud Connectors to maintain in an Autoscaling group. (Default: 2)
+## 8. The number of Auto Scaling Groups to create. By default, Terraform will create one Auto Scaling Group per subnet/availability zone. 
+##    Uncomment and set to false if you would rather create a single Auto Scaling Group containing multiple subnets/availability zones
+
+#zonal_asg_enabled                          = false
+
+## 9. The minumum number of Cloud Connectors to maintain in an Autoscaling group. (Default: 2)
 ##    Recommendation is to maintain HA/Zonal resliency so for example if az_count = 2 and cross_zone_lb_enabled is false the minimum number of CCs you would want for a
 ##    production deployment would be 4
 
 #min_size                                   = 2
 
-## 9. The maximum number of Cloud Connectors to maintain in an Autoscaling group. (Default: 4)
+## 10. The maximum number of Cloud Connectors to maintain in an Autoscaling group. (Default: 4)
 ##    Value must be a number between 1 and 10
 
 #max_size                                   = 4
 
-## 10. The amount of time until EC2 Auto Scaling performs the first health check on new instances after they are put into service. 
+## 11. The amount of time until EC2 Auto Scaling performs the first health check on new instances after they are put into service. 
 ##     With lifecycle hooks it is immediate. Otheriwse Default is 15 minutes. (Default: 900 seconds/15 minutes)
 
 #health_check_grace_period                  = 0
 
-## 11. Amount of time, in seconds, until a newly launched instance can contribute to the Amazon CloudWatch metrics. 
+## 12. Amount of time, in seconds, until a newly launched instance can contribute to the Amazon CloudWatch metrics. 
 ##     This delay lets an instance finish initializing before Amazon EC2 Auto Scaling aggregates instance metrics, resulting in more reliable usage data.
 ##     Default: 0 seconds
 
 #instance_warmup                            = 0
 
-## 12. Whether newly launched instances are automatically protected from termination by Amazon EC2 Auto Scaling when scaling in. 
+## 13. Whether newly launched instances are automatically protected from termination by Amazon EC2 Auto Scaling when scaling in. 
 ##     Uncomment to disable. (Default: true)
 
-## 13. Network Configuration:
+## 14. Network Configuration:
 
 ##    IPv4 CIDR configured with VPC creation. All Subnet resources (Workload, Public, Cloud Connector, Route 53) will be created based off this prefix
 ##    /24 subnets are created assuming this cidr is a /16. If you require creating a VPC smaller than /16, you may need to explicitly define all other 
@@ -105,11 +110,11 @@
 #cc_subnets                                 = ["10.x.y.z/24","10.x.y.z/24"]
 #route53_subnets                            = ["10.x.y.z/24","10.x.y.z/24"]
 
-## 14. Tag attribute "Owner" assigned to all resoure creation. (Default: "zscc-admin")
+## 15. Tag attribute "Owner" assigned to all resoure creation. (Default: "zscc-admin")
 
 #owner_tag                                  = "username@company.com"
 
-## 15. By default, terraform will always query the AWS Marketplace for the latest Cloud Connector AMI available.
+## 16. By default, terraform will always query the AWS Marketplace for the latest Cloud Connector AMI available.
 ##     This variable is provided if a customer desires to override/retain an old ami for existing deployments rather than upgrading and forcing a launch template change."
 
 ##     Note: Customers should NOT be hard coding AMI IDs as Zscaler recommendation is to always be deploying/running the latest version.
@@ -119,12 +124,12 @@
 
 #ami_id                                     = ["ami-123456789"]
 
-## 16. By default, GWLB deployments are configured as zonal. Uncomment if you want to enable cross-zone load balancing
+## 17. By default, GWLB deployments are configured as zonal. Uncomment if you want to enable cross-zone load balancing
 ##     functionality. Only applicable for gwlb deployment types. (Default: false)
 
 #cross_zone_lb_enabled                      = true
 
-## 17. Gateway loadbalancing hashing algorithm. Default is 5-tuple (None).
+## 18. Gateway loadbalancing hashing algorithm. Default is 5-tuple (None).
 ##     Additional options include: 2-tuple (source_ip_dest_ip) and 3-tuple (source_ip_dest_ip_proto)
 ##     Uncomment below the configuration you want to use.
 
@@ -132,79 +137,79 @@
 #flow_stickiness                            = "3-tuple"
 #flow_stickiness                            = "5-tuple"
 
-## 18. Indicates how the GWLB handles existing flows when a target is deregistered or marked unhealthy. 
+## 19. Indicates how the GWLB handles existing flows when a target is deregistered or marked unhealthy. 
 ##     true means rebalance after deregistration. false means no_rebalance. (Default: true)
 ##     Uncomment to turn this feature off (not recommended)
 
 #rebalance_enabled                          = false
 
-## 19. If set to true, add a warm pool to the specified Auto Scaling group. See [warm_pool](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group#warm_pool).
+## 20. If set to true, add a warm pool to the specified Auto Scaling group. See [warm_pool](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group#warm_pool).
 ##     Uncomment to enable. (Default: false)
 
 #warm_pool_enabled                          = true
 
-## 20. Sets the instance state to transition to after the lifecycle hooks finish. Valid values are: Stopped (default) or Running. Ignored when 'warm_pool_enabled' is false
+## 21. Sets the instance state to transition to after the lifecycle hooks finish. Valid values are: Stopped (default) or Running. Ignored when 'warm_pool_enabled' is false
 ##     Uncomment the desired value
 
 #warm_pool_state                            = "Stopped"
 #warm_pool_state                            = "Running"
 
-## 21. Specifies the minimum number of instances to maintain in the warm pool. This helps you to ensure that there is always a certain number of warmed instances available to handle traffic spikes. Ignored when 'warm_pool_enabled' is false
+## 22. Specifies the minimum number of instances to maintain in the warm pool. This helps you to ensure that there is always a certain number of warmed instances available to handle traffic spikes. Ignored when 'warm_pool_enabled' is false
 ##     Uncomment and specify a desired minimum number of Cloud Connectors to maintain deployed in a warm pool
 
 #warm_pool_min_size                         = 0
 
-## 22. Specifies the total maximum number of instances that are allowed to be in the warm pool or in any state except Terminated for the Auto Scaling group. Ignored when 'warm_pool_enabled' is false
+## 23. Specifies the total maximum number of instances that are allowed to be in the warm pool or in any state except Terminated for the Auto Scaling group. Ignored when 'warm_pool_enabled' is false
 ##     Uncomment and specify a desired maximum number of Cloud Connectors to maintain deployed in a warm pool. Default is null which means use whatever maximum is set at the ASG.
 
 #warm_pool_max_group_prepared_capacity      = null
 
-## 23. Specifies whether instances in the Auto Scaling group can be returned to the warm pool on scale in
+## 24. Specifies whether instances in the Auto Scaling group can be returned to the warm pool on scale in
 ##     Uncomment to disable. (Default: true)
 
 #reuse_on_scale_in                          = false
 
-## 24. Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number
+## 25. Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number
 ##     (Default: 80%)
 
 #target_cpu_util_value                      = 80
 
-## 25. Determine whether or not to create autoscaling group notifications. Default is false. If setting this value to true, terraform will also create a new sns topic and topic subscription in the same AWS account"
+## 26. Determine whether or not to create autoscaling group notifications. Default is false. If setting this value to true, terraform will also create a new sns topic and topic subscription in the same AWS account"
 
 #sns_enabled                                = true
 
-## 26. List of email addresses to input for sns topic subscriptions for autoscaling group notifications. Required if sns_enabled variable is true and byo_sns_topic false
+## 27. List of email addresses to input for sns topic subscriptions for autoscaling group notifications. Required if sns_enabled variable is true and byo_sns_topic false
 
 #sns_email_list                             = ["john@corp.com","bob@corp.com"]
 
-## 27. Determine whether or not to create an AWS SNS topic and topic subscription for email alerts. Setting this variable to true implies you should also set variable sns_enabled to true
+## 28. Determine whether or not to create an AWS SNS topic and topic subscription for email alerts. Setting this variable to true implies you should also set variable sns_enabled to true
 ##     Default: false
 
 #byo_sns_topic                              = true
 
-## 28. Existing SNS Topic friendly name to be used for autoscaling group notifications assignment
+## 29. Existing SNS Topic friendly name to be used for autoscaling group notifications assignment
 
 #byo_sns_topic_name                         = "topic-name"
 
-## 29. SSH management access from the local VPC is enabled by default (true). Uncomment if you
+## 30. SSH management access from the local VPC is enabled by default (true). Uncomment if you
 ##     want to disable this.
 ##     Note: Cloud Connector will only be accessible via AWS Session Manager SSM
 
 #mgmt_ssh_enabled                           = false
 
-## 30. By default, a security group is created and assigned to the CC service interface(s).
+## 31. By default, a security group is created and assigned to the CC service interface(s).
 ##     There is an optional rule that permits Cloud Connector to forward direct traffic out
 ##     on all ports and protocols. (Default: true). Uncomment if you want to restrict
 ##     traffic to only the ZIA/ZPA required HTTPS TCP/UDP ports.
 
 #all_ports_egress_enabled                   = false
 
-## 31. By default, terraform will configure Cloud Connector with EBS encryption enabled.
+## 32. By default, terraform will configure Cloud Connector with EBS encryption enabled.
 ##     Uncomment if you want to disable ebs encryption.
 
 #ebs_encryption_enabled                     = false
 
-## 32. By default, EBS encryptions is set to null which uses the AWS default managed/master key.
+## 33. By default, EBS encryptions is set to null which uses the AWS default managed/master key.
 ##     Set as 'alias/<key-alias>' to use an existing customer KMS key"
 
 ##     Note: this variable is only enforced if ebs_encryption_enabled is set to true

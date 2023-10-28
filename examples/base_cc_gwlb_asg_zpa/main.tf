@@ -139,6 +139,7 @@ module "cc_asg" {
   resource_tag              = random_string.suffix.result
   global_tags               = local.global_tags
   cc_subnet_ids             = module.network.cc_subnet_ids
+  zonal_asg_enabled         = var.zonal_asg_enabled
   ccvm_instance_type        = var.ccvm_instance_type
   cc_instance_size          = var.cc_instance_size
   instance_key              = aws_key_pair.deployer.key_name
