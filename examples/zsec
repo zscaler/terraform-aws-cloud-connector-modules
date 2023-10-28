@@ -583,9 +583,9 @@ fi
 min_size_default=2
     while [[ "$dtype" == *"asg"* ]]; do
         if [[ "$zonal_asg" == true ]]; then
-            read -r -p "Enter the minumum number of Cloud Connectors to maintain per each Auto Scaling Group [Default=$min_size_default]: " min_size_input
+            read -r -p "Enter the minimum number of Cloud Connectors to maintain per each Auto Scaling Group [Default=$min_size_default]: " min_size_input
         else
-            read -r -p "Enter the minumum number of Cloud Connectors to maintain in the Auto Scaling Group [Default=$min_size_default]: " min_size_input
+            read -r -p "Enter the minimum number of Cloud Connectors to maintain in the Auto Scaling Group [Default=$min_size_default]: " min_size_input
         fi
 min_size=${min_size_input:-$min_size_default}
     case $min_size in
