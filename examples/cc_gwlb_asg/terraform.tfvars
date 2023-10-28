@@ -61,7 +61,7 @@
 
 #zonal_asg_enabled                          = false
 
-## 9. The minumum number of Cloud Connectors to maintain in an Autoscaling group. (Default: 2)
+## 9. The minimum number of Cloud Connectors to maintain in an Autoscaling group. (Default: 2)
 ##    Recommendation is to maintain HA/Zonal resliency so for example if az_count = 2 and cross_zone_lb_enabled is false the minimum number of CCs you would want for a
 ##    production deployment would be 4
 
@@ -103,7 +103,7 @@
 
 ##    ***** Note *****
 ##    It does not matter how many subnets you specify here. this script will only create in order 1 or as many as defined in the az_count variable
-##    Default/Minumum: 1 - Maximum: 3
+##    Default/Minimum: 1 - Maximum: 3
 ##    Example: If you change vpc_cidr to "10.2.0.0/24", set below variables to cidrs that fit in that /24 like cc_subnets = ["10.2.0.0/27","10.2.0.32/27"] etc.
 
 #public_subnets                             = ["10.x.y.z/24","10.x.y.z/24"]
