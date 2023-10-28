@@ -258,3 +258,9 @@ variable "byo_kms_key_alias" {
   description = "Requires var.ebs_encryption_enabled to be true. Set to null by default which is the AWS default managed/master key. Set as 'alias/<key-alias>' to use a custom KMS key"
   default     = null
 }
+
+variable "zonal_asg_enabled" {
+  type        = bool
+  description = "By default, Terraform will create one Auto Scaling Group per subnet/availability zone. Set to false if you would rather create a single Auto Scaling Group containing multiple subnets/availability zones"
+  default     = false
+}
