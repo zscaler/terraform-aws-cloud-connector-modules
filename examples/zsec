@@ -423,9 +423,59 @@ else
 fi  
 fi
 
+
+az_count_default=2
+if [[ "$dtype" == "base_1"* ]]; then
+    echo "${dtype} will deploy resources in one Availability Zone subnet in $aws_region"  
+else
+    read -r -p "Enter how many Availability Zone subnets [1-3] to deploy across? [Default=$az_count_default]: " az_count_input
+az_count=${az_count_input:-$az_count_default}
+if ((az_count >= 1 && az_count <= 3)); then
+    if [[ "$dtype" == *"asg"* && "$az_count" == 1 ]]; then
+        echo "$dtype will deploy $az_count Auto Scaling Group in $aws_region"
+        echo "export TF_VAR_az_count=$az_count" >> .zsecrc
+        echo "export TF_VAR_zonal_asg_enabled=true" >> .zsecrc
+        zonal_asg=true
+    elif [[ "$dtype" == *"asg"* && "$az_count" > 1 ]]; then
+        echo "$az_count zones selected. Auto Scaling Group can be configured either per zone or containing multiple zones..."
+        while true; do
+            read -r -p "Deploy $az_count separate Auto Scaling Groups? [yes/no]: " zonal_asg_response
+            case $zonal_asg_response in 
+	        yes|y ) 
+            echo "$dtype will deploy $az_count Auto Scaling Groups in $aws_region"
+            echo "export TF_VAR_az_count=$az_count" >> .zsecrc
+            echo "export TF_VAR_zonal_asg_enabled=true" >> .zsecrc
+            zonal_asg=true
+            break
+            ;;
+	        no|n )
+            echo "$dtype will deploy a single Auto Scaling Group containing $az_count AZs in $aws_region"
+            echo "export TF_VAR_az_count=$az_count" >> .zsecrc
+            echo "export TF_VAR_zonal_asg_enabled=false" >> .zsecrc
+            zonal_asg=false
+            break
+            ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+            esac
+        done 
+    else
+    echo "$dtype will deploy $cc_count Cloud Connectors across $az_count Availabiliy Zone subnets in $aws_region"
+    echo "export TF_VAR_az_count=$az_count" >> .zsecrc
+    fi
+else
+    echo "invalid az_count value. Must be a number between 1 and 3"
+    echo "Delete .zsecrc file and re-run zsec up..."
+    exit 1
+fi  
+fi
+
 min_size_default=2
     while [[ "$dtype" == *"asg"* ]]; do
-    read -r -p "Enter the minumum number of Cloud Connectors to maintain in an Autoscaling group [Default=$min_size_default]: " min_size_input
+        if [[ "$zonal_asg" == true ]]; then
+            read -r -p "Enter the minumum number of Cloud Connectors to maintain per each Auto Scaling Group [Default=$min_size_default]: " min_size_input
+        else
+            read -r -p "Enter the minumum number of Cloud Connectors to maintain in the Auto Scaling Group [Default=$min_size_default]: " min_size_input
+        fi
 min_size=${min_size_input:-$min_size_default}
     case $min_size in
       1|2|3|4|5|6|7|8|9|10)
@@ -441,7 +491,11 @@ done
 
 max_size_default=4
     while [[ "$dtype" == *"asg"* ]]; do
-    read -r -p "Enter the maximum number of Cloud Connectors to maintain in an Autoscaling group [Default=$max_size_default]: " max_size_input
+        if [[ "$zonal_asg" == true ]]; then
+            read -r -p "Enter the maximum number of Cloud Connectors to maintain per each Auto Scaling Group [Default=$max_size_default]: " max_size_input
+        else
+            read -r -p "Enter the maximum number of Cloud Connectors to maintain in the Auto Scaling Group [Default=$max_size_default]: " max_size_input
+        fi
 max_size=${max_size_input:-$max_size_default}
     if [[ "$max_size" -lt "$min_size" ]]; then
     echo "Max size must be greater than or equal to ${min_size}"
@@ -458,27 +512,6 @@ max_size=${max_size_input:-$max_size_default}
     esac
     fi
 done
-
-az_count_default=2
-if [[ "$dtype" == "base_1"* ]]; then
-    echo "${dtype} will deploy resources in one Availability Zone subnet in ${aws_region}"  
-else
-    read -r -p "Enter how many Availability Zone subnets [1-3] to deploy across? [Default=$az_count_default]: " az_count_input
-az_count=${az_count_input:-$az_count_default}
-if ((az_count >= 1 && az_count <= 3)); then
-    if [[ "$dtype" == *"asg"* ]]; then
-    echo "${dtype} will deploy $az_count Autoscale Groups (one per AZ) in ${aws_region} each with a minimum of $min_size Cloud Connectors"
-    echo "export TF_VAR_az_count=${az_count}" >> .zsecrc
-    else
-    echo "${dtype} will deploy ${cc_count} Cloud Connectors across ${az_count} Availabiliy Zone subnets in ${aws_region}"
-    echo "export TF_VAR_az_count=${az_count}" >> .zsecrc
-    fi
-else
-    echo "invalid az_count value. Must be a number between 1 and 3"
-    echo "Delete .zsecrc file and re-run zsec up..."
-    exit 1
-fi  
-fi
 
 while true; do
     read -r -p "Enable EBS volume encryption? (yes/no) Recommendation is yes: " ebs_encryption_response
