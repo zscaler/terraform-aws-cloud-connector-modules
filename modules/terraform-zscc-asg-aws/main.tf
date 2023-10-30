@@ -100,7 +100,7 @@ resource "aws_launch_template" "cc_launch_template" {
 resource "aws_autoscaling_group" "cc_asg" {
   count                     = var.zonal_asg_enabled ? length(var.cc_subnet_ids) : 1
   name                      = "${var.name_prefix}-cc-asg-${count.index + 1}-${var.resource_tag}"
-  vpc_zone_identifier       = [element(distinct(var.cc_subnet_ids), count.index)]
+  vpc_zone_identifier       = var.zonal_asg_enabled ? [element(distinct(var.cc_subnet_ids), count.index)] : distinct(var.cc_subnet_ids)
   max_size                  = var.max_size
   min_size                  = var.min_size
   health_check_type         = var.health_check_type
