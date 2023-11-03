@@ -1,4 +1,4 @@
-## v1.1.0 (October 19, 2023)
+## v1.1.0 (November 3, 2023)
 FEATURES:
 * AWS GovCloud (US) support
 
