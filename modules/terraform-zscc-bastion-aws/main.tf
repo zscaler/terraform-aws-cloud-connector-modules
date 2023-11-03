@@ -5,6 +5,11 @@ data "aws_vpc" "selected" {
   id = var.vpc_id
 }
 
+################################################################################
+# Pull AWS partition
+################################################################################
+data "aws_partition" "bastion_current_partition" {}
+
 
 ################################################################################
 # Pull Amazon Linux 2 AMI for instance use
@@ -90,7 +95,7 @@ resource "aws_iam_role" "bastion_iam_role" {
 # Define AWS Managed SSM Manager Policy
 ################################################################################
 resource "aws_iam_role_policy_attachment" "ssm_managed_instance_core" {
-  policy_arn = "arn:aws:iam::aws:policy/${var.iam_role_policy_ssmcore}"
+  policy_arn = "arn:${data.aws_partition.bastion_current_partition.partition}:iam::aws:policy/${var.iam_role_policy_ssmcore}"
   role       = aws_iam_role.bastion_iam_role.name
 }
 

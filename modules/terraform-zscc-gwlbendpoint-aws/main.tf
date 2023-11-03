@@ -1,7 +1,14 @@
 ################################################################################
-#  Pull the Account ID number of the account that owns or contains the calling entity.
+#  Pull the Account ID number of the account that owns or contains the calling 
+#  entity
 ################################################################################
 data "aws_caller_identity" "current" {}
+
+
+################################################################################
+# Pull AWS partition
+################################################################################
+data "aws_partition" "current" {}
 
 ################################################################################
 # Create the Endpoint Service for Gateway Load Balancer.
@@ -9,7 +16,7 @@ data "aws_caller_identity" "current" {}
 # if no explicit principals are configured in var.allowed_principals
 ################################################################################
 resource "aws_vpc_endpoint_service" "gwlb_vpce_service" {
-  allowed_principals         = coalescelist(var.allowed_principals, ["arn:aws:iam::${data.aws_caller_identity.current.id}:root"])
+  allowed_principals         = coalescelist(var.allowed_principals, ["arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.id}:root"])
   acceptance_required        = var.acceptance_required
   gateway_load_balancer_arns = [var.gwlb_arn]
 
