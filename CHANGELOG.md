@@ -1,3 +1,14 @@
+## v1.1.0 (November 3, 2023)
+FEATURES:
+* AWS GovCloud (US) support
+
+BUG FIXES:
+* fix: arn support for all aws partitions
+
+ENHANCEMENTS:
+* ZSEC bash script support for automatic aws partition selection for MFA
+* ZSEC general cleanup and optimizations
+
 ## v1.0.0 (October 19, 2023)
 BREAKING CHANGES:
 * Zscaler Cloud Connector AMI version > ZS6.1.25.0 support for default interface swap of both autoscaling and non-autoscaling deployments. Service interface is now ENA0 and Management interface is now ENA1. 

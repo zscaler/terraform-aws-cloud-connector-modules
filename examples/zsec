@@ -137,41 +137,64 @@ done
 aws_regions=["af-south-1","ap-east-1","ap-northeast-1","ap-northeast-2","ap-northeast-3","ap-south-1","ap-south-2","ap-southeast-1","ap-southeast-2","ca-central-1","cn-north-1","cn-northwest-1","eu-central-1","eu-north-1","eu-south-1","eu-west-1","eu-west-2","eu-west-3","me-south-1","sa-east-1","us-east-1","us-east-2","us-gov-east-1","us-gov-west-1","us-west-1","us-west-2"]
 # if .zsecrc is not present we'll assume that AWS env was never set
 if [[ $dtype == "base" && ! -e ./.zsecrc ]]; then
-    # Get MFA session token
-    if [[ $mfa_enabled == true ]]; then
-    echo "Gathering information to get AWS Session Token. We need the following details:"
-    echo "example - arn:aws:iam::1234567890:mfa/user@company.com where Account ID = 1234567890 and User Account = user@company.com"
-    read -r -p "Enter AWS Account ID: " aws_account_id
-    read -r -p "Enter AWS MFA User account: " aws_user_account
-    echo "unsetting existing AWS Environment variables (unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)"
-    unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
-    read -r -p "Enter token code from MFA device: " mfa_token
-    echo "getting session token (aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
-    aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}  
-
-    fi
-    read -r -p "Enter AWS Access Key ID: " aws_key
-    read -r -p "Enter AWS Secret Access Key: " aws_secret
-    read -r -p "Enter AWS Session Token (if applicable): " aws_session_token
     read -r -p "Enter AWS Region (e.g. us-west-2): " aws_region
     if [[ ${aws_regions[*]} =~ $aws_region ]]; then
-    echo "AWS Region entered is: $aws_region"
+        echo "AWS Region entered is: $aws_region"
+        if [[ "$aws_region" == "cn"* ]]; then
+            aws_partion="aws-cn"
+        elif [[ "$aws_region" == "us-gov"* ]]; then
+            aws_partion="aws-us-gov"
+        else
+            aws_partion="aws"
+        fi  
     else
-    echo "Invalid AWS region name entered."
-    echo "Delete .zsecrc file and re-run zsec up..."
-    exit 1
+        echo "Invalid AWS region name entered."
+        echo "Delete .zsecrc file and re-run zsec up..."
+        exit 1
     fi
-    echo "export AWS_ACCESS_KEY_ID=${aws_key}" > .zsecrc
-    echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsecrc
-    echo "export AWS_DEFAULT_REGION=${aws_region}" >> .zsecrc
-    echo "export TF_VAR_aws_region=${aws_region}" >> .zsecrc
-    if [[ $aws_session_token == "" ]]; then
-    echo "No AWS Session Token entered..."
+    # Get MFA session token
+    if [[ $mfa_enabled == true ]]; then
+        echo "Gathering information to get AWS Session Token. We need the following details:"
+        echo "example - arn:$aws_partion:iam::1234567890:mfa/user@company.com where Account ID = 1234567890 and User Account = user@company.com"
+        read -r -p "Enter AWS Account ID: " aws_account_id
+        read -r -p "Enter AWS MFA User account: " aws_user_account
+        echo "unsetting existing AWS Environment variables (unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)"
+        unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
+        read -r -p "Enter token code from MFA device: " mfa_token
+        echo "getting session token (aws sts get-session-token --serial-number arn:$aws_partion:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
+        aws sts get-session-token --serial-number arn:$aws_partion:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}  
+    fi
+        read -r -p "Enter AWS Access Key ID: " aws_key
+        read -r -p "Enter AWS Secret Access Key: " aws_secret
+    if [[ $mfa_enabled == true ]]; then
+        read -r -p "Enter AWS Session Token: " aws_session_token
     else
-    echo "AWS Session token entered..."
-    echo "export AWS_SESSION_TOKEN=${aws_session_token}" >> .zsecrc 
+        while true; do
+            read -r -p "Do you have an AWS Session Token to enter? [yes/no] " session_token_response
+            case $session_token_response in 
+	        yes|y ) 
+                read -r -p "Enter AWS Session Token: " aws_session_token
+            break
+            ;;
+	        no|n )
+                echo "Proceeding with no session token..."
+            break
+            ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+            esac
+        done
     fi
-
+        echo "export TF_VAR_aws_region='$aws_region'" > .zsecrc
+        echo "export AWS_DEFAULT_REGION='$aws_region'" >> .zsecrc
+        echo "export AWS_ACCESS_KEY_ID='$aws_key'" >> .zsecrc
+        echo "export AWS_SECRET_ACCESS_KEY='$aws_secret'" >> .zsecrc
+        
+    if [[ -z $aws_session_token ]]; then
+        echo "Proceeding to deployment configuration..."
+    else
+        echo "export AWS_SESSION_TOKEN='$aws_session_token'" >> .zsecrc 
+        echo "Proceeding to deployment configuration..."
+    fi
 
     while [[ "$dtype" == "base" && "$oper" == "up" ]]; do
 clientpublicip=$(curl -s ifconfig.me)
@@ -222,43 +245,65 @@ fi
 fi
 
 
-
-echo "Checking AWS Environment Variables and Cloud Connector bootstrap requirements... For brownfield/byo deployments, please stop and refer to the README and terraform.tfvars file instructions"
 # if .zsecrc is not present we'll assume that AWS env was never set
 if [[ "$oper" == "up" && "$dtype" != base && ! -e ./.zsecrc ]]; then
-    # Get MFA session token
-    if [[ $mfa_enabled == true ]]; then
-    echo "Gathering information to get AWS Session Token. We need the following details:"
-    echo "example - arn:aws:iam::1234567890:mfa/user@company.com where Account ID = 1234567890 and User Account = user@company.com"
-    read -r -p "Enter AWS Account ID: " aws_account_id
-    read -r -p "Enter AWS MFA User account: " aws_user_account
-    echo "unsetting existing AWS Environment variables (unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)"
-    unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
-    read -r -p "Enter token code from MFA device: " mfa_token
-    echo "getting session token (aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
-    aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}
- 
-    fi
-    read -r -p "Enter AWS Access Key ID: " aws_key
-    read -r -p "Enter AWS Secret Access Key: " aws_secret
-    read -r -p "Enter AWS Session Token (if applicable): " aws_session_token
     read -r -p "Enter AWS Region (e.g. us-west-2): " aws_region
     if [[ ${aws_regions[*]} =~ $aws_region ]]; then
-    echo "AWS Region entered is: $aws_region"
+        echo "AWS Region entered is: $aws_region"
+        if [[ "$aws_region" == "cn"* ]]; then
+            aws_partion="aws-cn"
+        elif [[ "$aws_region" == "us-gov"* ]]; then
+            aws_partion="aws-us-gov"
+        else
+            aws_partion="aws"
+        fi  
     else
-    echo "Invalid AWS region name entered."
-    echo "Delete .zsecrc file and re-run zsec up..."
-    exit 1
+        echo "Invalid AWS region name entered."
+        echo "Delete .zsecrc file and re-run zsec up..."
+        exit 1
     fi
-    echo "export AWS_ACCESS_KEY_ID=${aws_key}" > .zsecrc
-    echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsecrc
-    echo "export AWS_DEFAULT_REGION=${aws_region}" >> .zsecrc
-    echo "export TF_VAR_aws_region=${aws_region}" >> .zsecrc
-    if [[ $aws_session_token == "" ]]; then
-    echo "No AWS Session Token entered..."
+# Get MFA session token
+    if [[ $mfa_enabled == true ]]; then
+        echo "Gathering information to get AWS Session Token. We need the following details:"
+        echo "example - arn:$aws_partion:iam::1234567890:mfa/user@company.com where Account ID = 1234567890 and User Account = user@company.com"
+        read -r -p "Enter AWS Account ID: " aws_account_id
+        read -r -p "Enter AWS MFA User account: " aws_user_account
+        echo "unsetting existing AWS Environment variables (unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)"
+        unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
+        read -r -p "Enter token code from MFA device: " mfa_token
+        echo "getting session token (aws sts get-session-token --serial-number arn:$aws_partion:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
+        aws sts get-session-token --serial-number arn:$aws_partion:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}
+    fi
+        read -r -p "Enter AWS Access Key ID: " aws_key
+        read -r -p "Enter AWS Secret Access Key: " aws_secret
+    if [[ $mfa_enabled == true ]]; then
+        read -r -p "Enter AWS Session Token: " aws_session_token
     else
-    echo "AWS Session token entered..."
-    echo "export AWS_SESSION_TOKEN=${aws_session_token}" >> .zsecrc
+        while true; do
+            read -r -p "Do you have an AWS Session Token to enter? [yes/no] " session_token_response
+            case $session_token_response in 
+	        yes|y ) 
+                read -r -p "Enter AWS Session Token: " aws_session_token
+            break
+            ;;
+	        no|n )
+                echo "Proceeding with no session token..."
+            break
+            ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+            esac
+        done
+    fi
+        echo "export TF_VAR_aws_region='$aws_region'" > .zsecrc
+        echo "export AWS_DEFAULT_REGION='$aws_region'" >> .zsecrc
+        echo "export AWS_ACCESS_KEY_ID='$aws_key'" >> .zsecrc
+        echo "export AWS_SECRET_ACCESS_KEY='$aws_secret'" >> .zsecrc
+        
+    if [[ -z $aws_session_token ]]; then
+        echo "Proceeding to deployment configuration..."
+    else
+        echo "export AWS_SESSION_TOKEN='$aws_session_token'" >> .zsecrc 
+        echo "Proceeding to deployment configuration..."
     fi
     
     while [[ "$dtype" == "base"* && "$oper" == "up" ]]; do
@@ -306,7 +351,6 @@ fi
     esac
 done
 fi
-
     cc_instance_size_default=small
 while [[ "$dtype" != *"asg"* ]]; do
     read -r -p "Enter CC Instance Size. Valid input = small, medium, or large. This needs to match the size chosen in the CC provisioning template [Default=$cc_instance_size_default]: " cc_instance_size_input
@@ -1094,20 +1138,20 @@ if [[ $mfa_enabled == false ]]; then
         echo "Refreshing AWS credentials prior to Terraform apply"
         read -r -p "Enter AWS Access Key ID: " aws_key
         read -r -p "Enter AWS Secret Access Key: " aws_secret
-        read -r -p "Enter AWS Session Token (if applicable): " aws_session_token
+        read -r -p "Enter AWS Session Token: " aws_session_token
 
         # remove existing aws credentials from .zsecrc
         sed -i'' -e '/AWS_ACCESS_KEY_ID/d' .zsecrc
         sed -i'' -e '/AWS_SECRET_ACCESS_KEY/d' .zsecrc
         sed -i'' -e '/AWS_SESSION_TOKEN/d' .zsecrc
-        echo "export AWS_ACCESS_KEY_ID=${aws_key}" >> .zsecrc
-        echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsecrc
+        echo "export AWS_ACCESS_KEY_ID='$aws_key'" >> .zsecrc
+        echo "export AWS_SECRET_ACCESS_KEY='$aws_secret'" >> .zsecrc
             if [[ $aws_session_token == "" ]]; then
             echo "No AWS Session Token entered..."
             echo "export AWS_SESSION_TOKEN=bad_input" >> .zsecrc 
             else
             echo "AWS Session token entered..."
-            echo "export AWS_SESSION_TOKEN=${aws_session_token}" >> .zsecrc 
+            echo "export AWS_SESSION_TOKEN='$aws_session_token'" >> .zsecrc 
             fi
         break
         ;;
@@ -1121,30 +1165,38 @@ fi
 
 # Get new MFA session token
 if [[ $mfa_enabled == true ]]; then
+    if [[ "$AWS_DEFAULT_REGION" == "cn"* ]]; then
+        aws_partion="aws-cn"
+    elif [[ "$AWS_DEFAULT_REGION" == "us-gov"* ]]; then
+        aws_partion="aws-us-gov"
+    else
+        aws_partion="aws"
+    fi  
+    
     if [ -z "$AWS_SESSION_TOKEN" ]; then
-    echo "export AWS_SESSION_TOKEN=${aws_session_token}" >> .zsecrc 
-else
-    echo "zsecrc file has existing session token. Resetting to ensure credentials are refreshed"
-    echo "unsetting existing AWS Environment variables (unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)"
-    unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
-    echo "backup .zsecrc to .zsecrc.bak"
-    cp .zsecrc .zsecrc.bak
-    echo "Updating .zsecrc"
-    sed '/AWS_SESSION_TOKEN\|AWS_ACCESS_KEY_ID\|AWS_SECRET_ACCESS_KEY/d' .zsecrc > .zsecrcnew && mv .zsecrcnew .zsecrc
-    echo "example - arn:aws:iam::1234567890:mfa/user@company.com where Account ID = 1234567890 and User Account = user@company.com"
-    read -r -p "Enter AWS Account ID: " aws_account_id
-    read -r -p "Enter AWS MFA User account: " aws_user_account
-    read -r -p "Enter token code from MFA device: " mfa_token
-    echo "getting session token (aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
-    aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}
- 
-    read -r -p "Enter AWS Access Key ID: " aws_key
-    read -r -p "Enter AWS Secret Access Key: " aws_secret
-    read -r -p "Enter AWS Session Token: " aws_session_token
-    echo "export AWS_ACCESS_KEY_ID=${aws_key}" >> .zsecrc
-    echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsecrc
-    echo "export AWS_SESSION_TOKEN=${aws_session_token}" >> .zsecrc
-fi    
+        echo "export AWS_SESSION_TOKEN='$aws_session_token'" >> .zsecrc 
+    else
+        echo "zsecrc file has existing session token. Resetting to ensure credentials are refreshed"
+        echo "unsetting existing AWS Environment variables (unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)"
+        unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
+        echo "backup .zsecrc to .zsecrc.bak"
+        cp .zsecrc .zsecrc.bak
+        echo "Updating .zsecrc"
+        sed '/AWS_SESSION_TOKEN\|AWS_ACCESS_KEY_ID\|AWS_SECRET_ACCESS_KEY/d' .zsecrc > .zsecrcnew && mv .zsecrcnew .zsecrc
+        echo "example - arn:$aws_partion:iam::1234567890:mfa/user@company.com where Account ID = 1234567890 and User Account = user@company.com"
+        read -r -p "Enter AWS Account ID: " aws_account_id
+        read -r -p "Enter AWS MFA User account: " aws_user_account
+        read -r -p "Enter token code from MFA device: " mfa_token
+        echo "getting session token (aws sts get-session-token --serial-number arn:$aws_partion:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
+        aws sts get-session-token --serial-number arn:$aws_partion:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}
+    
+        read -r -p "Enter AWS Access Key ID: " aws_key
+        read -r -p "Enter AWS Secret Access Key: " aws_secret
+        read -r -p "Enter AWS Session Token: " aws_session_token
+        echo "export AWS_ACCESS_KEY_ID='$aws_key'" >> .zsecrc
+        echo "export AWS_SECRET_ACCESS_KEY='$aws_secret'" >> .zsecrc
+        echo "export AWS_SESSION_TOKEN='$aws_session_token'" >> .zsecrc
+    fi    
     # Reinitialize environment variables
 . ./.zsecrc
 fi
