@@ -102,6 +102,26 @@ resource "aws_security_group_rule" "server_node_ingress_ssh" {
 
 
 ################################################################################
+# Generate user data script to install Zscaler Root Certificate in
+# Amazon Linux 2 Workload Trust Store for SSL inspection
+################################################################################
+data "local_sensitive_file" "zscaler_root_cert" {
+  filename = "${path.module}/ZscalerRootCA.crt"
+}
+
+locals {
+  workloaduserdata = <<WORKLOADUSERDATA
+#!/bin/bash
+
+# Create ZscalerRootCA.crt file in /etc/pki/ca-trust/source/anchors/
+echo "${data.local_sensitive_file.zscaler_root_cert.content}" > /etc/pki/ca-trust/source/anchors/ZscalerRootCA.crt
+# Update the CA trust store
+update-ca-trust
+WORKLOADUSERDATA
+}
+
+
+################################################################################
 # Create workload EC2 instances
 ################################################################################
 resource "aws_instance" "server_host" {
@@ -112,6 +132,7 @@ resource "aws_instance" "server_host" {
   subnet_id              = element(var.subnet_id, count.index)
   iam_instance_profile   = aws_iam_instance_profile.server_host_profile.name
   vpc_security_group_ids = [aws_security_group.node_sg.id]
+  user_data              = local.workloaduserdata
 
   metadata_options {
     http_endpoint = "enabled"
