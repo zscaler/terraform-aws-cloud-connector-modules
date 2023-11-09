@@ -1087,6 +1087,24 @@ done
 domain_names_map+="}'"
 echo "export TF_VAR_domain_names=${domain_names_map}" >> .zsecrc
 fi
+
+while true; do
+    read -r -p "Enable IAM permissions for cloud workload tagging? (yes/no): " cloud_tags_response
+case $cloud_tags_response in 
+	yes|y ) 
+    echo "SQS/SNS IAM Policies will be enabled for Cloud Connector Instance Profiles"
+    echo "export TF_VAR_cloud_tags_enabled=true" >> .zsecrc
+    break
+    ;;
+	no|n )
+    echo "No IAM Policies will be created for cloud workload tagging"
+    echo "export TF_VAR_cloud_tags_enabled=false" >> .zsecrc
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done 
+
 fi
 
 
