@@ -164,12 +164,13 @@ module "cc_asg" {
 # 3. Create IAM Policy, Roles, and Instance Profiles to be assigned to CC
 ################################################################################
 module "cc_iam" {
-  source       = "../../modules/terraform-zscc-iam-aws"
-  name_prefix  = var.name_prefix
-  resource_tag = random_string.suffix.result
-  global_tags  = local.global_tags
-  asg_enabled  = var.asg_enabled
-  secret_name  = var.secret_name
+  source             = "../../modules/terraform-zscc-iam-aws"
+  name_prefix        = var.name_prefix
+  resource_tag       = random_string.suffix.result
+  global_tags        = local.global_tags
+  asg_enabled        = var.asg_enabled
+  secret_name        = var.secret_name
+  cloud_tags_enabled = var.cloud_tags_enabled
 
   byo_iam = var.byo_iam
   # optional inputs. only required if byo_iam set to true
