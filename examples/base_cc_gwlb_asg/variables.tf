@@ -249,6 +249,12 @@ variable "byo_kms_key_alias" {
   default     = null
 }
 
+variable "cloud_tags_enabled" {
+  type        = bool
+  description = "Determines whether or not to create the cc_tags_policy IAM Policy and attach it to the CC IAM Role"
+  default     = false
+}
+
 # ASG specific variables
 variable "min_size" {
   type        = number
