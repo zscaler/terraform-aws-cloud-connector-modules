@@ -121,3 +121,10 @@
 ##     Note: this variable is only enforced if ebs_encryption_enabled is set to true
 
 #byo_kms_key_alias                          = "alias/<customer key alias name>"
+
+## 18. By default, Terraform will create an IAM policy for Cloud Connector instance(s) per
+##     the terraform-zscc-iam-aws module. Optional access can be enabled for CCs to
+##     subscribe to and utilize cloud workload tagging feature. Uncomment to create the 
+##     cc_tags_policy IAM Policy and attach it to the CC IAM Role
+
+##cloud_tags_enabled                        = true
