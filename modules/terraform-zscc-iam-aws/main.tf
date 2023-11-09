@@ -153,6 +153,42 @@ resource "aws_iam_role_policy_attachment" "cc_metrics_attachment" {
   role       = aws_iam_role.cc_node_iam_role[count.index].name
 }
 
+
+################################################################################
+# Define AWS SQS/SNS Policy for Cloud Connector Tags subscription
+################################################################################
+data "aws_iam_policy_document" "cc_tags_policy_document" {
+  version = "2012-10-17"
+  statement {
+    sid    = "CCAllowTags"
+    effect = "Allow"
+    actions = [
+      "sqs:DeleteMessage",
+      "sqs:ReceiveMessage",
+      "sqs:GetQueueUrl",
+      "sqs:GetQueueAttributes",
+      "sqs:SetQueueAttributes",
+      "sqs:DeleteQueue",
+      "sqs:CreateQueue",
+      "sns:Subscribe"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "cc_tags_policy" {
+  count       = var.byo_iam == false && var.cloud_tags_enabled == true ? var.iam_count : 0
+  description = "Policy which permits CCs to subscribe for tags changes"
+  name        = "${var.name_prefix}-cc-${count.index + 1}-tags-${var.resource_tag}"
+  policy      = data.aws_iam_policy_document.cc_tags_policy_document.json
+}
+
+resource "aws_iam_role_policy_attachment" "cc_tags_attachment" {
+  count      = var.byo_iam == false && var.cloud_tags_enabled == true ? var.iam_count : 0
+  policy_arn = aws_iam_policy.cc_tags_policy[count.index].arn
+  role       = aws_iam_role.cc_node_iam_role[count.index].name
+}
+
 ################################################################################
 # Create CC IAM Role and Host/Instance Profile
 ################################################################################
