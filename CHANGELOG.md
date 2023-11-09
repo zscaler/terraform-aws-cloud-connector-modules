@@ -1,3 +1,11 @@
+## TBD (UNRELEASED)
+FEATURES:
+* feat: add cc_tags iam policy
+* feat: add conditional variable cloud_tags_enabled
+
+ENHANCEMENTS:
+* refactor: ZSEC bash script prompts for cloud workload tagging policy creation
+
 ## v1.1.0 (November 3, 2023)
 FEATURES:
 * AWS GovCloud (US) support
