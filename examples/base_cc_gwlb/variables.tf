@@ -267,3 +267,9 @@ variable "byo_kms_key_alias" {
   description = "Requires var.ebs_encryption_enabled to be true. Set to null by default which is the AWS default managed/master key. Set as 'alias/<key-alias>' to use a custom KMS key"
   default     = null
 }
+
+variable "cloud_tags_enabled" {
+  type        = bool
+  description = "Determines whether or not to create the cc_tags_policy IAM Policy and attach it to the CC IAM Role"
+  default     = false
+}

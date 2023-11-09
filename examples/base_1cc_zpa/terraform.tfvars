@@ -140,11 +140,18 @@
 
 #byo_kms_key_alias                          = "alias/<customer key alias name>"
 
+## 18. By default, Terraform will create an IAM policy for Cloud Connector instance(s) per
+##     the terraform-zscc-iam-aws module. Optional access can be enabled for CCs to
+##     subscribe to and utilize cloud workload tagging feature. Uncomment to create the 
+##     cc_tags_policy IAM Policy and attach it to the CC IAM Role
+
+##cloud_tags_enabled                        = true
+
 
 #####################################################################################################################
 ##### ZPA/Route 53 specific variables #####
 #####################################################################################################################
-## 18. Provide the domain names you want Route53 to redirect to Cloud Connector for ZPA interception. Only applicable for base + zpa or zpa_enabled = true
+## 19. Provide the domain names you want Route53 to redirect to Cloud Connector for ZPA interception. Only applicable for base + zpa or zpa_enabled = true
 ##     deployment types where Route53 subnets, Resolver Rules, and Outbound Endpoints are being created. Two example domains are populated to show the 
 ##     mapping structure and syntax. ZPA Module will read through each to create a resolver rule per domain_name entry. Ucomment domain_names variable and
 ##     add any additional appsegXX mappings as needed.

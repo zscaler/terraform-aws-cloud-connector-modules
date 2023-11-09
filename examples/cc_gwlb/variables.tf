@@ -280,6 +280,13 @@ variable "byo_kms_key_alias" {
   default     = null
 }
 
+variable "cloud_tags_enabled" {
+  type        = bool
+  description = "Determines whether or not to create the cc_tags_policy IAM Policy and attach it to the CC IAM Role"
+  default     = false
+}
+
+
 # BYO (Bring-your-own) variables list
 
 variable "byo_vpc" {
