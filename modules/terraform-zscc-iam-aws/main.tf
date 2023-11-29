@@ -98,7 +98,7 @@ data "aws_iam_policy_document" "cc_tags_policy_document" {
     effect = "Allow"
     actions = [
       "sns:ListTopics",
-      "sns:ListTagsForResource",
+      "sns:ListSubscriptions",
       "sns:Subscribe",
       "sns:Unsubscribe",
       "sqs:CreateQueue",
