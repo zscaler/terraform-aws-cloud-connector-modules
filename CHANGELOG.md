@@ -1,10 +1,19 @@
-## TBD (UNRELEASED)
+## v1.2.0 (December 16, 2023)
 FEATURES:
-* feat: add cc_tags iam policy
-* feat: add conditional variable cloud_tags_enabled
+* feat: add optional cc_tags IAM Policy for AWS Workload Tags support with Cloud Connector Instance IAM Role creation. Permissions include:
+    - sqs:DeleteMessage
+    - sqs:ReceiveMessage
+    - sqs:GetQueueUrl
+    - sqs:GetQueueAttributes
+    - sqs:SetQueueAttributes
+    - sqs:DeleteQueue
+    - sqs:CreateQueue
+    - sns:Subscribe
+ * feat: add conditional variable cloud_tags_enabled
 
 ENHANCEMENTS:
 * refactor: ZSEC bash script prompts for cloud workload tagging policy creation
+* refactor: add greenfield/pov workload ZS Root CA install
 
 ## v1.1.0 (November 3, 2023)
 FEATURES:
