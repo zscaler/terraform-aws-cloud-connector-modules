@@ -60,6 +60,7 @@ From cc_gwlb_asg directory execute:
 | <a name="module_asg_lambda"></a> [asg\_lambda](#module\_asg\_lambda) | ../../modules/terraform-zscc-asg-lambda-aws | n/a |
 | <a name="module_cc_asg"></a> [cc\_asg](#module\_cc\_asg) | ../../modules/terraform-zscc-asg-aws | n/a |
 | <a name="module_cc_iam"></a> [cc\_iam](#module\_cc\_iam) | ../../modules/terraform-zscc-iam-aws | n/a |
+| <a name="module_cc_secret"></a> [cc\_secret](#module\_cc\_secret) | ../../modules/terraform-zscc-secretsmanager-aws | n/a |
 | <a name="module_cc_sg"></a> [cc\_sg](#module\_cc\_sg) | ../../modules/terraform-zscc-sg-aws | n/a |
 | <a name="module_gwlb"></a> [gwlb](#module\_gwlb) | ../../modules/terraform-zscc-gwlb-aws | n/a |
 | <a name="module_gwlb_endpoint"></a> [gwlb\_endpoint](#module\_gwlb\_endpoint) | ../../modules/terraform-zscc-gwlbendpoint-aws | n/a |
@@ -99,6 +100,7 @@ From cc_gwlb_asg directory execute:
 | <a name="input_byo_mgmt_security_group_id"></a> [byo\_mgmt\_security\_group\_id](#input\_byo\_mgmt\_security\_group\_id) | Management Security Group ID for Cloud Connector association | `list(string)` | `null` | no |
 | <a name="input_byo_ngw"></a> [byo\_ngw](#input\_byo\_ngw) | Bring your own AWS NAT Gateway(s) Cloud Connector | `bool` | `false` | no |
 | <a name="input_byo_ngw_ids"></a> [byo\_ngw\_ids](#input\_byo\_ngw\_ids) | User provided existing AWS NAT Gateway IDs | `list(string)` | `null` | no |
+| <a name="input_byo_secret"></a> [byo\_secret](#input\_byo\_secret) | True/False to conditionally create a new secret. Default is false meaning create a new resource | `bool` | `false` | no |
 | <a name="input_byo_security_group"></a> [byo\_security\_group](#input\_byo\_security\_group) | Bring your own Security Group for Cloud Connector | `bool` | `false` | no |
 | <a name="input_byo_service_security_group_id"></a> [byo\_service\_security\_group\_id](#input\_byo\_service\_security\_group\_id) | Service Security Group ID for Cloud Connector association | `list(string)` | `null` | no |
 | <a name="input_byo_sns_topic"></a> [byo\_sns\_topic](#input\_byo\_sns\_topic) | Determine whether or not to create an AWS SNS topic and topic subscription for email alerts. Setting this variable to true implies you should also set variable sns\_enabled to true | `bool` | `false` | no |
@@ -137,7 +139,7 @@ From cc_gwlb_asg directory execute:
 | <a name="input_rebalance_enabled"></a> [rebalance\_enabled](#input\_rebalance\_enabled) | Indicates how the GWLB handles existing flows when a target is deregistered or marked unhealthy. true means rebalance. false means no\_rebalance. Default: true | `bool` | `true` | no |
 | <a name="input_reuse_on_scale_in"></a> [reuse\_on\_scale\_in](#input\_reuse\_on\_scale\_in) | Specifies whether instances in the Auto Scaling group can be returned to the warm pool on scale in. Default recommendation is true | `bool` | `true` | no |
 | <a name="input_route53_subnets"></a> [route53\_subnets](#input\_route53\_subnets) | Route 53 Outbound Endpoint Subnets to create in VPC. This is only required if you want to override the default subnets that this code creates via vpc\_cidr variable. | `list(string)` | `null` | no |
-| <a name="input_secret_name"></a> [secret\_name](#input\_secret\_name) | AWS Secrets Manager Secret Name for Cloud Connector provisioning | `string` | n/a | yes |
+| <a name="input_secret_name"></a> [secret\_name](#input\_secret\_name) | AWS Secrets Manager Secret Name for Cloud Connector provisioning. This could be a new name or existing depending on byo\_secret value | `string` | `""` | no |
 | <a name="input_sns_email_list"></a> [sns\_email\_list](#input\_sns\_email\_list) | List of email addresses to input for sns topic subscriptions for autoscaling group notifications. Required if sns\_enabled variable is true and byo\_sns\_topic false | `list(string)` | <pre>[<br>  ""<br>]</pre> | no |
 | <a name="input_sns_enabled"></a> [sns\_enabled](#input\_sns\_enabled) | Determine whether or not to create autoscaling group notifications. Default is false. If setting this value to true, terraform will also create a new sns topic and topic subscription | `bool` | `false` | no |
 | <a name="input_target_address"></a> [target\_address](#input\_target\_address) | Route 53 DNS queries will be forwarded to these Zscaler Global VIP addresses | `list(string)` | <pre>[<br>  "185.46.212.88",<br>  "185.46.212.89"<br>]</pre> | no |
@@ -151,6 +153,9 @@ From cc_gwlb_asg directory execute:
 | <a name="input_warm_pool_state"></a> [warm\_pool\_state](#input\_warm\_pool\_state) | Sets the instance state to transition to after the lifecycle hooks finish. Valid values are: Stopped (default) or Running. Ignored when 'warm\_pool\_enabled' is false | `string` | `"Stopped"` | no |
 | <a name="input_workloads_enabled"></a> [workloads\_enabled](#input\_workloads\_enabled) | Configure Workload Subnets, Route Tables, and associations if set to true | `bool` | `false` | no |
 | <a name="input_zpa_enabled"></a> [zpa\_enabled](#input\_zpa\_enabled) | Configure Route 53 Subnets, Route Tables, and Resolvers for ZPA DNS redirection | `bool` | `false` | no |
+| <a name="input_zscaler_api_key"></a> [zscaler\_api\_key](#input\_zscaler\_api\_key) | Zscaler Cloud Connector api key. Only required/used if var.byo\_secret is false | `string` | `null` | no |
+| <a name="input_zscaler_password"></a> [zscaler\_password](#input\_zscaler\_password) | Zscaler Cloud Connector deploy password. Only required/used if var.byo\_secret is false | `string` | `null` | no |
+| <a name="input_zscaler_username"></a> [zscaler\_username](#input\_zscaler\_username) | Zscaler Cloud Connector deploy username. Only required/used if var.byo\_secret is false | `string` | `null` | no |
 
 ## Outputs
 

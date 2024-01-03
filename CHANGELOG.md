@@ -1,3 +1,13 @@
+## TBD (UNRELEASED)
+FEATURES:
+
+* New module terraform-zscc-secretsmanager-aws to enable create of all AWS Secrets dependencies for Cloud Connector deployments
+    - add: variables zscaler_username, zscaler_password, and zscaler_api_key
+    - add: variable byo_secret
+
+ENHANCEMENTS:
+* zsec script - prompt to provide existing secret name or step through creating a new one. If creating, user will need to input secret values (username, password, and api_key). These are marked as sensitive but terraform tfstate files WILL still store values in plain text. Make sure to use best practices in storing these files safely and using minimum required access permissions for Zscaler accounts.
+
 ## v1.2.0 (December 16, 2023)
 FEATURES:
 * feat: add optional cc_tags IAM Policy for AWS Workload Tags support with Cloud Connector Instance IAM Role creation. Permissions include:

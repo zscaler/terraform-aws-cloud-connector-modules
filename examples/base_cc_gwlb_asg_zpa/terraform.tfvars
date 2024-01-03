@@ -14,9 +14,19 @@
 
 #cc_vm_prov_url                             = "connector.zscaler.net/api/v1/provUrl?name=aws_prov_url"
 
-## 2. AWS Secrets Manager Secret Name from Secrets Manager E.g ZS/CC/credentials
+## 2. AWS Secrets information - These scripts provide the option to either create a new Secret in which case
+##    the secret values will also need to be provided (default). Optionally, you can set byo_secret to true
+##    and enter only the existing secret friendly name. Either uncomment zscaler_api_key, zscaler_username, and
+##    zscaler_password and input your values
 
-#secret_name                                =  "ZS/CC/credentials/aws_cc_secret_name"
+#zscaler_api_key                            = "<customer API Key"
+#zscaler_username                           = "<customer CC Admin account>"
+#zscaler_password                           = "<customer CC Admin password>"
+
+#    OR uncomment byo_secret and secret_name and input your existing AWS Secret Name
+
+#byo_secret                                 = true
+#secret_name                                = "ZS/CC/credentials/aws_cc_secret_name"
 
 ## 3. Cloud Connector cloud init provisioning listener port. This is required for GWLB and Health Probe deployments. 
 ## Uncomment and set custom probe port to a single value of 80 or any number between 1024-65535. Default is 50000.
