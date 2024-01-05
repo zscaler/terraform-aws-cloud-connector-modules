@@ -1,3 +1,8 @@
+## TBD (UNRELEASED)
+FEATURES:
+* feat: add zsec support for regions: ap-southeast-3, me-central-1, eu-central-2, and il-central-1
+
+
 ## v1.2.0 (December 16, 2023)
 FEATURES:
 * feat: add optional cc_tags IAM Policy for AWS Workload Tags support with Cloud Connector Instance IAM Role creation. Permissions include:
