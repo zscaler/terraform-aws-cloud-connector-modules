@@ -1,3 +1,18 @@
+## TBD (UNRELEASED)
+FEATURES:
+* feat: add variable zonal_asg_enabled boolean. Expectations:
+    - If false, then create only one Auto Scaling Group for all availability zones inputted per var.cc_subnet_ids
+    - If true, then create one Auto Scaling Group per subnet availability zones inputted
+    - Note: Single ASG is simpler to manage and recommended especially when enabling cross-zone gateway load balancing. ASG per AZ may be desirable for more consistent and granular control over scaling in/out.
+* feat: add all capacity and warm pool metrics to Auto Scaling Group enabled_metrics
+* feat: add zsec support for regions: ap-southeast-3, me-central-1, eu-central-2, and il-central-1
+* feat: add variables support_access_enabled and zssupport_server for Zscaler Remote Support Tunnel enablement
+
+ENHANCEMENTS:
+* feat: user selection prompt for Zscaler cloud. Used for template validation and DNS lookup FQDN-to-IP mapping for security group rule creation
+* refactor: add prompt to enable/disable Zscaler Remote Support security group egress rule
+* ZSEC bash script prompts for Auto Scaling Group zonal configuration
+
 ## v1.2.1 (February, 3, 2024)
 BUG FIXES:
 * fix: remove var.gwlb_enabled condition for ingress_cc_service_all
