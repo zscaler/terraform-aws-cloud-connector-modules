@@ -190,6 +190,8 @@ module "cc_sg" {
   http_probe_port          = var.http_probe_port
   mgmt_ssh_enabled         = var.mgmt_ssh_enabled
   all_ports_egress_enabled = var.all_ports_egress_enabled
+  support_access_enabled   = var.support_access_enabled
+  zssupport_server         = var.zssupport_server
 }
 
 

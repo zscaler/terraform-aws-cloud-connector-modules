@@ -315,3 +315,15 @@ variable "workload_route_table_ids_to_cc_2" {
   description = "User provided existing AWS Route Table IDs sending to Cloud Connector 2 in pair"
   default     = null
 }
+
+variable "support_access_enabled" {
+  type        = bool
+  description = "If Network Security Group is being configured, enable a specific outbound rule for Cloud Connector to be able to establish connectivity for Zscaler support access. Default is true"
+  default     = true
+}
+
+variable "zssupport_server" {
+  type        = string
+  description = "destination IP address of Zscaler Support access server. IP resolution of remotesupport.<zscaler_customer_cloud>.net"
+  default     = "199.168.148.101/32" #for commercial clouds
+}

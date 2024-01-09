@@ -187,3 +187,18 @@
 ##     cc_tags_policy IAM Policy and attach it to the CC IAM Role
 
 ##cloud_tags_enabled                        = true
+
+## 26. By default, if Terraform is creating SGs an outbound rule is configured enabling 
+##     Zscaler remote support access. Without this firewall access, Zscaler Support may not be able to assist as
+##     efficiently if troubleshooting is required. Uncomment if you do not want to enable this rule.
+##
+##     For recommended least privilege, the rule creation is restricted to TCP destination port 12002
+##     to the Support Server IP that remotesupport.<zscaler_cloud>.net resolves to. ie: if you are on
+##     zscalerthree, perform a lookup for remotesupport.zscalerthree.net and update the variable
+##     zssupport_server if required below.
+##
+##     For more information, refer to: https://config.zscaler.com/zscaler.net/cloud-branch-connector and 
+##     https://help.zscaler.com/cloud-branch-connector/enabling-remote-access
+
+#support_access_enabled                     = false
+#zssupport_server                           = "199.168.148.101/32"
