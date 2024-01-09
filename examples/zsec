@@ -247,6 +247,72 @@ fi
 
 # if .zsecrc is not present we'll assume that AWS env was never set
 if [[ "$oper" == "up" && "$dtype" != base && ! -e ./.zsecrc ]]; then
+    PS3="Select your Zscaler Cloud: "
+    zs_clouds=("zscloud.net" "zscaler.net" "zscalertwo.net" "zscalerthree.net" "zscalerten.net" "zscalerbeta.net" "other")
+    select zscaler_cloud in "${zs_clouds[@]}"
+    do
+        case $REPLY in
+            1)
+            echo "Zscaler Cloud $zscaler_cloud selected"
+	    zscaler_cloud=$zscaler_cloud
+            break
+            ;;
+            2)
+            echo "Zscaler Cloud $zscaler_cloud selected"
+	    zscaler_cloud=$zscaler_cloud
+            break
+            ;;
+	        3)
+            echo "Zscaler Cloud $zscaler_cloud selected"
+	    zscaler_cloud=$zscaler_cloud
+            break
+            ;;
+            4)
+            echo "Zscaler Cloud $zscaler_cloud selected"
+	    zscaler_cloud=$zscaler_cloud
+            break
+            ;;
+            5)
+            echo "Zscaler Cloud $zscaler_cloud selected"
+	    zscaler_cloud=$zscaler_cloud
+            break
+            ;;
+	        6)
+            echo "Zscaler Cloud $zscaler_cloud selected"
+	    zscaler_cloud=$zscaler_cloud
+            break
+            ;;
+	        7)
+            echo "Zscaler Cloud $zscaler_cloud selected"
+            while true; do
+                read -r -p "Manually enter your desired Zscaler Cloud name (e.g. zscalerbeta.net): " manual_cloud_name_response
+                case $manual_cloud_name_response in
+                zspreview|zscalerpreview|preview|zspreview.net|zscalerpreview.net|preview.net )
+                    echo "Setting zspreview.net"
+                    zscaler_cloud=zspreview.net
+                break
+                ;;
+                zsdevel|zscalerdevel|devel|zsdevel.net|zscalerdevel.net|devel.net )
+                    echo "Setting zsdevel.net"
+                    zscaler_cloud=zsdevel.net
+                break
+                ;;
+                zsqa|zscalerqa|qa|zsqa.net|zscalerqa.net|qa.net )
+                    echo "Setting zsqa.net"
+                    zscaler_cloud=zsqa.net
+                break
+                ;;
+                *) 
+                echo "invalid response"
+                esac
+            done
+                break
+                ;;
+            *) 
+            echo "invalid response"
+            esac
+        done
+
     read -r -p "Enter AWS Region (e.g. us-west-2): " aws_region
     if [[ ${aws_regions[*]} =~ $aws_region ]]; then
         echo "AWS Region entered is: $aws_region"
@@ -305,6 +371,7 @@ if [[ "$oper" == "up" && "$dtype" != base && ! -e ./.zsecrc ]]; then
         echo "export AWS_SESSION_TOKEN='$aws_session_token'" >> .zsecrc 
         echo "Proceeding to deployment configuration..."
     fi
+        echo "export zscaler_cloud='$zscaler_cloud'" >> .zsecrc
     
     while [[ "$dtype" == "base"* && "$oper" == "up" ]]; do
 clientpublicip=$(curl -s ifconfig.me)
@@ -1104,6 +1171,29 @@ case $cloud_tags_response in
 	* ) echo "invalid response. Please enter yes or no";;
     esac
 done 
+
+support_access_response_default="no"
+while true; do
+    read -r -p "By default, an outbound Security Group rule is configured enabling Zscaler remote support access. Would you like to disable this rule creation? [Default=$support_access_response_default]: " support_access_response_input
+    support_access_response=${support_access_response_input:-$support_access_response_default}
+    case $support_access_response in 
+        yes|y ) 
+        echo "Outbound rule Zscaler_Support_Access will not be created"
+        echo "*** Caution: Zscaler Support may not be able to assist as efficiently if troubleshooting is required without this access"
+        echo "export TF_VAR_support_access_enabled=false" >> .zsecrc
+    break
+        ;;
+        no|n )
+        echo "export TF_VAR_support_access_enabled=true" >> .zsecrc
+        echo "resolving remotesupport.$zscaler_cloud to IP for Security Group rule..."
+        support_server_ip=$(dig +short remotesupport.$zscaler_cloud)
+        echo "Outbound rule permitting TCP/12002 access to $support_server_ip/32 will be created"
+        echo "export TF_VAR_zssupport_server='$support_server_ip/32'" >> .zsecrc
+    break
+        ;;
+        * ) echo "invalid response. Please enter yes or no";;
+    esac
+done
 
 fi
 
