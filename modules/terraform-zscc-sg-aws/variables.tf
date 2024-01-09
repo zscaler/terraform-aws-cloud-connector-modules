@@ -75,3 +75,15 @@ variable "all_ports_egress_enabled" {
   default     = true
   description = "Default is true which creates an egress rule permitting the CC service interface to forward direct traffic on all ports and protocols. If false, the rule is not created. Value ignored if not creating a security group"
 }
+
+variable "support_access_enabled" {
+  type        = bool
+  description = "If Network Security Group is being configured, enable a specific outbound rule for Cloud Connector to be able to establish connectivity for Zscaler support access. Default is true"
+  default     = true
+}
+
+variable "zssupport_server" {
+  type        = string
+  description = "destination IP address of Zscaler Support access server. IP resolution of remotesupport.<zscaler_customer_cloud>.net"
+  default     = "199.168.148.101/32" #for commercial clouds
+}
