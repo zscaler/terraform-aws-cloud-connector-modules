@@ -22,6 +22,7 @@
 - bash
 - curl
 - unzip
+- dig
 <br>
 <br>
 

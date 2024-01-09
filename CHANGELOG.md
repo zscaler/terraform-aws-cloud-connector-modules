@@ -1,6 +1,11 @@
 ## TBD (UNRELEASED)
 FEATURES:
 * feat: add zsec support for regions: ap-southeast-3, me-central-1, eu-central-2, and il-central-1
+* feat: add variables support_access_enabled and zssupport_server for Zscaler Remote Support Tunnel enablement
+
+ENHANCEMENTS:
+* feat: user selection prompt for Zscaler cloud. Used for template validation and DNS lookup FQDN-to-IP mapping for security group rule creation
+* refactor: add prompt to enable/disable Zscaler Remote Support security group egress rule 
 
 
 ## v1.2.0 (December 16, 2023)
