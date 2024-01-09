@@ -192,6 +192,8 @@ module "cc_sg" {
   http_probe_port          = var.http_probe_port
   mgmt_ssh_enabled         = var.mgmt_ssh_enabled
   all_ports_egress_enabled = var.all_ports_egress_enabled
+  support_access_enabled   = var.support_access_enabled
+  zssupport_server         = var.zssupport_server
 
   byo_security_group = var.byo_security_group
   # optional inputs. only required if byo_security_group set to true
