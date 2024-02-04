@@ -1,3 +1,8 @@
+## v1.2.1 (February, 3, 2024)
+BUG FIXES:
+* fix: remove var.gwlb_enabled condition for ingress_cc_service_all
+* fix: add ingress rule ingress_cc_service_https_local for default implicit TCP/443 communication minimum between Cloud Connector Service Interfaces within a VPC cluster
+
 ## v1.2.0 (December 16, 2023)
 FEATURES:
 * feat: add optional cc_tags IAM Policy for AWS Workload Tags support with Cloud Connector Instance IAM Role creation. Permissions include:
