@@ -494,3 +494,9 @@ variable "byo_service_security_group_id" {
   description = "Service Security Group ID for Cloud Connector association"
   default     = null
 }
+
+variable "cc_route_table_enabled" {
+  type        = bool
+  description = "For brownfield environments where VPC subnets already exist, set to false to not create a new route table to associate to Cloud Connector subnet(s). Default is true which means module will try to create new route tables"
+  default     = true
+}
