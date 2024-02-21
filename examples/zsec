@@ -285,21 +285,24 @@ if [[ "$oper" == "up" && "$dtype" != base && ! -e ./.zsecrc ]]; then
 	        7)
             echo "Zscaler Cloud $zscaler_cloud selected"
             while true; do
-                read -r -p "Manually enter your desired Zscaler Cloud name (e.g. zscalerbeta.net): " manual_cloud_name_response
+                read -r -p "Enter your desired Zscaler Cloud name (e.g. zscalerbeta.net): " manual_cloud_name_response
                 case $manual_cloud_name_response in
                 zspreview|zscalerpreview|preview|zspreview.net|zscalerpreview.net|preview.net )
                     echo "Setting zspreview.net"
                     zscaler_cloud=zspreview.net
+                    zs_env=development
                 break
                 ;;
                 zsdevel|zscalerdevel|devel|zsdevel.net|zscalerdevel.net|devel.net )
                     echo "Setting zsdevel.net"
                     zscaler_cloud=zsdevel.net
+                    zs_env=development
                 break
                 ;;
                 zsqa|zscalerqa|qa|zsqa.net|zscalerqa.net|qa.net )
                     echo "Setting zsqa.net"
                     zscaler_cloud=zsqa.net
+                    zs_env=development
                 break
                 ;;
                 *) 
@@ -950,6 +953,7 @@ if [[ "$byo_vpc" == "true" ]]; then
             yes|y ) 
             echo "Using existing subnets for Cloud Connector..."
             echo "export TF_VAR_byo_subnets=true" >> .zsecrc
+            byo_subnets=true
             if [[ "$az_count" == "1" ]]; then
                 read -r -p "$az_count availability zone chosen. Please enter the desired subnet ID (E.g subnet-05c32f4aa6bc02f8f): " byo_subnet_ids
                 echo "You entered $byo_subnet_ids"
@@ -983,6 +987,7 @@ if [[ "$byo_vpc" == "true" ]]; then
         esac
     done
 fi
+
 
 #Query for subnet creation range override
 if [[ "$byo_subnets" == "false" ]]; then
@@ -1206,6 +1211,7 @@ case $cloud_tags_response in
 done 
 
 support_access_response_default="no"
+support_server_ip_default="199.168.148.101/32"
 while true; do
     read -r -p "By default, an outbound Security Group rule is configured enabling Zscaler remote support access. Would you like to disable this rule creation? [Default=$support_access_response_default]: " support_access_response_input
     support_access_response=${support_access_response_input:-$support_access_response_default}
@@ -1218,10 +1224,15 @@ while true; do
         ;;
         no|n )
         echo "export TF_VAR_support_access_enabled=true" >> .zsecrc
-        echo "resolving remotesupport.$zscaler_cloud to IP for Security Group rule..."
-        support_server_ip=$(dig +short remotesupport.$zscaler_cloud)
-        echo "Outbound rule permitting TCP/12002 access to $support_server_ip/32 will be created"
-        echo "export TF_VAR_zssupport_server='$support_server_ip/32'" >> .zsecrc
+        if [[ "$zs_env" == "development" ]]; then
+            echo "Setting security group rule to $support_server_ip_default"
+            echo "export TF_VAR_zssupport_server='$support_server_ip_default'" >> .zsecrc
+        else
+            echo "Resolving remotesupport.$zscaler_cloud to IP for Security Group rule..."
+            support_server_ip=$(dig +short remotesupport.$zscaler_cloud)
+            echo "Outbound rule permitting TCP/12002 access to $support_server_ip/32 will be created"
+            echo "export TF_VAR_zssupport_server='$support_server_ip/32'" >> .zsecrc
+        fi
     break
         ;;
         * ) echo "invalid response. Please enter yes or no";;
