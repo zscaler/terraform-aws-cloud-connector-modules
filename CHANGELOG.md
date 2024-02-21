@@ -13,6 +13,9 @@ ENHANCEMENTS:
 * refactor: add prompt to enable/disable Zscaler Remote Support security group egress rule
 * ZSEC bash script prompts for Auto Scaling Group zonal configuration
 
+BUG FIXES:
+* fix: add variable cc_route_table_enabled for conditional creation of aws_route_table.cc_rt and aws_route_table_association.cc_rt_asssociation. This is to avoid conflicts for brownfield VPC requirements where a custom subnet route table already exists to just tell terraform not to implicitly create a new one
+
 ## v1.2.1 (February, 3, 2024)
 BUG FIXES:
 * fix: remove var.gwlb_enabled condition for ingress_cc_service_all
