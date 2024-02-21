@@ -327,3 +327,9 @@ variable "zssupport_server" {
   description = "destination IP address of Zscaler Support access server. IP resolution of remotesupport.<zscaler_customer_cloud>.net"
   default     = "199.168.148.101/32" #for commercial clouds
 }
+
+variable "cc_route_table_enabled" {
+  type        = bool
+  description = "For brownfield environments where VPC subnets already exist, set to false to not create a new route table to associate to Cloud Connector subnet(s). Default is true which means module will try to create new route tables"
+  default     = true
+}
