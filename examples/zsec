@@ -988,6 +988,29 @@ if [[ "$byo_vpc" == "true" ]]; then
     done
 fi
 
+#If byo_subnets is true, prompt for whether to create private CC subnet route tables or not. Assumption is they already exist
+if [[ "$byo_subnets" == "true" ]]; then
+cc_route_table_response_default="no"
+    while true; do
+        echo "Existing VPC and Subnets detected..."
+        read -r -p "Do you want Terraform to create new custom Route Tables and associate with Cloud Connector subnets? [Default=$cc_route_table_response_default]: " cc_route_table_response_input
+        cc_route_table_response=${cc_route_table_response_input:-$cc_route_table_response_default}
+        case $cc_route_table_response in 
+            yes|y )
+            echo "Terraform will attempt to create new route tables and associate with existing subnets..."
+            echo "export TF_VAR_cc_route_table_enabled=true" >> .zsecrc
+        break
+        ;;
+	        no|n )
+            echo "Terraform will not create any route tables for Cloud Connector subnets..."
+            echo "Make sure existing route tables allow internet access as required per https://config.zscaler.com/zscaler.net/cloud-branch-connector"
+            echo "export TF_VAR_cc_route_table_enabled=false" >> .zsecrc
+        break
+        ;;
+	        * ) echo "invalid response. Please enter yes or no";;
+        esac
+    done 
+fi
 
 #Query for subnet creation range override
 if [[ "$byo_subnets" == "false" ]]; then
