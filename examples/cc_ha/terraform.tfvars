@@ -282,6 +282,12 @@
 #byo_mgmt_security_group_id                 = ["mgmt-sg-1"]
 #byo_service_security_group_id              = ["service-sg-1"]
 
+## 34. By default, this script will create new route table resources associated to Cloud Connector defined private subnets
+##     Uncomment, if you do NOT want to create new route tables (true or false. Default: true)
+##     By uncommenting (setting to false) this assumes that you have an existing VPC/Subnets (byo_subnets = true)
+
+#cc_route_table_enabled                     = false
+
 #####################################################################################################################
 ##### Custom BYO variables. Only applicable for Lambda (non-GWLB) deployments without "base"       #####
 ##### resource requirements for Workload Route Table swaps. E.g. "cc_ha"                       #####
@@ -290,7 +296,7 @@
 ##### subnets already exist. Therefore, you must provide at least byo_vpc information              #####
 #####################################################################################################################
 
-## 34. Provide your existing Workload Route Table IDs. Route Table IDs must be added as a list and should be paired to
+## 35. Provide your existing Workload Route Table IDs. Route Table IDs must be added as a list and should be paired to
 ##     the primary Cloud Connector each Route Table would be forwarding traffic to in normal operation
 ##
 ##     Example: 
