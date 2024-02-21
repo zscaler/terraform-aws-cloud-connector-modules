@@ -322,3 +322,9 @@
 
 #byo_mgmt_security_group_id                 = ["mgmt-sg-1"]
 #byo_service_security_group_id              = ["service-sg-1"]
+
+## 41. By default, this script will create new route table resources associated to Cloud Connector defined private subnets
+##     Uncomment, if you do NOT want to create new route tables (true or false. Default: true)
+##     By uncommenting (setting to false) this assumes that you have an existing VPC/Subnets (byo_subnets = true)
+
+#cc_route_table_enabled                     = false
