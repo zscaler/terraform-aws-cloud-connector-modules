@@ -164,7 +164,7 @@ resource "aws_iam_role_policy_attachment" "lambda_logs_attachment" {
 resource "aws_lambda_function" "asg_lambda_function" {
   function_name    = "${var.name_prefix}_asg_lambda_function_${var.resource_tag}"
   handler          = "${var.asg_lambda_filename}.lambda_handler"
-  runtime          = "python3.9"
+  runtime          = "python3.12"
   filename         = "${path.module}/${var.asg_lambda_filename}.zip"
   source_code_hash = filebase64sha256("${path.module}/${var.asg_lambda_filename}.zip")
   role             = aws_iam_role.asg_lambda_iam_role.arn
