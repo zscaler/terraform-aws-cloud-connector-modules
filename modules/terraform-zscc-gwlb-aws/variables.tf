@@ -56,19 +56,6 @@ variable "global_tags" {
   description = "Populate any custom user defined tags from a map"
   default     = {}
 }
-variable "cc_instance_size" {
-  type        = string
-  description = "Cloud Connector instance size as defined in the Connector portal provisioning template"
-  default     = "small"
-  validation {
-    condition = (
-      var.cc_instance_size == "small" ||
-      var.cc_instance_size == "medium" ||
-      var.cc_instance_size == "large"
-    )
-    error_message = "Input cc_instance_size must be set to an approved cc instance type."
-  }
-}
 
 variable "asg_enabled" {
   type        = bool
