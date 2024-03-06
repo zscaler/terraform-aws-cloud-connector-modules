@@ -8,13 +8,13 @@ This module has multi-purpose use and is leveraged by all other Zscaler Cloud Co
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.59, <= 5.17 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.32.0, <= 5.39.1 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.59, <= 5.17 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.32.0, <= 5.39.1 |
 
 ## Modules
 
