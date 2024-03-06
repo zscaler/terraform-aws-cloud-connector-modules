@@ -250,6 +250,18 @@ variable "cloud_tags_enabled" {
   default     = false
 }
 
+variable "support_access_enabled" {
+  type        = bool
+  description = "If Network Security Group is being configured, enable a specific outbound rule for Cloud Connector to be able to establish connectivity for Zscaler support access. Default is true"
+  default     = true
+}
+
+variable "zssupport_server" {
+  type        = string
+  description = "destination IP address of Zscaler Support access server. IP resolution of remotesupport.<zscaler_customer_cloud>.net"
+  default     = "199.168.148.101/32" #for commercial clouds
+}
+
 
 # ZPA/Route53 specific variables
 variable "zpa_enabled" {
@@ -398,6 +410,12 @@ variable "asg_lambda_filename" {
   default     = "zscaler_cc_lambda_service"
 }
 
+variable "zonal_asg_enabled" {
+  type        = bool
+  description = "By default, Terraform will create one Auto Scaling Group per subnet/availability zone. Set to false if you would rather create a single Auto Scaling Group containing multiple subnets/availability zones"
+  default     = false
+}
+
 # BYO (Bring-your-own) variables list
 variable "byo_vpc" {
   type        = bool
@@ -475,4 +493,10 @@ variable "byo_service_security_group_id" {
   type        = list(string)
   description = "Service Security Group ID for Cloud Connector association"
   default     = null
+}
+
+variable "cc_route_table_enabled" {
+  type        = bool
+  description = "For brownfield environments where VPC subnets already exist, set to false to not create a new route table to associate to Cloud Connector subnet(s). Default is true which means module will try to create new route tables"
+  default     = true
 }

@@ -267,6 +267,18 @@ variable "cloud_tags_enabled" {
   default     = false
 }
 
+variable "support_access_enabled" {
+  type        = bool
+  description = "If Network Security Group is being configured, enable a specific outbound rule for Cloud Connector to be able to establish connectivity for Zscaler support access. Default is true"
+  default     = true
+}
+
+variable "zssupport_server" {
+  type        = string
+  description = "destination IP address of Zscaler Support access server. IP resolution of remotesupport.<zscaler_customer_cloud>.net"
+  default     = "199.168.148.101/32" #for commercial clouds
+}
+
 
 # ASG specific variables
 variable "min_size" {
@@ -393,6 +405,12 @@ variable "asg_lambda_filename" {
   type        = string
   description = "Name of the lambda zip file without suffix"
   default     = "zscaler_cc_lambda_service"
+}
+
+variable "zonal_asg_enabled" {
+  type        = bool
+  description = "By default, Terraform will create one Auto Scaling Group per subnet/availability zone. Set to false if you would rather create a single Auto Scaling Group containing multiple subnets/availability zones"
+  default     = false
 }
 
 # ZPA/Route53 specific variables

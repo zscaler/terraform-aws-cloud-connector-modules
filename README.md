@@ -48,6 +48,7 @@ version 0.13.7 should be generally supported.
 - bash
 - curl
 - unzip
+- dig
 <br>
 <br>
 
