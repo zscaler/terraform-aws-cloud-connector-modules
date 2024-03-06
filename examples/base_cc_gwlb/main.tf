@@ -205,7 +205,6 @@ module "gwlb" {
   vpc_id                = module.network.vpc_id
   cc_subnet_ids         = module.network.cc_subnet_ids
   cc_service_ips        = module.cc_vm.forwarding_ip
-  cc_instance_size      = var.cc_instance_size
   http_probe_port       = var.http_probe_port
   health_check_interval = var.health_check_interval
   healthy_threshold     = var.healthy_threshold
