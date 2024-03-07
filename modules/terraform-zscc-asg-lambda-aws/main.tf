@@ -177,7 +177,7 @@ resource "aws_lambda_function" "asg_lambda_function" {
       ASG_NAMES                    = jsonencode(var.autoscaling_group_names)
       CC_URL                       = var.cc_vm_prov_url
       SECRET_NAME                  = var.secret_name
-      HC_DATA_POINTS               = "10" # most reecent datapoints to evaulate
+      HC_DATA_POINTS               = "10" # most recent datapoints to evaulate
       HC_UNHEALTHY_THRESHOLD       = "7"  # unhealthy datapoints threshold 
       HC_UNHEALTHY_CONTIGUOUS_DP   = "5"  # continuous unhealthy datapoint counts
       MISSING_DATAPOINTS_UNHEALTHY = true # treat missing datapoints as unhealthy
