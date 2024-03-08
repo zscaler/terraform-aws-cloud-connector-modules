@@ -23,6 +23,10 @@ BUG FIXES:
 * fix: add variable cc_route_table_enabled for conditional creation of aws_route_table.cc_rt and aws_route_table_association.cc_rt_asssociation. This is to avoid conflicts for brownfield VPC requirements where a custom subnet route table already exists to just tell terraform not to implicitly create a new one
 * fix: workload/bastion AWS al2 to al2023
 
+## v1.2.2 (March 8, 2024)
+ENHANCEMENTS:
+* refactor: add zsec support for AWS Region il-central-1
+
 ## v1.2.1 (February, 3, 2024)
 BUG FIXES:
 * fix: remove var.gwlb_enabled condition for ingress_cc_service_all
