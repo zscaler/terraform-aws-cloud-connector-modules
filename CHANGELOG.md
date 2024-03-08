@@ -1,3 +1,7 @@
+## v1.2.2 (March 8, 2024)
+ENHANCEMENTS:
+* refactor: add zsec support for AWS Region il-central-1
+
 ## v1.2.1 (February, 3, 2024)
 BUG FIXES:
 * fix: remove var.gwlb_enabled condition for ingress_cc_service_all
