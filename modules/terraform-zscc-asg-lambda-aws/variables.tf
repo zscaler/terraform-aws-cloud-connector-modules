@@ -42,3 +42,14 @@ variable "log_group_retention_days" {
   description = "Specifies the number of days you want to retain log events in the specified log group. Possible values are: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653, and 0"
   default     = 3
 }
+
+variable "architecture" {
+  description = "The architecture for the Lambda function (x86_64 or arm64)"
+  type        = string
+  default     = "arm64"
+
+  validation {
+    condition     = contains(["x86_64", "arm64"], var.architecture)
+    error_message = "Invalid architecture. Must be either 'x86_64' or 'arm64'."
+  }
+}
