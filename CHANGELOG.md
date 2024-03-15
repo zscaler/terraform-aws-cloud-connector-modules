@@ -7,6 +7,8 @@ FEATURES:
 * feat: add all capacity and warm pool metrics to Auto Scaling Group enabled_metrics
 * feat: add zsec support for regions: ap-southeast-3, me-central-1, eu-central-2, and il-central-1
 * feat: add variables support_access_enabled and zssupport_server for Zscaler Remote Support Tunnel enablement
+* feat: changed variable health_check_grace_period to 900 seconds to prevent instance termination in Auto Scaleing Group when moved into InService even if its is found as unhealthy.  Currently CC/ZTW VM requires more time for health stabilization at startup.
+* feat: Changed Python runtime in Lambda to use 3.12 version and arm64 architecture as default.  This is more for cost/peformance benefit.
 
 ENHANCEMENTS:
 * feat: user selection prompt for Zscaler cloud. Used for template validation and DNS lookup FQDN-to-IP mapping for security group rule creation
