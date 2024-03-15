@@ -63,14 +63,15 @@ module "network" {
   cc_subnets        = var.cc_subnets
   route53_subnets   = var.route53_subnets
   #bring-your-own variables
-  byo_vpc        = var.byo_vpc
-  byo_vpc_id     = var.byo_vpc_id
-  byo_subnets    = var.byo_subnets
-  byo_subnet_ids = var.byo_subnet_ids
-  byo_igw        = var.byo_igw
-  byo_igw_id     = var.byo_igw_id
-  byo_ngw        = var.byo_ngw
-  byo_ngw_ids    = var.byo_ngw_ids
+  byo_vpc                = var.byo_vpc
+  byo_vpc_id             = var.byo_vpc_id
+  byo_subnets            = var.byo_subnets
+  byo_subnet_ids         = var.byo_subnet_ids
+  byo_igw                = var.byo_igw
+  byo_igw_id             = var.byo_igw_id
+  byo_ngw                = var.byo_ngw
+  byo_ngw_ids            = var.byo_ngw_ids
+  cc_route_table_enabled = var.cc_route_table_enabled
 }
 
 
@@ -175,6 +176,8 @@ module "cc_sg" {
   http_probe_port          = var.http_probe_port
   mgmt_ssh_enabled         = var.mgmt_ssh_enabled
   all_ports_egress_enabled = var.all_ports_egress_enabled
+  support_access_enabled   = var.support_access_enabled
+  zssupport_server         = var.zssupport_server
 
   byo_security_group = var.byo_security_group
   # optional inputs. only required if byo_security_group set to true
@@ -196,7 +199,6 @@ module "gwlb" {
   vpc_id                = module.network.vpc_id
   cc_subnet_ids         = module.network.cc_subnet_ids
   cc_service_ips        = module.cc_vm.forwarding_ip
-  cc_instance_size      = var.cc_instance_size
   http_probe_port       = var.http_probe_port
   health_check_interval = var.health_check_interval
   healthy_threshold     = var.healthy_threshold

@@ -183,7 +183,7 @@ data "aws_subnet" "cc_subnet_selected" {
 
 # Create Route Tables for CC subnets pointing to NAT Gateway resource in each AZ or however many were specified. Optionally, point directly to IGW for public deployments
 resource "aws_route_table" "cc_rt" {
-  count  = length(data.aws_subnet.cc_subnet_selected[*].id)
+  count  = var.cc_route_table_enabled ? length(data.aws_subnet.cc_subnet_selected[*].id) : 0
   vpc_id = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
   route {
     cidr_block     = "0.0.0.0/0"
@@ -197,7 +197,7 @@ resource "aws_route_table" "cc_rt" {
 
 # CC subnet Route Table Association
 resource "aws_route_table_association" "cc_rt_asssociation" {
-  count          = length(data.aws_subnet.cc_subnet_selected[*].id)
+  count          = var.cc_route_table_enabled ? length(data.aws_subnet.cc_subnet_selected[*].id) : 0
   subnet_id      = data.aws_subnet.cc_subnet_selected[count.index].id
   route_table_id = aws_route_table.cc_rt[count.index].id
 }
