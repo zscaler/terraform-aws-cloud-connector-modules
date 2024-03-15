@@ -301,8 +301,8 @@ variable "max_size" {
 
 variable "health_check_grace_period" {
   type        = number
-  description = "The amount of time until EC2 Auto Scaling performs the first health check on new instances after they are put into service. With lifecycle hooks it is immediate. Otheriwse Default is 15 minutes"
-  default     = 0
+  description = "The health check grace period specifies the minimum amount of time (in seconds) to keep a new instance in service before terminating it if it's found to be unhealthy."
+  default     = 900
 }
 
 variable "warm_pool_enabled" {
