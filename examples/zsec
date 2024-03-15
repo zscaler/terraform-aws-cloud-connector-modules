@@ -228,17 +228,22 @@ first_run="yes"
         done
 
     # AWS Profile Lookup
-    find_aws_profiles=$(grep '^\[' <~/.aws/config | sed -E 's/\[profile (.*)/\1/g' | sed 's/\[//; s/\]//')
-    echo "The following AWS profiles were discovered on this system..."
-    PS3="${CYAN}Select desired AWS Profile: ${RESET}"
-    aws_profiles_list=($find_aws_profiles "Manually enter AWS Credentials")
-    select profile_selection in "${aws_profiles_list[@]}" ; do
-        for profile_choice in "${aws_profiles_list[@]}"; do
-            if [[ $profile_choice == $profile_selection ]]; then
-            break 2
-            fi
+    if [[ ! -e ~/.aws/config ]]; then
+        echo "No local AWS Configuration file located in ~/.aws/config"
+        profile_selection="Manually enter AWS Credentials"
+    else
+        find_aws_profiles=$(grep '^\[' <~/.aws/config | sed -E 's/\[profile (.*)/\1/g' | sed 's/\[//; s/\]//' )
+        echo "The following AWS profiles were discovered on this system..."
+        PS3="${CYAN}Select desired AWS Profile: ${RESET}"
+        aws_profiles_list=($find_aws_profiles "Manually enter AWS Credentials")
+        select profile_selection in "${aws_profiles_list[@]}" ; do
+            for profile_choice in "${aws_profiles_list[@]}"; do
+                if [[ $profile_choice == $profile_selection ]]; then
+                break 2
+                fi
+            done
         done
-    done
+    fi
 
     if [[ $profile_selection == "Manually enter AWS Credentials" ]]; then
         echo "Proceeding with manual AWS credentials..."
