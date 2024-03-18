@@ -19,7 +19,7 @@ ENHANCEMENTS:
     - Discover/prompt for different local AWS config profiles
     - Improved selection constraints for regions and EC2 types
     - Add Zscaler Cloud selection for SG generation
-
+* refactor: update AWS Provider default to 5.39.1 with minimum supported 5.32.0 (required for ASG/Lambda configurations)
 
 BUG FIXES:
 * fix: add variable cc_route_table_enabled for conditional creation of aws_route_table.cc_rt and aws_route_table_association.cc_rt_asssociation. This is to avoid conflicts for brownfield VPC requirements where a custom subnet route table already exists to just tell terraform not to implicitly create a new one
