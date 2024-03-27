@@ -1,6 +1,6 @@
 # Zscaler "Base" deployment type
 
-This deployment type is just for greenfield/POV reference and/or spoke workload testing. It does not deploy any Cloud Connector appliances. Full set of resources provisioned list below, but this will effectively create all network infrastructure dependencies for an AWS environment. Creates 1 new VPC with 1 public subnet and 1 private/workload subnet; 1 IGW; 1 NAT Gateway; 1 Centos server workload in the private subnet routing to NAT Gateway; 1 Bastion Host in the public subnet assigned an Elastic IP and routing to the IGW; generates local key pair .pem file for ssh access
+This deployment type is just for greenfield/POV reference and/or spoke workload testing. It does not deploy any Cloud Connector appliances. Full set of resources provisioned list below, but this will effectively create all network infrastructure dependencies for an AWS environment. Creates 1 new VPC with 1 public subnet and 1 private/workload subnet; 1 IGW; 1 NAT Gateway; 1 Amazon Linux 2023 server workload in the private subnet routing to NAT Gateway; 1 Bastion Host in the public subnet assigned an Elastic IP and routing to the IGW; generates local key pair .pem file for ssh access
 
 
 ## How to deploy:
