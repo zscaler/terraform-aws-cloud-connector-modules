@@ -47,7 +47,7 @@ if [[ "$oper" == "up" ]]; then
             break
             ;;
             *) 
-            echo "${RED}Invalid response${RESET}"
+            echo "${RED}Invalid response. Please enter a number selection${RESET}"
         esac
     done
 fi
@@ -102,7 +102,7 @@ if [[ "$deployment" == "greenfield" ]]; then
             break
             ;;
             *) 
-            echo "${RED}Invalid response${RESET}"
+            echo "${RED}Invalid response. Please enter a number selection${RESET}"
         esac
     done
 elif [[ "$deployment" == "brownfield" ]]; then
@@ -125,7 +125,7 @@ elif [[ "$deployment" == "brownfield" ]]; then
             break
             ;;
             *) 
-            echo "${RED}Invalid response${RESET}"
+            echo "${RED}Invalid response. Please enter a number selection${RESET}"
         esac
     done
 else
@@ -401,13 +401,13 @@ first_run="yes"
                     break
                     ;;
                     *) 
-                        echo "${RED}Invalid response${RESET}"
+                        echo "${RED}Invalid response. Please enter a valid Zscaler Cloud name${RESET}"
                     esac
                 done
             break
             ;;
             *) 
-                echo "${RED}Invalid response${RESET}"
+                echo "${RED}Invalid response. Please enter a number selection${RESET}"
         esac
     done
     echo "export zscaler_cloud='$zscaler_cloud'" >> .zsecrc
@@ -486,7 +486,7 @@ first_run="yes"
             break
             ;;
             *) 
-                echo "${RED}Invalid response${RESET}"
+                echo "${RED}Invalid response. Please enter a number selection${RESET}"
         esac
     done
     elif [[ "$dtype" == *"asg"* ]]; then
@@ -535,7 +535,7 @@ first_run="yes"
             break
             ;;
             *) 
-                echo "${RED}Invalid response${RESET}"
+                echo "${RED}Invalid response. Please enter a number selection${RESET}"
         esac
     done
     elif [[ "$cc_instance_size" == "medium" ]]; then
@@ -569,7 +569,7 @@ first_run="yes"
             break
             ;;
             *) 
-                echo "${RED}Invalid response${RESET}"
+                echo "${RED}Invalid response. Please enter a number selection${RESET}"
         esac
     done
     elif [[ "$cc_instance_size" == "large" ]]; then
@@ -603,7 +603,7 @@ first_run="yes"
             break
             ;;
             *) 
-                echo "${RED}Invalid response${RESET}"
+                echo "${RED}Invalid response. Please enter a number selection${RESET}"
         esac
     done
     fi
@@ -682,7 +682,7 @@ first_run="yes"
                     echo "export TF_VAR_az_count=$az_count" >> .zsecrc
                 break
                 ;; 
-                * ) echo "${RED}Invalid response${RESET}";;
+                * ) echo "${RED}Invalid response. Please enter a number selection${RESET}";;
             esac
         done 
     fi
@@ -875,7 +875,7 @@ first_run="yes"
             break
             ;;
             *) 
-                echo "${RED}Invalid response${RESET}"
+                echo "${RED}Invalid response. Please enter a number selection${RESET}"
             esac
         done
     fi
