@@ -11,7 +11,7 @@ FEATURES:
 * feat: Changed Python runtime for Lambda to use 3.12 version. arm64 architecture is now supported and is new default.  This is more for cost/peformance benefit.
 
 ENHANCEMENTS:
-* feat: ASG bring-up/stability improvements with new [Zscaler Lambda Zip file v1.0.5](modules/terraform-zscc-asg-lambda-aws/zscaler_cc_lambda_service.zip)
+* feat: ASG bring-up/stability improvements with new [Zscaler Lambda Zip file v1.0.6](modules/terraform-zscc-asg-lambda-aws/zscaler_cc_lambda_service.zip)
 * feat: user selection prompt for Zscaler cloud. Used for template validation and DNS lookup FQDN-to-IP mapping for security group rule creation
 * refactor: add prompt to enable/disable Zscaler Remote Support security group egress rule
 * feat: ZSEC bash script prompts for Auto Scaling Group zonal configuration
