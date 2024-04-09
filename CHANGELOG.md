@@ -7,7 +7,7 @@ FEATURES:
 * feat: add all capacity and warm pool metrics to Auto Scaling Group enabled_metrics
 * feat: add zsec support for regions: ap-southeast-3, me-central-1, eu-central-2, and il-central-1
 * feat: add variables support_access_enabled and zssupport_server for Zscaler Remote Support Tunnel enablement
-* feat: changed variable health_check_grace_period to 900 seconds to prevent instance termination in Auto Scaleing Group when moved into InService even if its is found as unhealthy.  Currently CC/ZTW VM requires more time for health stabilization at startup.
+* feat: changed variable health_check_grace_period to 900 seconds to prevent instance termination in Auto Scaling Group when moved into InService even if its is found as unhealthy.  Currently CC/ZTW VM requires more time for health stabilization at startup.
 * feat: Changed Python runtime for Lambda to use 3.12 version. arm64 architecture is now supported and is new default.  This is more for cost/peformance benefit.
 
 ENHANCEMENTS:
@@ -20,6 +20,7 @@ ENHANCEMENTS:
     - Improved selection constraints for regions and EC2 types
     - Add Zscaler Cloud selection for SG generation
 * refactor: update AWS Provider default to 5.39.1 with minimum supported 5.32.0 (required for ASG/Lambda configurations)
+* docs: general UX improvements
 
 BUG FIXES:
 * fix: add variable cc_route_table_enabled for conditional creation of aws_route_table.cc_rt and aws_route_table_association.cc_rt_asssociation. This is to avoid conflicts for brownfield VPC requirements where a custom subnet route table already exists to just tell terraform not to implicitly create a new one
