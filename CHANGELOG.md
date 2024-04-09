@@ -1,4 +1,4 @@
-## 1.3.0 (UNRELEASED)
+## 1.3.0 (April 12, 2024)
 FEATURES:
 * feat: add variable zonal_asg_enabled boolean. Expectations:
     - If false, then create only one Auto Scaling Group for all availability zones inputted per var.cc_subnet_ids
@@ -11,10 +11,11 @@ FEATURES:
 * feat: Changed Python runtime for Lambda to use 3.12 version. arm64 architecture is now supported and is new default.  This is more for cost/peformance benefit.
 
 ENHANCEMENTS:
+* feat: ASG bring-up/stability improvements with new [Zscaler Lambda Zip file v1.0.5](modules/terraform-zscc-asg-lambda-aws/zscaler_cc_lambda_service.zip)
 * feat: user selection prompt for Zscaler cloud. Used for template validation and DNS lookup FQDN-to-IP mapping for security group rule creation
 * refactor: add prompt to enable/disable Zscaler Remote Support security group egress rule
 * feat: ZSEC bash script prompts for Auto Scaling Group zonal configuration
-* refactor: ZSEC bash script UI/UX improvements
+* refactor: ZSEC bash script UI/UX and error handling improvements
     - Auto parse MFA STS output values
     - Discover/prompt for different local AWS config profiles
     - Improved selection constraints for regions and EC2 types
