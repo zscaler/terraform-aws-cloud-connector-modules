@@ -1,4 +1,4 @@
-## 1.3.0 (April 12, 2024)
+## 1.3.0 (April 14, 2024)
 FEATURES:
 * feat: add variable zonal_asg_enabled boolean. Expectations:
     - If false, then create only one Auto Scaling Group for all availability zones inputted per var.cc_subnet_ids
