@@ -552,6 +552,7 @@ first_run="yes"
             "m6i.4xlarge - Recommended"
             "m5n.4xlarge"
             "c6i.4xlarge"
+            "c6in.4xlarge"
             "c5.4xlarge"
             )
         select ccvm_instance_type in "${vm_sizes[@]}"
@@ -577,6 +578,11 @@ first_run="yes"
                     echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
                 break
                 ;;
+                5)
+                    echo "CC EC2 type: ${GREEN}$ccvm_instance_type${RESET}"
+                    echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
+                break
+                ;;
                 *) 
                     echo "${RED}Invalid response. Please enter a number selection${RESET}"
             esac
@@ -586,6 +592,7 @@ first_run="yes"
             "m6i.4xlarge - Recommended"
             "m5n.4xlarge"
             "c6i.4xlarge"
+            "c6in.4xlarge"
             "c5.4xlarge"
             )
         select ccvm_instance_type in "${vm_sizes[@]}"
@@ -607,6 +614,11 @@ first_run="yes"
                 break
                 ;;
                 4)
+                    echo "CC EC2 type: ${GREEN}$ccvm_instance_type${RESET}"
+                    echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
+                break
+                ;;
+                5)
                     echo "CC EC2 type: ${GREEN}$ccvm_instance_type${RESET}"
                     echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
                 break
