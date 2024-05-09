@@ -506,6 +506,7 @@ first_run="yes"
             "m6i.large - Recommended"
             "m5n.large"
             "c6i.large"
+            "c6in.large"
             "t3.medium - Not recommended for production use"
             "t3a.medium - Not recommended for production use"
             )
@@ -528,13 +529,18 @@ first_run="yes"
                 break
                 ;;
                 4)
-                    echo "CC EC2 type: ${GREEN}t3.medium${RESET}"
-                    echo "export TF_VAR_ccvm_instance_type='t3.medium'" >> .zsecrc
+                    echo "CC EC2 type: ${GREEN}$ccvm_instance_type${RESET}"
+                    echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
                 break
                 ;;
                 5)
-                    echo "CC EC2 type: ${GREEN}t3a.medium${RESET}"
-                    echo "export TF_VAR_ccvm_instance_type='t3a.medium'" >> .zsecrc
+                    echo "CC EC2 type: ${GREEN}$ccvm_instance_type${RESET}"
+                    echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
+                break
+                ;;
+                6)
+                    echo "CC EC2 type: ${GREEN}$ccvm_instance_type${RESET}"
+                    echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
                 break
                 ;;
                 *) 
