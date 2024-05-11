@@ -1,3 +1,9 @@
+## 1.3.1 (May 13, 2024)
+ENHANCEMENTS:
+* feat: add ZSEC support for regions ap-southeast-4 and eu-south-2
+* feat: add c6in.large EC2 type support for regions that do not support recommended m6i family
+* chore: bump aws provider version support
+
 ## 1.3.0 (April 14, 2024)
 FEATURES:
 * feat: add variable zonal_asg_enabled boolean. Expectations:
