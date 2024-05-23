@@ -113,7 +113,7 @@ variable "max_size" {
   default     = 4
   validation {
     condition = (
-      var.max_size >= 1 && var.max_size <= 10
+      var.max_size >= 1 && var.max_size <= 30
     )
     error_message = "Input max_size must be set to a number between 1 and 10."
   }
