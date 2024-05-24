@@ -53,3 +53,27 @@ variable "architecture" {
     error_message = "Invalid architecture. Must be either 'x86_64' or 'arm64'."
   }
 }
+
+variable "hc_data_points" {
+  type        = number
+  description = "most recent datapoints to evaulate"
+  default     = 10
+}
+
+variable "hc_unhealthy_threshold" {
+  type        = number
+  description = "unhealthy datapoints threshold"
+  default     = 7
+}
+
+variable "hc_unhealthy_contiguous_dp" {
+  type        = number
+  description = "continuous unhealthy datapoint counts"
+  default     = 5
+}
+
+variable "missing_datapoints_unhealthy" {
+  type        = bool
+  description = "treat missing datapoints as unhealthy"
+  default     = true
+}

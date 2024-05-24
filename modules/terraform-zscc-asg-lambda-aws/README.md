@@ -65,7 +65,11 @@ No modules.
 | <a name="input_autoscaling_group_names"></a> [autoscaling\_group\_names](#input\_autoscaling\_group\_names) | List of Autoscaling Group Names in a given Cloud Connector cluster/VPC for Lambda to monitor | `list(string)` | n/a | yes |
 | <a name="input_cc_vm_prov_url"></a> [cc\_vm\_prov\_url](#input\_cc\_vm\_prov\_url) | Zscaler Cloud Connector Provisioning URL | `string` | n/a | yes |
 | <a name="input_global_tags"></a> [global\_tags](#input\_global\_tags) | Populate any custom user defined tags from a map | `map(string)` | `{}` | no |
+| <a name="input_hc_data_points"></a> [hc\_data\_points](#input\_hc\_data\_points) | most recent datapoints to evaulate | `number` | `10` | no |
+| <a name="input_hc_unhealthy_contiguous_dp"></a> [hc\_unhealthy\_contiguous\_dp](#input\_hc\_unhealthy\_contiguous\_dp) | continuous unhealthy datapoint counts | `number` | `5` | no |
+| <a name="input_hc_unhealthy_threshold"></a> [hc\_unhealthy\_threshold](#input\_hc\_unhealthy\_threshold) | unhealthy datapoints threshold | `number` | `7` | no |
 | <a name="input_log_group_retention_days"></a> [log\_group\_retention\_days](#input\_log\_group\_retention\_days) | Specifies the number of days you want to retain log events in the specified log group. Possible values are: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653, and 0 | `number` | `3` | no |
+| <a name="input_missing_datapoints_unhealthy"></a> [missing\_datapoints\_unhealthy](#input\_missing\_datapoints\_unhealthy) | treat missing datapoints as unhealthy | `bool` | `true` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | A prefix to associate to all the Cloud Connector module resources | `string` | `null` | no |
 | <a name="input_resource_tag"></a> [resource\_tag](#input\_resource\_tag) | A tag to associate to all the Cloud Connector module resources | `string` | `null` | no |
 | <a name="input_secret_name"></a> [secret\_name](#input\_secret\_name) | AWS Secrets Manager Secret Name for Cloud Connector provisioning | `string` | n/a | yes |
