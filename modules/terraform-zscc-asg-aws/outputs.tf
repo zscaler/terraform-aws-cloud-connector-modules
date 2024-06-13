@@ -10,5 +10,5 @@ output "autoscaling_group_ids" {
 
 output "launch_template_id" {
   description = "Autoscaling Launch Template ID"
-  value       = aws_launch_template.cc_launch_template[0].id
+  value       = aws_launch_template.cc_launch_template.id
 }

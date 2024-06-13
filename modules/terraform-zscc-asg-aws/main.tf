@@ -33,7 +33,6 @@ data "aws_kms_alias" "current_kms_arn" {
 # instance association
 ################################################################################
 resource "aws_launch_template" "cc_launch_template" {
-  count         = local.valid_cc_create && var.cc_instance_size == "small" ? 1 : 0
   name          = "${var.name_prefix}-cc-launch-template-${var.resource_tag}"
   image_id      = var.ami_id[0]
   instance_type = var.ccvm_instance_type
@@ -42,7 +41,7 @@ resource "aws_launch_template" "cc_launch_template" {
   ebs_optimized = true
 
   iam_instance_profile {
-    name = element(var.iam_instance_profile, count.index)
+    name = var.iam_instance_profile[0]
   }
 
   tag_specifications {
@@ -58,7 +57,7 @@ resource "aws_launch_template" "cc_launch_template" {
   network_interfaces {
     description                 = "cc next hop forwarding interface"
     device_index                = 0
-    security_groups             = [element(var.service_security_group_id, count.index)]
+    security_groups             = [var.service_security_group_id[0]]
     associate_public_ip_address = false
   }
 
@@ -110,7 +109,7 @@ resource "aws_autoscaling_group" "cc_asg" {
   wait_for_capacity_timeout = var.wait_for_capacity_timeout
 
   launch_template {
-    id      = aws_launch_template.cc_launch_template[0].id
+    id      = aws_launch_template.cc_launch_template.id
     version = var.launch_template_version
   }
 
