@@ -1,22 +1,11 @@
 ################################################################################
-# Pull in default security group information
-################################################################################
-data "aws_security_group" "selected" {
-  vpc_id = var.vpc_id
-  name   = "default"
-}
-
-
-################################################################################
 # Create Route 53 outbound endpoints per subnet IDs specified
 ################################################################################
 resource "aws_route53_resolver_endpoint" "zpa_r53_ep" {
   name      = "${var.name_prefix}-r53-resolver-ep-${var.resource_tag}"
   direction = "OUTBOUND"
 
-  security_group_ids = [
-    data.aws_security_group.selected.id
-  ]
+  security_group_ids = var.outbound_endpoint_security_group_id
 
   dynamic "ip_address" {
     for_each = var.r53_subnet_ids
