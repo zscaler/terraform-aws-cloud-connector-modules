@@ -191,6 +191,7 @@ module "cc_sg" {
   resource_tag             = random_string.suffix.result
   global_tags              = local.global_tags
   vpc_id                   = module.network.vpc_id
+  zpa_enabled              = var.zpa_enabled
   http_probe_port          = var.http_probe_port
   mgmt_ssh_enabled         = var.mgmt_ssh_enabled
   all_ports_egress_enabled = var.all_ports_egress_enabled
@@ -251,15 +252,16 @@ module "gwlb_endpoint" {
 #    This can optionally be enabled/disabled per variable "zpa_enabled".
 ################################################################################
 module "route53" {
-  count          = var.zpa_enabled == true ? 1 : 0
-  source         = "../../modules/terraform-zscc-route53-aws"
-  name_prefix    = var.name_prefix
-  resource_tag   = random_string.suffix.result
-  global_tags    = local.global_tags
-  vpc_id         = module.network.vpc_id
-  r53_subnet_ids = module.network.route53_subnet_ids
-  domain_names   = var.domain_names
-  target_address = var.target_address
+  count                               = var.zpa_enabled == true ? 1 : 0
+  source                              = "../../modules/terraform-zscc-route53-aws"
+  name_prefix                         = var.name_prefix
+  resource_tag                        = random_string.suffix.result
+  global_tags                         = local.global_tags
+  vpc_id                              = module.network.vpc_id
+  r53_subnet_ids                      = module.network.route53_subnet_ids
+  outbound_endpoint_security_group_id = module.cc_sg.outbound_endpoint_security_group_id
+  domain_names                        = var.domain_names
+  target_address                      = var.target_address
 }
 
 
