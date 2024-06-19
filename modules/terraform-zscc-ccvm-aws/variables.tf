@@ -97,6 +97,12 @@ variable "mgmt_security_group_id" {
   description = "Cloud Connector EC2 Instance management subnet id"
 }
 
+variable "additional_mgmt_security_group_ids" {
+  type        = list(string)
+  description = "Optional additional Cloud Connector EC2 Instance management security group ids to be attached to the to the management interface"
+  default     = []
+}
+
 variable "service_security_group_id" {
   type        = list(string)
   description = "Cloud Connector EC2 Instance service subnet id"
