@@ -27,6 +27,12 @@ variable "sg_count" {
   default     = 1
 }
 
+variable "zpa_enabled" {
+  type        = bool
+  default     = false
+  description = "Configure Route 53 Security Group for ZPA DNS redirection"
+}
+
 variable "byo_security_group" {
   type        = bool
   description = "Bring your own Security Group for Cloud Connector. Setting this variable to true will effectively instruct this module to not create any resources and only reference data resources from values provided in byo_mgmt_security_group_id and byo_service_security_group_id"
@@ -42,6 +48,12 @@ variable "byo_mgmt_security_group_id" {
 variable "byo_service_security_group_id" {
   type        = list(string)
   description = "Service Security Group ID for Cloud Connector association"
+  default     = null
+}
+
+variable "byo_route53_resolver_outbound_endpoint_group_id" {
+  type        = list(string)
+  description = "Route53 Resolver Outbound Endpoint Security Group ID"
   default     = null
 }
 
