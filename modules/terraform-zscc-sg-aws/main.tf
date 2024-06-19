@@ -192,3 +192,72 @@ resource "aws_vpc_security_group_egress_rule" "egress_cc_service_all" {
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
 }
+
+
+################################################################################
+# Create Security Group and Rules for Route53 DNS Resolver Outbound Endpoint
+################################################################################
+resource "aws_security_group" "outbound_endpoint_sg" {
+  count       = var.zpa_enabled == true && var.byo_security_group == false ? 1 : 0
+  name        = "${var.name_prefix}-outbound-dns-endpoint-sg-${var.resource_tag}"
+  description = "Security group for Route53 DNS Resolver Outbound Endpoint"
+  vpc_id      = var.vpc_id
+
+  tags = merge(var.global_tags,
+    { Name = "${var.name_prefix}-outbound-dns-endpoint-sg-${var.resource_tag}" }
+  )
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# Or use existing Route53 DNS Resolver Outbound Endpoint Security Group ID
+data "aws_security_group" "outbound_endpoint_sg_selected" {
+  count = var.byo_security_group ? length(var.byo_route53_resolver_outbound_endpoint_group_id) : 0
+  id    = element(var.byo_route53_resolver_outbound_endpoint_group_id, count.index)
+}
+
+
+#Default required ingress connectivity
+# https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/best-practices-resolver-endpoint-scaling.html
+resource "aws_vpc_security_group_ingress_rule" "ingress_outbound_endpoint_tcp_all" {
+  count             = var.zpa_enabled == true && var.byo_security_group == false ? 1 : 0
+  description       = "Required: Resolver TCP Ingress"
+  security_group_id = aws_security_group.outbound_endpoint_sg[count.index].id
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 0
+  ip_protocol       = "tcp"
+  to_port           = 65535
+}
+
+resource "aws_vpc_security_group_ingress_rule" "ingress_outbound_endpoint_udp_all" {
+  count             = var.zpa_enabled == true && var.byo_security_group == false ? 1 : 0
+  description       = "Required: Resolver UDP Ingress"
+  security_group_id = aws_security_group.outbound_endpoint_sg[count.index].id
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 0
+  ip_protocol       = "udp"
+  to_port           = 65535
+}
+
+#Default required egress connectivity
+resource "aws_vpc_security_group_egress_rule" "egress_outbound_endpoint_tcp_all" {
+  count             = var.zpa_enabled == true && var.byo_security_group == false ? 1 : 0
+  description       = "Required: Resolver TCP Egress"
+  security_group_id = aws_security_group.outbound_endpoint_sg[count.index].id
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 0
+  ip_protocol       = "tcp"
+  to_port           = 65535
+}
+
+resource "aws_vpc_security_group_egress_rule" "egress_outbound_endpoint_udp_all" {
+  count             = var.zpa_enabled == true && var.byo_security_group == false ? 1 : 0
+  description       = "Required: Resolver UDP Egress"
+  security_group_id = aws_security_group.outbound_endpoint_sg[count.index].id
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 0
+  ip_protocol       = "udp"
+  to_port           = 65535
+}
