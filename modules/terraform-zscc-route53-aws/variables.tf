@@ -26,6 +26,11 @@ variable "r53_subnet_ids" {
   description = "List of Subnet IDs for the Route53 Endpoint"
 }
 
+variable "outbound_endpoint_security_group_id" {
+  type        = list(string)
+  description = "Route53 DNS Resolver Outbound Endpoint Security Group ID"
+}
+
 variable "domain_names" {
   type        = map(any)
   description = "Domain names fqdn/wildcard to have Route 53 redirect DNS requests to Cloud Connector for ZPA. Refer to terraform.tfvars step 10"
