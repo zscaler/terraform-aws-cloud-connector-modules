@@ -1,3 +1,7 @@
+## TBD (UNRELEASED)
+BUG FIXES:
+* fix: remove local file depends_on to avoid conflicts if file does not exist or needs recreated
+
 ## 1.3.1 (May 13, 2024)
 ENHANCEMENTS:
 * feat: add ZSEC support for regions ap-southeast-4 and eu-south-2
