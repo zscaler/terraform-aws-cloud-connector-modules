@@ -156,8 +156,7 @@ module "cc_asg" {
   byo_sns_topic_name = var.byo_sns_topic_name
 
   depends_on = [
-    local_file.user_data_file,
-    null_resource.cc_error_checker,
+    null_resource.cc_error_checker
   ]
 }
 
