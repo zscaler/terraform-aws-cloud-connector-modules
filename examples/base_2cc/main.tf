@@ -150,8 +150,7 @@ module "cc_vm" {
   byo_kms_key_alias         = var.byo_kms_key_alias
 
   depends_on = [
-    local_file.user_data_file,
-    null_resource.cc_error_checker,
+    null_resource.cc_error_checker
   ]
 }
 
