@@ -1,3 +1,11 @@
+variable "aws_region" {
+  type        = string
+  description = "The AWS region."
+}
+variable "s3_bucket" {
+  description = "S3 bucket containing Lambda deployment packages"
+  default     = "zscaler-cc-lambda-service"
+}
 variable "name_prefix" {
   type        = string
   description = "A prefix to associate to all the Cloud Connector module resources"
