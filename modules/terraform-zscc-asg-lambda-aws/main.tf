@@ -166,7 +166,7 @@ resource "aws_lambda_function" "asg_lambda_function" {
   handler       = "${var.asg_lambda_filename}.lambda_handler"
   runtime       = "python3.12"
   s3_bucket     = "${var.s3_bucket}-${var.aws_region}"
-  s3_key        = "${var.asg_lambda_filename}.zip"
+  s3_key        = "${var.asg_lambda_filename}-${var.asg_lambda_version}.zip"
   role          = aws_iam_role.asg_lambda_iam_role.arn
   timeout       = 180 # executes for max 180 seconds
   memory_size   = 256
