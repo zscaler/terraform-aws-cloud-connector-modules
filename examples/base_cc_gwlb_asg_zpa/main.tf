@@ -283,6 +283,7 @@ module "asg_lambda" {
   secret_name             = var.secret_name
   autoscaling_group_names = module.cc_asg.autoscaling_group_ids
   asg_lambda_filename     = var.asg_lambda_filename
+  asg_lambda_version      = var.asg_lambda_version
   aws_region              = var.aws_region
 }
 
