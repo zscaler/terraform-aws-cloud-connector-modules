@@ -89,39 +89,6 @@ resource "aws_iam_role_policy_attachment" "cc_session_manager_attachment" {
 
 
 ################################################################################
-# Define AWS SQS/SNS Policy
-################################################################################
-data "aws_iam_policy_document" "cc_tags_policy_document" {
-  version = "2012-10-17"
-  statement {
-    sid    = "CCTags"
-    effect = "Allow"
-    actions = [
-      "sns:ListTopics",
-      "sns:ListSubscriptions",
-      "sns:Subscribe",
-      "sns:Unsubscribe",
-      "sqs:CreateQueue",
-      "sqs:DeleteQueue"
-    ]
-    resources = ["*"]
-  }
-}
-
-resource "aws_iam_policy" "cc_tags_policy" {
-  count       = var.byo_iam == false && var.cloud_tags == true ? var.iam_count : 0
-  description = "Policy which permits CCs to subscribe for tags changes"
-  name        = "${var.name_prefix}-cc-${count.index + 1}-tags-${var.resource_tag}"
-  policy      = data.aws_iam_policy_document.cc_tags_policy_document.json
-}
-
-resource "aws_iam_role_policy_attachment" "cc_tags_attachment" {
-  count      = var.byo_iam == false && var.cloud_tags == true ? var.iam_count : 0
-  policy_arn = aws_iam_policy.cc_tags_policy[count.index].arn
-  role       = aws_iam_role.cc_node_iam_role[count.index].name
-}
-
-################################################################################
 # Define AWS Managed Autoscale LifeCycle Policy
 ################################################################################
 data "aws_iam_policy_document" "cc_autoscale_lifecycle_policy_document" {
@@ -203,7 +170,9 @@ data "aws_iam_policy_document" "cc_tags_policy_document" {
       "sqs:SetQueueAttributes",
       "sqs:DeleteQueue",
       "sqs:CreateQueue",
-      "sns:Subscribe"
+      "sns:ListSubscriptions",
+      "sns:Subscribe",
+      "sns:Unsubscribe"
     ]
     resources = ["*"]
   }
