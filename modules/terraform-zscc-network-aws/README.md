@@ -8,13 +8,13 @@ This module has multi-purpose use and is leveraged by all other Zscaler Cloud Co
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.59, <= 5.17 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.32 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.59, <= 5.17 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.32 |
 
 ## Modules
 
@@ -60,6 +60,7 @@ No modules.
 | <a name="input_byo_subnets"></a> [byo\_subnets](#input\_byo\_subnets) | Bring your own AWS Subnets for Cloud Connector | `bool` | `false` | no |
 | <a name="input_byo_vpc"></a> [byo\_vpc](#input\_byo\_vpc) | Bring your own AWS VPC for Cloud Connector | `bool` | `false` | no |
 | <a name="input_byo_vpc_id"></a> [byo\_vpc\_id](#input\_byo\_vpc\_id) | User provided existing AWS VPC ID | `string` | `null` | no |
+| <a name="input_cc_route_table_enabled"></a> [cc\_route\_table\_enabled](#input\_cc\_route\_table\_enabled) | For brownfield environments where VPC subnets already exist, set to false to not create a new route table to associate to Cloud Connector subnet(s). Default is true which means module will try to create new route tables | `bool` | `true` | no |
 | <a name="input_cc_service_enis"></a> [cc\_service\_enis](#input\_cc\_service\_enis) | List of Cloud Connector Service ENIs for use in private workload and/or Route 53 subnet route tables with HA/non-GWLB deployments. Utilized if var.gwlb\_enabled is set to false | `list(string)` | <pre>[<br>  ""<br>]</pre> | no |
 | <a name="input_cc_subnets"></a> [cc\_subnets](#input\_cc\_subnets) | Cloud Connector Subnets to create in VPC. This is only required if you want to override the default subnets that this code creates via vpc\_cidr variable. | `list(string)` | `null` | no |
 | <a name="input_global_tags"></a> [global\_tags](#input\_global\_tags) | Populate any custom user defined tags from a map | `map(string)` | `{}` | no |

@@ -164,20 +164,23 @@ resource "aws_iam_role_policy_attachment" "lambda_logs_attachment" {
 resource "aws_lambda_function" "asg_lambda_function" {
   function_name    = "${var.name_prefix}_asg_lambda_function_${var.resource_tag}"
   handler          = "${var.asg_lambda_filename}.lambda_handler"
-  runtime          = "python3.9"
+  runtime          = "python3.12"
   filename         = "${path.module}/${var.asg_lambda_filename}.zip"
   source_code_hash = filebase64sha256("${path.module}/${var.asg_lambda_filename}.zip")
   role             = aws_iam_role.asg_lambda_iam_role.arn
-  timeout          = 180
+  timeout          = 180 # executes for max 180 seconds
   memory_size      = 256
+  architectures    = [var.architecture]
 
   environment {
     variables = {
-      ASG_NAMES              = jsonencode(var.autoscaling_group_names)
-      CC_URL                 = var.cc_vm_prov_url
-      SECRET_NAME            = var.secret_name
-      HC_DATA_POINTS         = "10"
-      HC_UNHEALTHY_THRESHOLD = "7"
+      ASG_NAMES                    = jsonencode(var.autoscaling_group_names)
+      CC_URL                       = var.cc_vm_prov_url
+      SECRET_NAME                  = var.secret_name
+      HC_DATA_POINTS               = "10" # most recent datapoints to evaulate
+      HC_UNHEALTHY_THRESHOLD       = "7"  # unhealthy datapoints threshold 
+      HC_UNHEALTHY_CONTIGUOUS_DP   = "5"  # continuous unhealthy datapoint counts
+      MISSING_DATAPOINTS_UNHEALTHY = true # treat missing datapoints as unhealthy
     }
   }
 

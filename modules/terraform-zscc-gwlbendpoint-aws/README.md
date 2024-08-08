@@ -8,13 +8,13 @@ This module creates Gateway Load Balancer Endpoint (GWLBE) and VPC Endpoint Serv
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.59, <= 5.17 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.32 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.59, <= 5.17 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.32 |
 
 ## Modules
 
@@ -27,6 +27,7 @@ No modules.
 | [aws_vpc_endpoint.gwlb_vpce](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint) | resource |
 | [aws_vpc_endpoint_service.gwlb_vpce_service](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint_service) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
+| [aws_partition.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/partition) | data source |
 
 ## Inputs
 

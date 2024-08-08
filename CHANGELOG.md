@@ -1,3 +1,75 @@
+## 1.3.1 (May 13, 2024)
+ENHANCEMENTS:
+* feat: add ZSEC support for regions ap-southeast-4 and eu-south-2
+* feat: add c6in.large EC2 type support for regions that do not support recommended m6i family
+* chore: bump aws provider version support
+
+## 1.3.0 (April 14, 2024)
+FEATURES:
+* feat: add variable zonal_asg_enabled boolean. Expectations:
+    - If false, then create only one Auto Scaling Group for all availability zones inputted per var.cc_subnet_ids
+    - If true, then create one Auto Scaling Group per subnet availability zones inputted
+    - Note: Single ASG is simpler to manage and recommended especially when enabling cross-zone gateway load balancing. ASG per AZ may be desirable for more consistent and granular control over scaling in/out.
+* feat: add all capacity and warm pool metrics to Auto Scaling Group enabled_metrics
+* feat: add zsec support for regions: ap-southeast-3, me-central-1, eu-central-2, and il-central-1
+* feat: add variables support_access_enabled and zssupport_server for Zscaler Remote Support Tunnel enablement
+* feat: changed variable health_check_grace_period to 900 seconds to prevent instance termination in Auto Scaling Group when moved into InService even if its is found as unhealthy.  Currently CC/ZTW VM requires more time for health stabilization at startup.
+* feat: Changed Python runtime for Lambda to use 3.12 version. arm64 architecture is now supported and is new default.  This is more for cost/peformance benefit.
+
+ENHANCEMENTS:
+* feat: ASG bring-up/stability improvements with new [Zscaler Lambda Zip file v1.0.6](modules/terraform-zscc-asg-lambda-aws/zscaler_cc_lambda_service.zip)
+* feat: user selection prompt for Zscaler cloud. Used for template validation and DNS lookup FQDN-to-IP mapping for security group rule creation
+* refactor: add prompt to enable/disable Zscaler Remote Support security group egress rule
+* feat: ZSEC bash script prompts for Auto Scaling Group zonal configuration
+* refactor: ZSEC bash script UI/UX and error handling improvements
+    - Auto parse MFA STS output values
+    - Discover/prompt for different local AWS config profiles
+    - Improved selection constraints for regions and EC2 types
+    - Add Zscaler Cloud selection for SG generation
+* refactor: update AWS Provider default to 5.39.1 with minimum supported 5.32.0 (required for ASG/Lambda configurations)
+* docs: general UX improvements
+
+BUG FIXES:
+* fix: add variable cc_route_table_enabled for conditional creation of aws_route_table.cc_rt and aws_route_table_association.cc_rt_asssociation. This is to avoid conflicts for brownfield VPC requirements where a custom subnet route table already exists to just tell terraform not to implicitly create a new one
+* fix: workload/bastion AWS al2 to al2023
+
+## v1.2.2 (March 8, 2024)
+ENHANCEMENTS:
+* refactor: add zsec support for AWS Region il-central-1
+
+## v1.2.1 (February, 3, 2024)
+BUG FIXES:
+* fix: remove var.gwlb_enabled condition for ingress_cc_service_all
+* fix: add ingress rule ingress_cc_service_https_local for default implicit TCP/443 communication minimum between Cloud Connector Service Interfaces within a VPC cluster
+
+## v1.2.0 (December 16, 2023)
+FEATURES:
+* feat: add optional cc_tags IAM Policy for AWS Workload Tags support with Cloud Connector Instance IAM Role creation. Permissions include:
+    - sqs:DeleteMessage
+    - sqs:ReceiveMessage
+    - sqs:GetQueueUrl
+    - sqs:GetQueueAttributes
+    - sqs:SetQueueAttributes
+    - sqs:DeleteQueue
+    - sqs:CreateQueue
+    - sns:Subscribe
+ * feat: add conditional variable cloud_tags_enabled
+
+ENHANCEMENTS:
+* refactor: ZSEC bash script prompts for cloud workload tagging policy creation
+* refactor: add greenfield/pov workload ZS Root CA install
+
+## v1.1.0 (November 3, 2023)
+FEATURES:
+* AWS GovCloud (US) support
+
+BUG FIXES:
+* fix: arn support for all aws partitions
+
+ENHANCEMENTS:
+* ZSEC bash script support for automatic aws partition selection for MFA
+* ZSEC general cleanup and optimizations
+
 ## v1.0.0 (October 19, 2023)
 BREAKING CHANGES:
 * Zscaler Cloud Connector AMI version > ZS6.1.25.0 support for default interface swap of both autoscaling and non-autoscaling deployments. Service interface is now ENA0 and Management interface is now ENA1. 

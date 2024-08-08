@@ -5,12 +5,17 @@ data "aws_vpc" "selected" {
   id = var.vpc_id
 }
 
+################################################################################
+# Pull AWS partition
+################################################################################
+data "aws_partition" "workload_current_partition" {}
+
 
 ################################################################################
-# Pull Amazon Linux 2 AMI for instance use
+# Pull Amazon Linux 2023 AMI for instance use
 ################################################################################
 data "aws_ssm_parameter" "amazon_linux_latest" {
-  name = "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+  name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
 }
 
 
@@ -41,7 +46,7 @@ POLICY
 # Define AWS Managed SSM Manager Policy
 ################################################################################
 resource "aws_iam_role_policy_attachment" "ssm_managed_instance_core" {
-  policy_arn = "arn:aws:iam::aws:policy/${var.iam_role_policy_ssmcore}"
+  policy_arn = "arn:${data.aws_partition.workload_current_partition.partition}:iam::aws:policy/${var.iam_role_policy_ssmcore}"
   role       = aws_iam_role.node_iam_role.name
 }
 
@@ -97,6 +102,26 @@ resource "aws_security_group_rule" "server_node_ingress_ssh" {
 
 
 ################################################################################
+# Generate user data script to install Zscaler Root Certificate in
+# Amazon Linux 2 Workload Trust Store for SSL inspection
+################################################################################
+data "local_sensitive_file" "zscaler_root_cert" {
+  filename = "${path.module}/ZscalerRootCA.crt"
+}
+
+locals {
+  workloaduserdata = <<WORKLOADUSERDATA
+#!/bin/bash
+
+# Create ZscalerRootCA.crt file in /etc/pki/ca-trust/source/anchors/
+echo "${data.local_sensitive_file.zscaler_root_cert.content}" > /etc/pki/ca-trust/source/anchors/ZscalerRootCA.crt
+# Update the CA trust store
+update-ca-trust
+WORKLOADUSERDATA
+}
+
+
+################################################################################
 # Create workload EC2 instances
 ################################################################################
 resource "aws_instance" "server_host" {
@@ -107,6 +132,7 @@ resource "aws_instance" "server_host" {
   subnet_id              = element(var.subnet_id, count.index)
   iam_instance_profile   = aws_iam_instance_profile.server_host_profile.name
   vpc_security_group_ids = [aws_security_group.node_sg.id]
+  user_data              = local.workloaduserdata
 
   metadata_options {
     http_endpoint = "enabled"

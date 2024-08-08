@@ -5,12 +5,17 @@ data "aws_vpc" "selected" {
   id = var.vpc_id
 }
 
+################################################################################
+# Pull AWS partition
+################################################################################
+data "aws_partition" "bastion_current_partition" {}
+
 
 ################################################################################
-# Pull Amazon Linux 2 AMI for instance use
+# Pull Amazon Linux 2023 AMI for instance use
 ################################################################################
 data "aws_ssm_parameter" "amazon_linux_latest" {
-  name = "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+  name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
 }
 
 ################################################################################
@@ -90,7 +95,7 @@ resource "aws_iam_role" "bastion_iam_role" {
 # Define AWS Managed SSM Manager Policy
 ################################################################################
 resource "aws_iam_role_policy_attachment" "ssm_managed_instance_core" {
-  policy_arn = "arn:aws:iam::aws:policy/${var.iam_role_policy_ssmcore}"
+  policy_arn = "arn:${data.aws_partition.bastion_current_partition.partition}:iam::aws:policy/${var.iam_role_policy_ssmcore}"
   role       = aws_iam_role.bastion_iam_role.name
 }
 

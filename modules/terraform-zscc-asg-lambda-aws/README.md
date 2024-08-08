@@ -2,7 +2,10 @@
 
 This module creates the Lambda Function, IAM Policies, and Cloudwatch Events/Targets required for management and health monitoring of Cloud Connectors deployed in an Autoscaling Group.
 
-
+| Lambda Version | SHA256 Hash | GitHub Release Date/Tag |
+| ----------- | --------| ------------ |
+| 1.0.6 | A309E9B2EE9AE5611FE1221896A21783CD7B12346208119D7772039E7E27A117 | 04/14/2024 - [v1.3.0](https://github.com/zscaler/terraform-aws-cloud-connector-modules/releases/tag/v1.3.0) |
+| 1.0.5 | 4E15BA95A55DCD0EF193341484FD787E7F2FB8914BDBAE86F0055CBB40F2FD0A | 10/19/2023 - [v1.0.0](https://github.com/zscaler/terraform-aws-cloud-connector-modules/releases/tag/v1.0.0) |
 
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
@@ -11,13 +14,13 @@ This module creates the Lambda Function, IAM Policies, and Cloudwatch Events/Tar
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.59, <= 5.17 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.32 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.59, <= 5.17 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.32 |
 
 ## Modules
 
@@ -57,6 +60,7 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_architecture"></a> [architecture](#input\_architecture) | The architecture for the Lambda function (x86\_64 or arm64) | `string` | `"arm64"` | no |
 | <a name="input_asg_lambda_filename"></a> [asg\_lambda\_filename](#input\_asg\_lambda\_filename) | Name of the lambda zip file without zip suffix | `string` | `"zscaler_cc_lambda_service"` | no |
 | <a name="input_autoscaling_group_names"></a> [autoscaling\_group\_names](#input\_autoscaling\_group\_names) | List of Autoscaling Group Names in a given Cloud Connector cluster/VPC for Lambda to monitor | `list(string)` | n/a | yes |
 | <a name="input_cc_vm_prov_url"></a> [cc\_vm\_prov\_url](#input\_cc\_vm\_prov\_url) | Zscaler Cloud Connector Provisioning URL | `string` | n/a | yes |

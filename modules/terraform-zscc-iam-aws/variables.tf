@@ -45,8 +45,8 @@ variable "secret_name" {
   description = "AWS Secrets Manager Secret Name for Cloud Connector provisioning"
 }
 
-variable "cloud_tags" {
+variable "cloud_tags_enabled" {
   type        = bool
-  description = "Enable cloud tags AWS IAM policy"
+  description = "Determines whether or not to create the cc_tags_policy IAM Policy and attach it to the CC IAM Role"
   default     = false
 }

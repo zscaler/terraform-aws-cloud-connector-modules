@@ -8,13 +8,13 @@ This module creates a Gateway Load Balancer (GWLB) and Listener resource. It als
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.59, <= 5.17 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.32 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.59, <= 5.17 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.32 |
 
 ## Modules
 
@@ -34,7 +34,6 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_asg_enabled"></a> [asg\_enabled](#input\_asg\_enabled) | Determines whether to set gwlb target group target\_type to 'instance' or 'ip'. If set to true, ASG uses 'instance' and no aws\_lb\_target\_group\_attachment resources need to be created | `bool` | `false` | no |
-| <a name="input_cc_instance_size"></a> [cc\_instance\_size](#input\_cc\_instance\_size) | Cloud Connector instance size as defined in the Connector portal provisioning template | `string` | `"small"` | no |
 | <a name="input_cc_service_ips"></a> [cc\_service\_ips](#input\_cc\_service\_ips) | Cloud Connector forwarding service IPs | `list(string)` | `[]` | no |
 | <a name="input_cc_subnet_ids"></a> [cc\_subnet\_ids](#input\_cc\_subnet\_ids) | Cloud Connector subnet IDs list | `list(string)` | n/a | yes |
 | <a name="input_cross_zone_lb_enabled"></a> [cross\_zone\_lb\_enabled](#input\_cross\_zone\_lb\_enabled) | Determines whether GWLB cross zone load balancing should be enabled or not | `bool` | `false` | no |

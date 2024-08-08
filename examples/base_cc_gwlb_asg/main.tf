@@ -137,6 +137,7 @@ module "cc_asg" {
   resource_tag              = random_string.suffix.result
   global_tags               = local.global_tags
   cc_subnet_ids             = module.network.cc_subnet_ids
+  zonal_asg_enabled         = var.zonal_asg_enabled
   ccvm_instance_type        = var.ccvm_instance_type
   cc_instance_size          = var.cc_instance_size
   instance_key              = aws_key_pair.deployer.key_name
@@ -184,12 +185,13 @@ module "cc_asg" {
 # 5. Create IAM Policy, Roles, and Instance Profiles to be assigned to CC
 ################################################################################
 module "cc_iam" {
-  source       = "../../modules/terraform-zscc-iam-aws"
-  name_prefix  = var.name_prefix
-  resource_tag = random_string.suffix.result
-  global_tags  = local.global_tags
-  asg_enabled  = var.asg_enabled
-  secret_name  = var.secret_name
+  source             = "../../modules/terraform-zscc-iam-aws"
+  name_prefix        = var.name_prefix
+  resource_tag       = random_string.suffix.result
+  global_tags        = local.global_tags
+  asg_enabled        = var.asg_enabled
+  secret_name        = var.secret_name
+  cloud_tags_enabled = var.cloud_tags_enabled
 }
 
 
@@ -206,6 +208,8 @@ module "cc_sg" {
   http_probe_port          = var.http_probe_port
   mgmt_ssh_enabled         = var.mgmt_ssh_enabled
   all_ports_egress_enabled = var.all_ports_egress_enabled
+  support_access_enabled   = var.support_access_enabled
+  zssupport_server         = var.zssupport_server
 }
 
 

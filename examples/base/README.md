@@ -1,6 +1,6 @@
 # Zscaler "Base" deployment type
 
-This deployment type is just for greenfield/POV reference and/or spoke workload testing. It does not deploy any Cloud Connector appliances. Full set of resources provisioned list below, but this will effectively create all network infrastructure dependencies for an AWS environment. Creates 1 new VPC with 1 public subnet and 1 private/workload subnet; 1 IGW; 1 NAT Gateway; 1 Centos server workload in the private subnet routing to NAT Gateway; 1 Bastion Host in the public subnet assigned an Elastic IP and routing to the IGW; generates local key pair .pem file for ssh access
+This deployment type is just for greenfield/POV reference and/or spoke workload testing. It does not deploy any Cloud Connector appliances. Full set of resources provisioned list below, but this will effectively create all network infrastructure dependencies for an AWS environment. Creates 1 new VPC with 1 public subnet and 1 private/workload subnet; 1 IGW; 1 NAT Gateway; 1 Amazon Linux 2023 server workload in the private subnet routing to NAT Gateway; 1 Bastion Host in the public subnet assigned an Elastic IP and routing to the IGW; generates local key pair .pem file for ssh access
 
 
 ## How to deploy:
@@ -38,7 +38,7 @@ From base directory execute:
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.59, <= 5.18 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.32.0, <= 5.49.0 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.2.0 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.1.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.3.0 |
@@ -48,7 +48,7 @@ From base directory execute:
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.59, <= 5.18 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.32.0, <= 5.49.0 |
 | <a name="provider_local"></a> [local](#provider\_local) | ~> 2.2.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | ~> 3.3.0 |
 | <a name="provider_tls"></a> [tls](#provider\_tls) | ~> 3.4.0 |

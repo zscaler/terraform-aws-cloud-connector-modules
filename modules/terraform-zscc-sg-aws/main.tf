@@ -50,12 +50,22 @@ resource "aws_vpc_security_group_egress_rule" "egress_cc_mgmt_tcp_443" {
 
 resource "aws_vpc_security_group_egress_rule" "egress_cc_mgmt_udp_123" {
   count             = var.byo_security_group == false ? var.sg_count : 0
-  description       = "Required: CC outbound NTP"
+  description       = "Required: CC Mgmt outbound NTP"
   security_group_id = aws_security_group.cc_mgmt_sg[count.index].id
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = 123
   ip_protocol       = "udp"
   to_port           = 123
+}
+
+resource "aws_vpc_security_group_egress_rule" "egress_cc_mgmt_tcp_12002" {
+  count             = var.byo_security_group == false || var.support_access_enabled == true ? var.sg_count : 0
+  description       = "Recommended: CC Mgmt outbound Zscaler Remote Support TCP/12002"
+  security_group_id = aws_security_group.cc_mgmt_sg[count.index].id
+  cidr_ipv4         = var.zssupport_server
+  from_port         = 12002
+  ip_protocol       = "tcp"
+  to_port           = 12002
 }
 
 # Or use existing Management Security Group ID
@@ -93,12 +103,22 @@ data "aws_security_group" "cc_service_sg_selected" {
 #Default required ingress connectivity
 resource "aws_vpc_security_group_ingress_rule" "ingress_cc_service_health_check" {
   count             = var.byo_security_group == false ? var.sg_count : 0
-  description       = "CC Service TCP health probe"
+  description       = "Required: CC Service TCP health probe"
   security_group_id = aws_security_group.cc_service_sg[count.index].id
   cidr_ipv4         = data.aws_vpc.selected.cidr_block
   from_port         = var.http_probe_port
   ip_protocol       = "tcp"
   to_port           = var.http_probe_port
+}
+
+resource "aws_vpc_security_group_ingress_rule" "ingress_cc_service_https_local" {
+  count             = var.byo_security_group == false ? var.sg_count : 0
+  description       = "Required: CC inbound internal VPC cluster TCP 443 communication"
+  security_group_id = aws_security_group.cc_service_sg[count.index].id
+  cidr_ipv4         = data.aws_vpc.selected.cidr_block
+  from_port         = 443
+  ip_protocol       = "tcp"
+  to_port           = 443
 }
 
 #Default required egress connectivity
@@ -124,7 +144,7 @@ resource "aws_vpc_security_group_egress_rule" "egress_cc_service_udp_443" {
 
 resource "aws_vpc_security_group_egress_rule" "egress_cc_service_udp_123" {
   count             = var.byo_security_group == false ? var.sg_count : 0
-  description       = "Required: CC outbound NTP"
+  description       = "Required: CC Service outbound NTP"
   security_group_id = aws_security_group.cc_service_sg[count.index].id
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = 123
@@ -153,10 +173,11 @@ resource "aws_vpc_security_group_egress_rule" "egress_cc_service_geneve" {
   to_port           = 6081
 }
 
+
 #Default required for non-GWLB deployments
 resource "aws_vpc_security_group_ingress_rule" "ingress_cc_service_all" {
-  count             = var.byo_security_group == false && var.gwlb_enabled == false ? var.sg_count : 0
-  description       = "Allow all VPC traffic"
+  count             = var.byo_security_group == false ? var.sg_count : 0
+  description       = "Optional: Permit All Intra-VPC Traffic / Ensure CC Service Interfaces are able to communicate with each other freely"
   security_group_id = aws_security_group.cc_service_sg[count.index].id
   cidr_ipv4         = data.aws_vpc.selected.cidr_block
   ip_protocol       = "-1"

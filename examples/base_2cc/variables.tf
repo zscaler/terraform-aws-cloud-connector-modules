@@ -92,10 +92,12 @@ variable "ccvm_instance_type" {
       var.ccvm_instance_type == "c5a.large" ||
       var.ccvm_instance_type == "m6i.large" ||
       var.ccvm_instance_type == "c6i.large" ||
+      var.ccvm_instance_type == "c6in.large" ||
       var.ccvm_instance_type == "c5.4xlarge" ||
       var.ccvm_instance_type == "m5n.4xlarge" ||
       var.ccvm_instance_type == "m6i.4xlarge" ||
-      var.ccvm_instance_type == "c6i.4xlarge"
+      var.ccvm_instance_type == "c6i.4xlarge" ||
+      var.ccvm_instance_type == "c6in.4xlarge"
     )
     error_message = "Input ccvm_instance_type must be set to an approved vm instance type."
   }
@@ -117,9 +119,9 @@ variable "cc_instance_size" {
 
 # Validation to ensure that ccvm_instance_type and cc_instance_size are set appropriately
 locals {
-  small_cc_instance  = ["t3.medium", "t3a.medium", "m5n.large", "c5a.large", "m6i.large", "c6i.large", "c5.4xlarge", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge"]
-  medium_cc_instance = ["c5.4xlarge", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge"]
-  large_cc_instance  = ["c5.4xlarge", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge"]
+  small_cc_instance  = ["t3.medium", "t3a.medium", "m5n.large", "c5a.large", "m6i.large", "c6i.large", "c6in.large", "c5.4xlarge", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge", "c6in.4xlarge"]
+  medium_cc_instance = ["c5.4xlarge", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge", "c6in.4xlarge"]
+  large_cc_instance  = ["c5.4xlarge", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge", "c6in.4xlarge"]
 
   valid_cc_create = (
     contains(local.small_cc_instance, var.ccvm_instance_type) && var.cc_instance_size == "small" ||
@@ -197,4 +199,22 @@ variable "byo_kms_key_alias" {
   type        = string
   description = "Requires var.ebs_encryption_enabled to be true. Set to null by default which is the AWS default managed/master key. Set as 'alias/<key-alias>' to use a custom KMS key"
   default     = null
+}
+
+variable "cloud_tags_enabled" {
+  type        = bool
+  description = "Determines whether or not to create the cc_tags_policy IAM Policy and attach it to the CC IAM Role"
+  default     = false
+}
+
+variable "support_access_enabled" {
+  type        = bool
+  description = "If Network Security Group is being configured, enable a specific outbound rule for Cloud Connector to be able to establish connectivity for Zscaler support access. Default is true"
+  default     = true
+}
+
+variable "zssupport_server" {
+  type        = string
+  description = "destination IP address of Zscaler Support access server. IP resolution of remotesupport.<zscaler_customer_cloud>.net"
+  default     = "199.168.148.101/32" #for commercial clouds
 }

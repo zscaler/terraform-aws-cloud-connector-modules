@@ -63,14 +63,15 @@ module "network" {
   cc_subnets        = var.cc_subnets
   route53_subnets   = var.route53_subnets
   #bring-your-own variables
-  byo_vpc        = var.byo_vpc
-  byo_vpc_id     = var.byo_vpc_id
-  byo_subnets    = var.byo_subnets
-  byo_subnet_ids = var.byo_subnet_ids
-  byo_igw        = var.byo_igw
-  byo_igw_id     = var.byo_igw_id
-  byo_ngw        = var.byo_ngw
-  byo_ngw_ids    = var.byo_ngw_ids
+  byo_vpc                = var.byo_vpc
+  byo_vpc_id             = var.byo_vpc_id
+  byo_subnets            = var.byo_subnets
+  byo_subnet_ids         = var.byo_subnet_ids
+  byo_igw                = var.byo_igw
+  byo_igw_id             = var.byo_igw_id
+  byo_ngw                = var.byo_ngw
+  byo_ngw_ids            = var.byo_ngw_ids
+  cc_route_table_enabled = var.cc_route_table_enabled
 }
 
 
@@ -144,12 +145,13 @@ module "cc_vm" {
 #    assigned to ALL Cloud Connectors instead.
 ################################################################################
 module "cc_iam" {
-  source       = "../../modules/terraform-zscc-iam-aws"
-  iam_count    = var.reuse_iam == false ? var.cc_count : 1
-  name_prefix  = var.name_prefix
-  resource_tag = random_string.suffix.result
-  global_tags  = local.global_tags
-  secret_name  = var.secret_name
+  source             = "../../modules/terraform-zscc-iam-aws"
+  iam_count          = var.reuse_iam == false ? var.cc_count : 1
+  name_prefix        = var.name_prefix
+  resource_tag       = random_string.suffix.result
+  global_tags        = local.global_tags
+  secret_name        = var.secret_name
+  cloud_tags_enabled = var.cloud_tags_enabled
 
   byo_iam = var.byo_iam
   # optional inputs. only required if byo_iam set to true
@@ -175,6 +177,8 @@ module "cc_sg" {
   mgmt_ssh_enabled         = var.mgmt_ssh_enabled
   gwlb_enabled             = false
   all_ports_egress_enabled = var.all_ports_egress_enabled
+  support_access_enabled   = var.support_access_enabled
+  zssupport_server         = var.zssupport_server
 
   byo_security_group = var.byo_security_group
   # optional inputs. only required if byo_security_group set to true

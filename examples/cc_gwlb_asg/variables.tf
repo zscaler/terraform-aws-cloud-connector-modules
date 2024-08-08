@@ -74,10 +74,12 @@ variable "ccvm_instance_type" {
       var.ccvm_instance_type == "c5a.large" ||
       var.ccvm_instance_type == "m6i.large" ||
       var.ccvm_instance_type == "c6i.large" ||
+      var.ccvm_instance_type == "c6in.large" ||
       var.ccvm_instance_type == "c5.4xlarge" ||
       var.ccvm_instance_type == "m5n.4xlarge" ||
       var.ccvm_instance_type == "m6i.4xlarge" ||
-      var.ccvm_instance_type == "c6i.4xlarge"
+      var.ccvm_instance_type == "c6i.4xlarge" ||
+      var.ccvm_instance_type == "c6in.4xlarge"
     )
     error_message = "Input ccvm_instance_type must be set to an approved vm instance type."
   }
@@ -89,7 +91,9 @@ variable "cc_instance_size" {
   default     = "small"
   validation {
     condition = (
-      var.cc_instance_size == "small"
+      var.cc_instance_size == "small" ||
+      var.cc_instance_size == "medium" ||
+      var.cc_instance_size == "large"
     )
     error_message = "Input cc_instance_size must be set to an approved cc instance type."
   }
@@ -97,9 +101,9 @@ variable "cc_instance_size" {
 
 # Validation to ensure that ccvm_instance_type and cc_instance_size are set appropriately
 locals {
-  small_cc_instance  = ["t3.medium", "t3a.medium", "m5n.large", "c5a.large", "m6i.large", "c6i.large", "c5.4xlarge", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge"]
-  medium_cc_instance = ["c5.4xlarge", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge"]
-  large_cc_instance  = ["c5.4xlarge", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge"]
+  small_cc_instance  = ["t3.medium", "t3a.medium", "m5n.large", "c5a.large", "m6i.large", "c6i.large", "c6in.large", "c5.4xlarge", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge", "c6in.4xlarge"]
+  medium_cc_instance = ["c5.4xlarge", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge", "c6in.4xlarge"]
+  large_cc_instance  = ["c5.4xlarge", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge", "c6in.4xlarge"]
 
   valid_cc_create = (
     contains(local.small_cc_instance, var.ccvm_instance_type) && var.cc_instance_size == "small" ||
@@ -244,6 +248,25 @@ variable "byo_kms_key_alias" {
   default     = null
 }
 
+variable "cloud_tags_enabled" {
+  type        = bool
+  description = "Determines whether or not to create the cc_tags_policy IAM Policy and attach it to the CC IAM Role"
+  default     = false
+}
+
+variable "support_access_enabled" {
+  type        = bool
+  description = "If Network Security Group is being configured, enable a specific outbound rule for Cloud Connector to be able to establish connectivity for Zscaler support access. Default is true"
+  default     = true
+}
+
+variable "zssupport_server" {
+  type        = string
+  description = "destination IP address of Zscaler Support access server. IP resolution of remotesupport.<zscaler_customer_cloud>.net"
+  default     = "199.168.148.101/32" #for commercial clouds
+}
+
+
 # ZPA/Route53 specific variables
 variable "zpa_enabled" {
   type        = bool
@@ -285,8 +308,8 @@ variable "max_size" {
 
 variable "health_check_grace_period" {
   type        = number
-  description = "The amount of time until EC2 Auto Scaling performs the first health check on new instances after they are put into service. With lifecycle hooks it is immediate. Otheriwse Default is 15 minutes"
-  default     = 0
+  description = "The health check grace period specifies the minimum amount of time (in seconds) to keep a new instance in service before terminating it if it's found to be unhealthy."
+  default     = 900
 }
 
 variable "warm_pool_enabled" {
@@ -391,6 +414,12 @@ variable "asg_lambda_filename" {
   default     = "zscaler_cc_lambda_service"
 }
 
+variable "zonal_asg_enabled" {
+  type        = bool
+  description = "By default, Terraform will create one Auto Scaling Group per subnet/availability zone. Set to false if you would rather create a single Auto Scaling Group containing multiple subnets/availability zones"
+  default     = false
+}
+
 # BYO (Bring-your-own) variables list
 variable "byo_vpc" {
   type        = bool
@@ -468,4 +497,10 @@ variable "byo_service_security_group_id" {
   type        = list(string)
   description = "Service Security Group ID for Cloud Connector association"
   default     = null
+}
+
+variable "cc_route_table_enabled" {
+  type        = bool
+  description = "For brownfield environments where VPC subnets already exist, set to false to not create a new route table to associate to Cloud Connector subnet(s). Default is true which means module will try to create new route tables"
+  default     = true
 }
