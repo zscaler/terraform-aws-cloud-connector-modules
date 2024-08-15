@@ -1,6 +1,13 @@
-## TBD (UNRELEASED)
+## 1.3.2 (August 17, 2024)
+ENHANCEMENTS:
+* refactor: add sns:ListSubscriptions and sns:Unsubscribe permissions to cc_tags_policy_document for increased performance supporting multi-account workload tags
+
 BUG FIXES:
 * fix: remove local file depends_on to avoid conflicts if file does not exist or needs recreated
+* fix: egress_cc_mgmt_tcp_12002 security group rule conditional create logic
+* fix(zsec): dig fallback to getent for remote support tunnel IP resolution
+* fix: restrict az selection to only available (non-local) zones
+* refactor: ccvm constraint and asg_zonal_enabled docs cleanup
 
 ## 1.3.1 (May 13, 2024)
 ENHANCEMENTS:
