@@ -41,7 +41,6 @@
 ##    (Default: m6i.large)
 
 #ccvm_instance_type                         = "t3.medium"
-#ccvm_instance_type                         = "t3a.medium"
 #ccvm_instance_type                         = "m5n.large"
 #ccvm_instance_type                         = "c5a.large"
 #ccvm_instance_type                         = "m6i.large"
@@ -53,10 +52,10 @@
 
 #az_count                                   = 2
 
-## 8. The number of Auto Scaling Groups to create. By default, Terraform will create one Auto Scaling Group per subnet/availability zone. 
-##    Uncomment and set to false if you would rather create a single Auto Scaling Group containing multiple subnets/availability zones
+## 8. The number of Auto Scaling Groups to create. By default, Terraform will create a single Auto Scaling Group containing multiple subnets/availability zones. 
+##    Uncomment and set to true if you would rather create one Auto Scaling Group per subnet/availability zone (var.az_count).
 
-#zonal_asg_enabled                          = false
+#zonal_asg_enabled                          = true
 
 ## 9. The minimum number of Cloud Connectors to maintain in an Autoscaling group. (Default: 2)
 ##    Recommendation is to maintain HA/Zonal resliency so for example if az_count = 2 and cross_zone_lb_enabled is false the minimum number of CCs you would want for a

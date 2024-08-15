@@ -75,13 +75,11 @@ variable "ccvm_instance_type" {
   validation {
     condition = (
       var.ccvm_instance_type == "t3.medium" ||
-      var.ccvm_instance_type == "t3a.medium" ||
       var.ccvm_instance_type == "m5n.large" ||
       var.ccvm_instance_type == "c5a.large" ||
       var.ccvm_instance_type == "m6i.large" ||
       var.ccvm_instance_type == "c6i.large" ||
       var.ccvm_instance_type == "c6in.large" ||
-      var.ccvm_instance_type == "c5.4xlarge" ||
       var.ccvm_instance_type == "m5n.4xlarge" ||
       var.ccvm_instance_type == "m6i.4xlarge" ||
       var.ccvm_instance_type == "c6i.4xlarge" ||
@@ -107,9 +105,9 @@ variable "cc_instance_size" {
 
 # Validation to ensure that ccvm_instance_type and cc_instance_size are set appropriately
 locals {
-  small_cc_instance  = ["t3.medium", "t3a.medium", "m5n.large", "c5a.large", "m6i.large", "c6i.large", "c6in.large", "c5.4xlarge", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge", "c6in.4xlarge"]
-  medium_cc_instance = ["c5.4xlarge", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge", "c6in.4xlarge"]
-  large_cc_instance  = ["c5.4xlarge", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge", "c6in.4xlarge"]
+  small_cc_instance  = ["t3.medium", "m5n.large", "c5a.large", "m6i.large", "c6i.large", "c6in.large", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge", "c6in.4xlarge"]
+  medium_cc_instance = ["m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge", "c6in.4xlarge"]
+  large_cc_instance  = ["m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge", "c6in.4xlarge"]
 
   valid_cc_create = (
     contains(local.small_cc_instance, var.ccvm_instance_type) && var.cc_instance_size == "small" ||
