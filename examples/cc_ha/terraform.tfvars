@@ -41,7 +41,6 @@
 ##    (Default: m6i.large)
 
 #ccvm_instance_type                         = "t3.medium"
-#ccvm_instance_type                         = "t3a.medium"
 #ccvm_instance_type                         = "m5n.large"
 #ccvm_instance_type                         = "c5a.large"
 #ccvm_instance_type                         = "m6i.large"
