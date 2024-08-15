@@ -1489,7 +1489,11 @@ first_run="yes"
                     echo "export TF_VAR_zssupport_server='$support_server_ip_default'" >> .zsecrc
                 else
                     echo "Resolving remotesupport.$zscaler_cloud to IP for Security Group rule..."
-                    support_server_ip=$(dig +short remotesupport.$zscaler_cloud)
+                    support_server_ip=$(dig +short remotesupport.$zscaler_cloud 2>&1 > /dev/null || true) 
+                        if [[ $(support_server_ip 2>&1) =~ "command not found" ]]; then
+                            echo "dig command missing on host. Trying alernative resolution method..."
+                            support_server_ip=$(getent ahostsv4 remotesupport.$zscaler_cloud | awk '{print $1}' | head -1)
+                        fi
                     echo "${GREEN}Outbound rule permitting TCP/12002 access to $support_server_ip/32 will be created${RESET}"
                     echo "export TF_VAR_zssupport_server='$support_server_ip/32'" >> .zsecrc
                 fi
