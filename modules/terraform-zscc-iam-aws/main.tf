@@ -170,7 +170,9 @@ data "aws_iam_policy_document" "cc_tags_policy_document" {
       "sqs:SetQueueAttributes",
       "sqs:DeleteQueue",
       "sqs:CreateQueue",
-      "sns:Subscribe"
+      "sns:ListSubscriptions",
+      "sns:Subscribe",
+      "sns:Unsubscribe"
     ]
     resources = ["*"]
   }
