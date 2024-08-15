@@ -58,8 +58,9 @@ resource "aws_vpc_security_group_egress_rule" "egress_cc_mgmt_udp_123" {
   to_port           = 123
 }
 
+
 resource "aws_vpc_security_group_egress_rule" "egress_cc_mgmt_tcp_12002" {
-  count             = var.byo_security_group == false || var.support_access_enabled == true ? var.sg_count : 0
+  count             = var.byo_security_group == false && var.support_access_enabled == true ? var.sg_count : 0
   description       = "Recommended: CC Mgmt outbound Zscaler Remote Support TCP/12002"
   security_group_id = aws_security_group.cc_mgmt_sg[count.index].id
   cidr_ipv4         = var.zssupport_server
