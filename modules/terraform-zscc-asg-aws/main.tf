@@ -55,6 +55,11 @@ resource "aws_launch_template" "cc_launch_template" {
     tags          = merge(var.global_tags, { Name = "${var.name_prefix}-ccvm-nic-asg-${var.resource_tag}" })
   }
 
+  tag_specifications {
+    resource_type = "volume"
+    tags          = merge(var.global_tags, { Name = "${var.name_prefix}-ccvm-vol-asg-${var.resource_tag}" })
+  }
+
   network_interfaces {
     description                 = "cc next hop forwarding interface"
     device_index                = 0
