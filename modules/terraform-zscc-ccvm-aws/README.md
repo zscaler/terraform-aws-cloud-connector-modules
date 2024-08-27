@@ -2,6 +2,17 @@
 
 This module creates all AWS EC2 instance and network interface resources needed to deploy Cloud Connector appliances.
 
+
+## Subscribe to the AWS Marketplace
+
+Subscribe and accept terms of using Zscaler Cloud Connector image at [this link](https://aws.amazon.com/marketplace/pp/prodview-cvzx4oiv7oljm). For China marketplace deployments, use [this link](https://awsmarketplace.amazonaws.cn/marketplace/pp/prodview-d2em5t67apisy).
+
+| AWS Cloud                  | Product Code              |  Version                              |
+|:--------------------------:|:-------------------------:|:-------------------------------------:|
+| aws (Commercial)           | 2l8tfysndbav4tv2nfjwak3cu | ZS6.1.26.1 (Latest - as of Aug, 2024) |
+| aws-us-gov (US Government) | 2l8tfysndbav4tv2nfjwak3cu | ZS6.1.26.1 (Latest - as of Aug, 2024) |
+| aws-cn (China)             | axnpwhsb4facossmbm1h9yad6 | 24.3.1 (Latest - as of Aug, 2024)     |
+
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 
