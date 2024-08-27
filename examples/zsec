@@ -527,6 +527,34 @@ first_run="yes"
                             echo "${RED}Invalid response. Please enter a number selection${RESET}"
                     esac
                 done
+            elif [[ "$aws_region" == "cn-"* ]]; then
+                vm_sizes=(
+                    "m6i.large - Recommended"
+                    "c6i.large"
+                    "t3.medium - Not recommended for production use"
+                    )
+                select ccvm_instance_type in "${vm_sizes[@]}"
+                do
+                    case $REPLY in
+                        1)
+                            echo "CC EC2 type: ${GREEN}m6i.large${RESET}"
+                            echo "export TF_VAR_ccvm_instance_type='m6i.large'" >> .zsecrc
+                        break
+                        ;;
+                        2)
+                            echo "CC EC2 type: ${GREEN}c6i.large${RESET}"
+                            echo "export TF_VAR_ccvm_instance_type='c6i.large'" >> .zsecrc
+                        break
+                        ;;
+                        3)
+                            echo "CC EC2 type: ${GREEN}t3.medium${RESET}"
+                            echo "export TF_VAR_ccvm_instance_type='t3.medium'" >> .zsecrc
+                        break
+                        ;;
+                        *) 
+                            echo "${RED}Invalid response. Please enter a number selection${RESET}"
+                    esac
+                done
             else
                 vm_sizes=(
                     "m6i.large - Recommended"
@@ -585,13 +613,34 @@ first_run="yes"
                             echo "${RED}Invalid response. Please enter a number selection${RESET}"
                     esac
                 done
+            elif [[ "$aws_region" == "cn-"* ]]; then
+                vm_sizes=(
+                    "m6i.4xlarge - Recommended"
+                    "c6i.4xlarge"
+                    )
+                select ccvm_instance_type in "${vm_sizes[@]}"
+                do
+                    case $REPLY in
+                        1)
+                            echo "CC EC2 type: ${GREEN}m6i.4xlarge${RESET}"
+                            echo "export TF_VAR_ccvm_instance_type='m6i.4xlarge'" >> .zsecrc
+                        break
+                        ;;
+                        2)
+                            echo "CC EC2 type: ${GREEN}c6i.4xlarge${RESET}"
+                            echo "export TF_VAR_ccvm_instance_type='c6i.4xlarge'" >> .zsecrc
+                        break
+                        ;;
+                        *) 
+                            echo "${RED}Invalid response. Please enter a number selection${RESET}"
+                    esac
+                done
             else
                 vm_sizes=(
                     "m6i.4xlarge - Recommended"
                     "m5n.4xlarge"
                     "c6i.4xlarge"
                     "c6in.4xlarge"
-                    "c5.4xlarge"
                 )
                 select ccvm_instance_type in "${vm_sizes[@]}"
                 do
@@ -604,7 +653,7 @@ first_run="yes"
                         2)
                             echo "CC EC2 type: ${GREEN}$ccvm_instance_type${RESET}"
                             echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
-                            break
+                        break
                         ;;
                         3)
                             echo "CC EC2 type: ${GREEN}$ccvm_instance_type${RESET}"
@@ -612,11 +661,6 @@ first_run="yes"
                         break
                         ;;
                         4)
-                            echo "CC EC2 type: ${GREEN}$ccvm_instance_type${RESET}"
-                            echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
-                        break
-                        ;;
-                        5)
                             echo "CC EC2 type: ${GREEN}$ccvm_instance_type${RESET}"
                             echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
                         break
@@ -643,14 +687,35 @@ first_run="yes"
                             echo "${RED}Invalid response. Please enter a number selection${RESET}"
                     esac
                 done
+            elif [[ "$aws_region" == "cn-"* ]]; then
+                vm_sizes=(
+                    "m6i.4xlarge - Recommended"
+                    "c6i.4xlarge"
+                    )
+                select ccvm_instance_type in "${vm_sizes[@]}"
+                do
+                    case $REPLY in
+                        1)
+                            echo "CC EC2 type: ${GREEN}m6i.4xlarge${RESET}"
+                            echo "export TF_VAR_ccvm_instance_type='m6i.4xlarge'" >> .zsecrc
+                        break
+                        ;;
+                        2)
+                            echo "CC EC2 type: ${GREEN}c6i.4xlarge${RESET}"
+                            echo "export TF_VAR_ccvm_instance_type='c6i.4xlarge'" >> .zsecrc
+                        break
+                        ;;
+                        *) 
+                            echo "${RED}Invalid response. Please enter a number selection${RESET}"
+                    esac
+                done
             else
                 vm_sizes=(
                     "m6i.4xlarge - Recommended"
                     "m5n.4xlarge"
                     "c6i.4xlarge"
                     "c6in.4xlarge"
-                    "c5.4xlarge"
-                    )
+                )
                 select ccvm_instance_type in "${vm_sizes[@]}"
                 do
                     case $REPLY in
@@ -662,7 +727,7 @@ first_run="yes"
                         2)
                             echo "CC EC2 type: ${GREEN}$ccvm_instance_type${RESET}"
                             echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
-                        break
+                            break
                         ;;
                         3)
                             echo "CC EC2 type: ${GREEN}$ccvm_instance_type${RESET}"
@@ -670,11 +735,6 @@ first_run="yes"
                         break
                         ;;
                         4)
-                            echo "CC EC2 type: ${GREEN}$ccvm_instance_type${RESET}"
-                            echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
-                        break
-                        ;;
-                        5)
                             echo "CC EC2 type: ${GREEN}$ccvm_instance_type${RESET}"
                             echo "export TF_VAR_ccvm_instance_type='$ccvm_instance_type'" >> .zsecrc
                         break
