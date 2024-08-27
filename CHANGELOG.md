@@ -1,3 +1,11 @@
+## 1.3.3 (August 31, 2024)
+ENHANCEMENTS:
+* refactor: add china marketplace specific product-code ("axnpwhsb4facossmbm1h9yad6") lookup 
+* refactor: update zsec china conditions
+
+BUG FIXES:
+* fix: add variable runtime with locals condition for python3.12 unsupported regions
+
 ## 1.3.2 (August 26, 2024)
 ENHANCEMENTS:
 * refactor: add sns:ListSubscriptions and sns:Unsubscribe permissions to cc_tags_policy_document for increased performance supporting multi-account workload tags
