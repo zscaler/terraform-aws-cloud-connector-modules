@@ -124,7 +124,8 @@ data "aws_ami" "cloudconnector" {
 
   filter {
     name   = "product-code"
-    values = ["2l8tfysndbav4tv2nfjwak3cu"]
+    values = var.aws_region == "cn-north-1" || var.aws_region == "cn-northwest-1" ? ["axnpwhsb4facossmbm1h9yad6"] : ["2l8tfysndbav4tv2nfjwak3cu"]
+    #change product code value for China marketplace
   }
 
   owners = ["aws-marketplace"]
