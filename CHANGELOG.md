@@ -1,4 +1,4 @@
-## 1.3.2 (August 17, 2024)
+## 1.3.2 (August 26, 2024)
 ENHANCEMENTS:
 * refactor: add sns:ListSubscriptions and sns:Unsubscribe permissions to cc_tags_policy_document for increased performance supporting multi-account workload tags
 
