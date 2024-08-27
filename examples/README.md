@@ -10,7 +10,7 @@
 3. AWS SECRET ACCESS KEY
 4. AWS Region (E.g. us-west-2)
 5. Subscribe and accept terms of using Amazon Linux 2 AMI (for base deployments with workloads + bastion) at [this link](https://aws.amazon.com/marketplace/pp/prodview-zc4x2k7vt6rpu)
-6. Subscribe and accept terms of using Zscaler Cloud Connector image at [this link](https://aws.amazon.com/marketplace/pp/prodview-cvzx4oiv7oljm)
+6. Subscribe and accept terms of using Zscaler Cloud Connector image at [this link](https://aws.amazon.com/marketplace/pp/prodview-cvzx4oiv7oljm). For China marketplace deployments, use [this link](https://awsmarketplace.amazonaws.cn/marketplace/pp/prodview-d2em5t67apisy).
 
 ### Zscaler requirements
 7. A valid Zscaler Cloud Connector provisioning URL generated from the Cloud Connector Portal
