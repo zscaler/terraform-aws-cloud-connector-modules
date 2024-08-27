@@ -2,11 +2,19 @@
 
 This module creates a AWS Launch Template, Autoscaling Group, and Policy resources needed to deploy Cloud Connector appliances. It also creates an attachment to a user provided Target Group ARN to associate all instances to a GWLB. Due to the instance based Target Grouping, modifications are done to the NIC order association (0 becoming service and 1 becoming management) as well as the actual GWLB Target Group configuration (IP to Instance).
 
+## Subscribe to the AWS Marketplace
+
+Subscribe and accept terms of using Zscaler Cloud Connector image at [this link](https://aws.amazon.com/marketplace/pp/prodview-cvzx4oiv7oljm). For China marketplace deployments, use [this link](https://awsmarketplace.amazonaws.cn/marketplace/pp/prodview-d2em5t67apisy).
+
+| AWS Cloud                  | Product Code              |  Version                              |
+|:--------------------------:|:-------------------------:|:-------------------------------------:|
+| aws (Commercial)           | 2l8tfysndbav4tv2nfjwak3cu | ZS6.1.26.1 (Latest - as of Aug, 2024) |
+| aws-us-gov (US Government) | 2l8tfysndbav4tv2nfjwak3cu | ZS6.1.26.1 (Latest - as of Aug, 2024) |
+| aws-cn (China)             | axnpwhsb4facossmbm1h9yad6 | 24.3.1 (Latest - as of Aug, 2024)     |
+
 ## Considerations
 
 If sns_enabled to set to true where an sns topic AND sns topic subscription (for email alerts on ASG instance actions) are created, all email address endpoints will receive a subscription confirmation email from AWS. If a terraform destroy operation is performed without all subscriptions confirmed, it will succeed but the SNS subscription(s) will be ignored from destroy and remain in a "Pending Confirmation" state. AWS should automatically delete the pending subscription after a few days. See [Partially Supported values](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription#:~:text=for%20protocol%20include%3A-,NOTE%3A,remove%20the%20subscription%20from%20AWS.%20The%20pending_confirmation%20attribute%20provides%20confirmation%20status.,-email%20%2D%20Delivers%20messages)
-
-
 
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
