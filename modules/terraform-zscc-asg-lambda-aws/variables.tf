@@ -53,3 +53,14 @@ variable "architecture" {
     error_message = "Invalid architecture. Must be either 'x86_64' or 'arm64'."
   }
 }
+
+variable "runtime" {
+  description = "The runtime for the Lambda function (python3.11 or python3.12)"
+  type        = string
+  default     = "python3.12"
+
+  validation {
+    condition     = contains(["python3.11", "python3.12"], var.runtime)
+    error_message = "Invalid architecture. Must be either 'python3.11' or 'python3.12'."
+  }
+}
