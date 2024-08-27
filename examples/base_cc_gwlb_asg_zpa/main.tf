@@ -125,12 +125,12 @@ data "aws_ami" "cloudconnector" {
 
   filter {
     name   = "product-code"
-    values = ["2l8tfysndbav4tv2nfjwak3cu"]
+    values = var.aws_region == "cn-north-1" || var.aws_region == "cn-northwest-1" ? ["axnpwhsb4facossmbm1h9yad6"] : ["2l8tfysndbav4tv2nfjwak3cu"]
+    #change product code value for China marketplace
   }
 
   owners = ["aws-marketplace"]
 }
-
 
 # Create the specified CC VMs via Launch Template and Autoscaling Group
 module "cc_asg" {
@@ -282,6 +282,15 @@ module "asg_lambda" {
   secret_name             = var.secret_name
   autoscaling_group_names = module.cc_asg.autoscaling_group_ids
   asg_lambda_filename     = var.asg_lambda_filename
+  runtime                 = local.python3_11_restricted_regions ? "python3.11" : "python3.12"
+}
+
+#default lambda runtime should be python3.12, except for China and Gov regions that only support python3.11
+locals {
+  lambda_python3_11_regions_list = ["cn-north-1", "cn-northwest-1", "us-gov-east-1", "us-gov-west-1"]
+  python3_11_restricted_regions = (
+    contains(local.lambda_python3_11_regions_list, var.aws_region)
+  )
 }
 
 
