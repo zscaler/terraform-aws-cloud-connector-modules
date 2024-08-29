@@ -241,3 +241,11 @@
 #  appseg1 = "app1.com"
 #  appseg2 = "app2.com"
 #}
+
+## 39. ASG Lambda Version - by default the zscaler asg lambda deploymnet functionality will point to the "latest" version
+#      of the serouce code.
+##     Note: If you wish to use an older supported version you need to 
+#      TODO: Talk to @Jameson about the wording here() - How are customers going to know which versions they can use?
+#asg_lambda_version = "1.0.5"
+#asg_lambda_version = "1.0.6"
+
