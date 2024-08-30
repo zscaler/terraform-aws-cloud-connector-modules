@@ -1,4 +1,4 @@
-## 1.3.3 (August 31, 2024)
+## 1.3.3 (August 30, 2024)
 ENHANCEMENTS:
 * refactor: add china marketplace specific product-code ("axnpwhsb4facossmbm1h9yad6") lookup 
 * refactor: update zsec china conditions
