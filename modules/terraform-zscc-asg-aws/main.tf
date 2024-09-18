@@ -33,7 +33,7 @@ data "aws_kms_alias" "current_kms_arn" {
 # instance association
 ################################################################################
 resource "aws_launch_template" "cc_launch_template" {
-  count         = local.valid_cc_create && var.cc_instance_size == "small" ? 1 : 0
+  count         = local.valid_cc_create ? 1 : 0
   name          = "${var.name_prefix}-cc-launch-template-${var.resource_tag}"
   image_id      = var.ami_id[0]
   instance_type = var.ccvm_instance_type
