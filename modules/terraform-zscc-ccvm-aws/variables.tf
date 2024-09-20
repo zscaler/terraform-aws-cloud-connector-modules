@@ -92,7 +92,7 @@ variable "cc_count" {
 
 variable "mgmt_security_group_id" {
   type        = list(string)
-  description = "Cloud Connector EC2 Instance management subnet id"
+  description = "Cloud Connector EC2 Instance management security group id"
 }
 
 variable "additional_mgmt_security_group_ids" {
@@ -103,7 +103,7 @@ variable "additional_mgmt_security_group_ids" {
 
 variable "service_security_group_id" {
   type        = list(string)
-  description = "Cloud Connector EC2 Instance service subnet id"
+  description = "Cloud Connector EC2 Instance service security group id"
 }
 
 variable "iam_instance_profile" {
