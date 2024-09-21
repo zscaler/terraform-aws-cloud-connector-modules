@@ -91,7 +91,7 @@ resource "aws_network_interface" "cc_vm_nic_index_1" {
   count             = local.valid_cc_create ? var.cc_count : 0
   description       = "cc management interface"
   subnet_id         = element(var.mgmt_subnet_id, count.index)
-  security_groups   = [element(var.mgmt_security_group_id, count.index)]
+  security_groups   = concat([element(var.mgmt_security_group_id, count.index)], var.additional_mgmt_security_group_ids)
   source_dest_check = true
 
   attachment {

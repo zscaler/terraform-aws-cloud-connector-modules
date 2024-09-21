@@ -70,7 +70,7 @@ resource "aws_launch_template" "cc_launch_template" {
   network_interfaces {
     description                 = "cc management interface"
     device_index                = 1
-    security_groups             = [element(var.mgmt_security_group_id, 0)]
+    security_groups             = concat([element(var.mgmt_security_group_id, 0)], var.additional_mgmt_security_group_ids)
     associate_public_ip_address = false
   }
 
