@@ -260,15 +260,15 @@ module "gwlb_endpoint" {
 #    redirection to facilitate Cloud Connector ZPA service.
 ################################################################################
 module "route53" {
-  source                              = "../../modules/terraform-zscc-route53-aws"
-  name_prefix                         = var.name_prefix
-  resource_tag                        = random_string.suffix.result
-  global_tags                         = local.global_tags
-  vpc_id                              = module.network.vpc_id
-  r53_subnet_ids                      = module.network.route53_subnet_ids
-  outbound_endpoint_security_group_id = module.cc_sg.outbound_endpoint_security_group_id
-  domain_names                        = var.domain_names
-  target_address                      = var.target_address
+  source                               = "../../modules/terraform-zscc-route53-aws"
+  name_prefix                          = var.name_prefix
+  resource_tag                         = random_string.suffix.result
+  global_tags                          = local.global_tags
+  vpc_id                               = module.network.vpc_id
+  r53_subnet_ids                       = module.network.route53_subnet_ids
+  outbound_endpoint_security_group_ids = module.cc_sg.outbound_endpoint_security_group_id
+  domain_names                         = var.domain_names
+  target_address                       = var.target_address
 }
 
 
