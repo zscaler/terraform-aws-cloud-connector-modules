@@ -1,3 +1,8 @@
+## UNRELEASED (TBD)
+ENHANCEMENTS:
+* add variable additional_management_security_group_ids to terraform-zscc-ccvm-aws and terraform-zscc-asg-aws
+
+
 ## 1.3.3 (August 30, 2024)
 ENHANCEMENTS:
 * refactor: add china marketplace specific product-code ("axnpwhsb4facossmbm1h9yad6") lookup 
