@@ -33,7 +33,6 @@ No modules.
 | [aws_route53_resolver_rule.system](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_resolver_rule) | resource |
 | [aws_route53_resolver_rule_association.r53_rule_association_system](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_resolver_rule_association) | resource |
 | [aws_route53_resolver_rule_association.r53_rule_association_to_cc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_resolver_rule_association) | resource |
-| [aws_security_group.selected](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/security_group) | data source |
 
 ## Inputs
 
@@ -42,6 +41,7 @@ No modules.
 | <a name="input_domain_names"></a> [domain\_names](#input\_domain\_names) | Domain names fqdn/wildcard to have Route 53 redirect DNS requests to Cloud Connector for ZPA. Refer to terraform.tfvars step 10 | `map(any)` | n/a | yes |
 | <a name="input_global_tags"></a> [global\_tags](#input\_global\_tags) | Populate any custom user defined tags from a map | `map(string)` | `{}` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | A prefix to associate to all Route 53 module resources | `string` | `null` | no |
+| <a name="input_outbound_endpoint_security_group_ids"></a> [outbound\_endpoint\_security\_group\_ids](#input\_outbound\_endpoint\_security\_group\_ids) | Route53 DNS Resolver Outbound Endpoint Security Group ID | `list(string)` | n/a | yes |
 | <a name="input_r53_subnet_ids"></a> [r53\_subnet\_ids](#input\_r53\_subnet\_ids) | List of Subnet IDs for the Route53 Endpoint | `list(string)` | n/a | yes |
 | <a name="input_resource_tag"></a> [resource\_tag](#input\_resource\_tag) | A tag to associate to all Route 53 module resources | `string` | `null` | no |
 | <a name="input_target_address"></a> [target\_address](#input\_target\_address) | Route 53 DNS queries will be forwarded to these Zscaler Global VIP addresses | `list(string)` | <pre>[<br>  "185.46.212.88",<br>  "185.46.212.89"<br>]</pre> | no |
