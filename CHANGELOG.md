@@ -1,7 +1,16 @@
 ## UNRELEASED (TBD)
 ENHANCEMENTS:
-* add variable additional_management_security_group_ids to terraform-zscc-ccvm-aws and terraform-zscc-asg-aws
-
+* Module Changes:
+    - terraform-zscc-ccvm-aws:
+        - add variable additional_management_security_group_ids
+    - terraform-zscc-asg-aws:
+        - add variable additional_management_security_group_ids
+    - terraform-zscc-sg-aws:
+        - add resource aws_security_group.outbound_endpoint_sg
+        - add variables byo_route53_resolver_outbound_endpoint_group_id and zpa_enabled
+    - terraform-zscc-route53-aws:
+        - add variable outbound_endpoint_security_group_ids
+        - remove default security group usage per AWS best practices
 
 ## 1.3.3 (August 30, 2024)
 ENHANCEMENTS:
