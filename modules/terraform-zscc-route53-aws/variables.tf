@@ -26,7 +26,7 @@ variable "r53_subnet_ids" {
   description = "List of Subnet IDs for the Route53 Endpoint"
 }
 
-variable "outbound_endpoint_security_group_id" {
+variable "outbound_endpoint_security_group_ids" {
   type        = list(string)
   description = "Route53 DNS Resolver Outbound Endpoint Security Group ID"
 }

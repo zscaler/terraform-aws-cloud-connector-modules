@@ -5,7 +5,7 @@ resource "aws_route53_resolver_endpoint" "zpa_r53_ep" {
   name      = "${var.name_prefix}-r53-resolver-ep-${var.resource_tag}"
   direction = "OUTBOUND"
 
-  security_group_ids = var.outbound_endpoint_security_group_id
+  security_group_ids = var.outbound_endpoint_security_group_ids
 
   dynamic "ip_address" {
     for_each = var.r53_subnet_ids
