@@ -42,3 +42,9 @@ variable "allowed_principals" {
   description = "List of AWS Principal ARNs who are allowed access to the GWLB Endpoint Service. E.g. [\"arn:aws:iam::1234567890:root\"]`. See https://docs.aws.amazon.com/vpc/latest/privatelink/configure-endpoint-service.html#accept-reject-connection-requests"
   default     = []
 }
+
+variable "byo_endpoint_service_name" {
+  type        = string
+  description = "Exising GWLB Endpoint Service name to associate GWLB Endpoints to. Example string format:  \"com.amazonaws.vpce.<region>.<service id>\""
+  default     = null
+}
