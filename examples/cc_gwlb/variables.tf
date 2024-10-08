@@ -384,3 +384,9 @@ variable "cc_route_table_enabled" {
   description = "For brownfield environments where VPC subnets already exist, set to false to not create a new route table to associate to Cloud Connector subnet(s). Default is true which means module will try to create new route tables"
   default     = true
 }
+
+variable "byo_endpoint_service_name" {
+  type        = string
+  description = "Exising GWLB Endpoint Service name to associate GWLB Endpoints to. Example string format:  \"com.amazonaws.vpce.<region>.<service id>\""
+  default     = null
+}

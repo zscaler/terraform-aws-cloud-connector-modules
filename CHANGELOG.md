@@ -11,6 +11,8 @@ ENHANCEMENTS:
     - terraform-zscc-route53-aws:
         - add variable outbound_endpoint_security_group_ids
         - remove default security group usage per AWS best practices
+    - terraform-zscc-gwlbendpoint-aws:
+        - add variable byo_endpoint_service_name supporting brownfield deployments using a pre-existing VPC Endpoint Service
 
 ## 1.3.3 (August 30, 2024)
 ENHANCEMENTS:
