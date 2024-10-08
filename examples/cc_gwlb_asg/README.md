@@ -91,6 +91,7 @@ From cc_gwlb_asg directory execute:
 | <a name="input_asg_lambda_filename"></a> [asg\_lambda\_filename](#input\_asg\_lambda\_filename) | Name of the lambda zip file without suffix | `string` | `"zscaler_cc_lambda_service"` | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region. | `string` | `"us-west-2"` | no |
 | <a name="input_az_count"></a> [az\_count](#input\_az\_count) | Default number of subnets to create based on availability zone | `number` | `2` | no |
+| <a name="input_byo_endpoint_service_name"></a> [byo\_endpoint\_service\_name](#input\_byo\_endpoint\_service\_name) | Exising GWLB Endpoint Service name to associate GWLB Endpoints to. Example string format:  "com.amazonaws.vpce.<region>.<service id>" | `string` | `null` | no |
 | <a name="input_byo_iam"></a> [byo\_iam](#input\_byo\_iam) | Bring your own IAM Instance Profile for Cloud Connector | `bool` | `false` | no |
 | <a name="input_byo_iam_instance_profile_id"></a> [byo\_iam\_instance\_profile\_id](#input\_byo\_iam\_instance\_profile\_id) | IAM Instance Profile ID for Cloud Connector association | `list(string)` | `null` | no |
 | <a name="input_byo_igw"></a> [byo\_igw](#input\_byo\_igw) | Bring your own AWS VPC for Cloud Connector | `bool` | `false` | no |
