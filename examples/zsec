@@ -1468,6 +1468,31 @@ first_run="yes"
                     esac
                 done
             fi
+            while true; do
+                read -r -p "${CYAN}Do you have an existing VPC Endpoint Service to use? (yes/no): ${RESET}" byo_endpoint_service_response
+                case $byo_endpoint_service_response in 
+                yes|y ) 
+                    echo "${GREEN}Terraform will try to associate GWLB Endpoints to an existing Endpoint Service...${RESET}"
+                    while true; do
+                        read -r -p "${CYAN}Enter the Endpoint Service Name (e.g. com.amazonaws.vpce.$aws_region.<service id>): ${RESET}" byo_endpoint_service_name_response
+                        case $byo_endpoint_service_name_response in
+                        "com.amazonaws.vpce.$aws_region."* )
+                            echo "You entered ${GREEN}$byo_endpoint_service_name_response${RESET}"
+                            echo "export TF_VAR_byo_endpoint_service_name='$byo_endpoint_service_name_response'" >> .zsecrc
+                        break
+                        ;;
+                        * ) echo "${RED}Invalid Endpoint Service Name. Check formatting and try again...${RESET}";;
+                        esac
+                    done
+                break
+                ;;
+                no|n ) 
+                    echo "${GREEN}Terraform will create a new Endpoint Service to associate new GWLB Endpoints... ${RESET}"
+                break
+                ;;
+                * ) echo "${RED}Invalid response. Please enter yes or no${RESET}";;
+                esac
+            done
         fi
 
         # ZPA/Route 53 configuration
@@ -1511,7 +1536,7 @@ first_run="yes"
             echo "export TF_VAR_domain_names=${domain_names_map}" >> .zsecrc
         fi
 
-        # IAM Policy cration for Cloud Tagging Integration
+        # IAM Policy creation for Cloud Tagging Integration
         while true; do
             read -r -p "${CYAN}Enable IAM permissions for cloud workload tagging? (yes/no): ${RESET}" cloud_tags_response
             case $cloud_tags_response in 
