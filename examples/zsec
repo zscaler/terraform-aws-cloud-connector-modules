@@ -346,7 +346,7 @@ first_run="yes"
 
     if [[ "$dtype" != "base" ]]; then
         PS3="${CYAN}Select your Zscaler Cloud: ${RESET}"
-        zs_clouds=("zscloud.net" "zscaler.net" "zscalertwo.net" "zscalerthree.net" "zscalerten.net" "zscalerbeta.net" "other")
+        zs_clouds=("zscloud.net" "zscaler.net" "zscalertwo.net" "zscalerthree.net" "zscalerten.net" "zscalergov.net" "zscalerbeta.net" "other")
         select zscaler_cloud in "${zs_clouds[@]}"
         do
             case $REPLY in
@@ -381,6 +381,11 @@ first_run="yes"
                 break
                 ;;
                 7)
+                    echo "Zscaler Cloud ${GREEN}$zscaler_cloud${RESET} selected"
+                    zscaler_cloud=$zscaler_cloud
+                break
+                ;;
+                8)
                     echo "Zscaler Cloud ${YELLOW}$zscaler_cloud${RESET} selected"
                     while true; do
                         read -r -p "${CYAN}Enter your desired Zscaler Cloud name (e.g. zscalerbeta.net): ${RESET}" manual_cloud_name_response
