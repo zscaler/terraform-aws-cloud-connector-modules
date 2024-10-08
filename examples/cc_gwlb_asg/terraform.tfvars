@@ -364,3 +364,9 @@
 ##     By uncommenting (setting to false) this assumes that you have an existing VPC/Subnets (byo_subnets = true)
 
 #cc_route_table_enabled                     = false
+
+## 52. By default, this script will create a new VPC Endpoint Service in all availability zones specifified.
+##     Uncomment, and provide your existing GWLB Endpoint Service name to associate new GWLB Endpoints to 
+##     Example string format: "com.amazonaws.vpce.<region>.<service id>"
+
+#byo_endpoint_service_name                  = "endpoint service name"
