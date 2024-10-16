@@ -98,6 +98,7 @@ From cc_gwlb directory execute:
 | <a name="input_byo_mgmt_security_group_id"></a> [byo\_mgmt\_security\_group\_id](#input\_byo\_mgmt\_security\_group\_id) | Management Security Group ID for Cloud Connector association | `list(string)` | `null` | no |
 | <a name="input_byo_ngw"></a> [byo\_ngw](#input\_byo\_ngw) | Bring your own AWS NAT Gateway(s) Cloud Connector | `bool` | `false` | no |
 | <a name="input_byo_ngw_ids"></a> [byo\_ngw\_ids](#input\_byo\_ngw\_ids) | User provided existing AWS NAT Gateway IDs | `list(string)` | `null` | no |
+| <a name="input_byo_r53_subnet_ids"></a> [byo\_r53\_subnet\_ids](#input\_byo\_r53\_subnet\_ids) | User provided existing AWS Subnet IDs reserved for ZPA/Route53 use | `list(string)` | `[]` | no |
 | <a name="input_byo_security_group"></a> [byo\_security\_group](#input\_byo\_security\_group) | Bring your own Security Group for Cloud Connector | `bool` | `false` | no |
 | <a name="input_byo_service_security_group_id"></a> [byo\_service\_security\_group\_id](#input\_byo\_service\_security\_group\_id) | Service Security Group ID for Cloud Connector association | `list(string)` | `null` | no |
 | <a name="input_byo_subnet_ids"></a> [byo\_subnet\_ids](#input\_byo\_subnet\_ids) | User provided existing AWS Subnet IDs | `list(string)` | `null` | no |
@@ -125,6 +126,7 @@ From cc_gwlb directory execute:
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | The name prefix for all your resources | `string` | `"zscc"` | no |
 | <a name="input_owner_tag"></a> [owner\_tag](#input\_owner\_tag) | populate custom owner tag attribute | `string` | `"zscc-admin"` | no |
 | <a name="input_public_subnets"></a> [public\_subnets](#input\_public\_subnets) | Public/NAT GW Subnets to create in VPC. This is only required if you want to override the default subnets that this code creates via vpc\_cidr variable. | `list(string)` | `null` | no |
+| <a name="input_r53_route_table_enabled"></a> [r53\_route\_table\_enabled](#input\_r53\_route\_table\_enabled) | For brownfield environments where VPC subnets already exist, set to false to not create a new route table to associate to ZPA/Route 53 reserved subnet(s). Default is true which means module will try to create new route tables | `bool` | `true` | no |
 | <a name="input_rebalance_enabled"></a> [rebalance\_enabled](#input\_rebalance\_enabled) | Indicates how the GWLB handles existing flows when a target is deregistered or marked unhealthy. true means rebalance. false means no\_rebalance. Default: true | `bool` | `true` | no |
 | <a name="input_reuse_iam"></a> [reuse\_iam](#input\_reuse\_iam) | Specifies whether the SG module should create 1:1 IAM per instance or 1 IAM for all instances | `bool` | `false` | no |
 | <a name="input_reuse_security_group"></a> [reuse\_security\_group](#input\_reuse\_security\_group) | Specifies whether the SG module should create 1:1 security groups per instance or 1 security group for all instances | `bool` | `false` | no |
