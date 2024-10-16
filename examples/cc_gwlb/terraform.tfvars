@@ -334,3 +334,16 @@
 ##     Example string format: "com.amazonaws.vpce.<region>.<service id>"
 
 #byo_endpoint_service_name                  = "endpoint service name"
+
+## 43. Provide your existing private subnet IDs to create Route53 Outbound Endpoints in.
+##     Subnet IDs must be added as a list with order determining assocations for resources created. 
+##     Provide a minimum of 2 subnet IDs needed to create Endpoints 
+##
+##     Example: byo_r53_subnet_ids = ["subnet-05c32f4aa6bc02f8f","subnet-13b35f23y6uc36f3s"]
+
+#byo_r53_subnet_ids                         = ["subnet-id-1", "subnet-id-2"]
+
+## 44. By default, this script will create new route table resources associated to Route53 defined private subnets
+##     Uncomment, if you do NOT want to create new route tables (true or false. Default: true)
+
+#r53_route_table_enabled                    = false

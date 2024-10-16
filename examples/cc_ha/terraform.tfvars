@@ -284,6 +284,19 @@
 
 #cc_route_table_enabled                     = false
 
+## 35. Provide your existing private subnet IDs to create Route53 Outbound Endpoints in.
+##     Subnet IDs must be added as a list with order determining assocations for resources created. 
+##     Provide a minimum of 2 subnet IDs needed to create Endpoints 
+##
+##     Example: byo_r53_subnet_ids = ["subnet-05c32f4aa6bc02f8f","subnet-13b35f23y6uc36f3s"]
+
+#byo_r53_subnet_ids                         = ["subnet-id-1", "subnet-id-2"]
+
+## 36. By default, this script will create new route table resources associated to Route53 defined private subnets
+##     Uncomment, if you do NOT want to create new route tables (true or false. Default: true)
+
+#r53_route_table_enabled                    = false
+
 #####################################################################################################################
 ##### Custom BYO variables. Only applicable for Lambda (non-GWLB) deployments without "base"       #####
 ##### resource requirements for Workload Route Table swaps. E.g. "cc_ha"                       #####
@@ -292,7 +305,7 @@
 ##### subnets already exist. Therefore, you must provide at least byo_vpc information              #####
 #####################################################################################################################
 
-## 35. Provide your existing Workload Route Table IDs. Route Table IDs must be added as a list and should be paired to
+## 37. Provide your existing Workload Route Table IDs. Route Table IDs must be added as a list and should be paired to
 ##     the primary Cloud Connector each Route Table would be forwarding traffic to in normal operation
 ##
 ##     Example: 
