@@ -20,7 +20,7 @@ output "public_subnet_ids" {
 
 output "route53_subnet_ids" {
   description = "Route 53 Subnet ID"
-  value       = aws_subnet.route53_subnet[*].id
+  value       = length(var.byo_r53_subnet_ids) == 0 ? aws_subnet.route53_subnet[*].id : data.aws_subnet.route53_subnet_selected[*].id
 }
 
 output "nat_gateway_ips" {

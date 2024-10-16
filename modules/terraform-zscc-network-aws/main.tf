@@ -128,7 +128,7 @@ resource "aws_route_table_association" "public_rt_association" {
 ################################################################################
 # Create equal number of Workload/Private Subnets to how many Cloud Connector subnets exist. This will not be created if var.workloads_enabled is set to False
 resource "aws_subnet" "workload_subnet" {
-  count             = var.workloads_enabled == true ? length(aws_subnet.cc_subnet[*].id) : 0
+  count             = var.workloads_enabled == true ? length(data.aws_subnet.cc_subnet_selected[*].id) : 0
   availability_zone = data.aws_availability_zones.available.names[count.index]
   cidr_block        = var.workloads_subnets != null ? element(var.workloads_subnets, count.index) : cidrsubnet(try(data.aws_vpc.vpc_selected[0].cidr_block, aws_vpc.vpc[0].cidr_block), 8, count.index + 1)
   vpc_id            = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
@@ -211,9 +211,9 @@ resource "aws_route_table_association" "cc_rt_asssociation" {
 # Private (Route 53 Endpoint) Subnet & Route Tables
 ################################################################################
 # Optional Route53 subnet creation for ZPA
-# Create Route53 Subnets. Defaults to 2 minimum. Modify the count here if you want to create more than 2.
+# Create Route53 reserved subnets in X availability zones per az_count variable or minimum of 2; whichever is greater
 resource "aws_subnet" "route53_subnet" {
-  count             = var.zpa_enabled == true ? 2 : 0
+  count             = var.zpa_enabled && length(var.byo_r53_subnet_ids) == 0 ? max(length(data.aws_subnet.cc_subnet_selected[*].id), 2) : 0
   availability_zone = data.aws_availability_zones.available.names[count.index]
   cidr_block        = var.route53_subnets != null ? element(var.route53_subnets, count.index) : cidrsubnet(try(data.aws_vpc.vpc_selected[0].cidr_block, aws_vpc.vpc[0].cidr_block), 12, (64 + count.index * 16))
   vpc_id            = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
@@ -223,9 +223,16 @@ resource "aws_subnet" "route53_subnet" {
   )
 }
 
+# Or reference existing subnets
+data "aws_subnet" "route53_subnet_selected" {
+  count = var.zpa_enabled && length(var.byo_r53_subnet_ids) != 0 ? length(var.byo_r53_subnet_ids) : 0
+  id    = element(var.byo_r53_subnet_ids, count.index)
+}
+
+
 # Create Route Table for Route53 routing to GWLB Endpoint in the same AZ for DNS redirection
 resource "aws_route_table" "route53_rt" {
-  count  = var.zpa_enabled == true ? length(aws_subnet.route53_subnet[*].id) : 0
+  count  = var.zpa_enabled && var.r53_route_table_enabled ? length(coalescelist(data.aws_subnet.route53_subnet_selected[*].id, aws_subnet.route53_subnet[*].id)) : 0
   vpc_id = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
   route {
     cidr_block           = "0.0.0.0/0"
@@ -241,6 +248,6 @@ resource "aws_route_table" "route53_rt" {
 # Route53 Subnets Route Table Assocation
 resource "aws_route_table_association" "route53_rt_asssociation" {
   count          = var.zpa_enabled == true ? length(aws_subnet.route53_subnet[*].id) : 0
-  subnet_id      = aws_subnet.route53_subnet[count.index].id
+  subnet_id      = try(data.aws_subnet.route53_subnet_selected[count.index].id, aws_subnet.route53_subnet[count.index].id)
   route_table_id = aws_route_table.route53_rt[count.index].id
 }
