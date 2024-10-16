@@ -116,7 +116,7 @@ variable "byo_subnets" {
 
 variable "byo_subnet_ids" {
   type        = list(string)
-  description = "User provided existing AWS Subnet IDs"
+  description = "User provided existing AWS Subnet IDs for Cloud Connector instances"
   default     = null
 }
 
@@ -147,5 +147,22 @@ variable "byo_ngw_ids" {
 variable "cc_route_table_enabled" {
   type        = bool
   description = "For brownfield environments where VPC subnets already exist, set to false to not create a new route table to associate to Cloud Connector subnet(s). Default is true which means module will try to create new route tables"
+  default     = true
+}
+
+variable "byo_r53_subnet_ids" {
+  type        = list(string)
+  description = "User provided existing AWS Subnet IDs reserved for ZPA/Route53 use"
+  default     = []
+
+  validation {
+    condition     = length(var.byo_r53_subnet_ids) != 1
+    error_message = "Minimum number of subnets not met. Provide at least 2 subnet IDs."
+  }
+}
+
+variable "r53_route_table_enabled" {
+  type        = bool
+  description = "For brownfield environments where VPC subnets already exist, set to false to not create a new route table to associate to ZPA/Route 53 reserved subnet(s). Default is true which means module will try to create new route tables"
   default     = true
 }
