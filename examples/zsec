@@ -808,7 +808,7 @@ first_run="yes"
                         zonal_asg=true 
                     else
                         az_count=1
-                        echo "Terraform will deploy ${GREEN}$cc_count Cloud Connectors across $az_count Availabiliy Zone subnets${RESET} in $aws_region"
+                        echo "Terraform will deploy ${GREEN}$cc_count Cloud Connectors across $az_count Availability Zone subnets${RESET} in $aws_region"
                         echo "export TF_VAR_az_count=$az_count" >> .zsecrc
                     fi
                     break
@@ -1218,7 +1218,29 @@ first_run="yes"
             fi
         fi
 
-        #Browfield/BYO Networking Options
+        # Prompt for ZPA/Route 53 enablement in brownfield environments
+        if [[ "$deployment" == "brownfield" ]]; then
+            while true; do
+                read -r -p "${CYAN}Enable Route 53 configuration for ZPA? (yes/no): ${RESET}" zpa_response
+                case $zpa_response in 
+                yes|y ) 
+                    echo "${GREEN}Enabling Route 53 module...${RESET}"
+                    zpa_enabled=true
+                    echo "export TF_VAR_zpa_enabled=$zpa_enabled" >> .zsecrc
+                break
+                ;;
+                no|n )
+                    echo "${GREEN}No ZPA enablement...${RESET}"
+                    zpa_enabled=false
+                    echo "export TF_VAR_zpa_enabled=$zpa_enabled" >> .zsecrc
+                break
+                ;;
+                * ) echo "${RED}Invalid response. Please enter yes or no${RESET}";;
+                esac
+            done 
+        fi
+
+        #Brownfield/BYO Networking Options
         if [[ "$deployment" == "brownfield" ]]; then
             echo "Configure Networking Infrastructure..."
             while true; do
@@ -1286,6 +1308,51 @@ first_run="yes"
                 done
             fi
 
+            if [[ "$byo_vpc" == "true" && "$zpa_enabled" == "true" ]]; then
+                echo "${GREEN}Existing VPC with ZPA enablement detected...${RESET}"
+                echo "${YELLOW}Terraform will attempt to create multiple Route 53 Outbound Endpoints${RESET}"
+                while true; do
+                    read -r -p "${CYAN}Are there existing subnets in $byo_vpc_id you want to create Outbound Endpoints in? (yes/no): ${RESET}" byo_r53_subnet_response
+                    case $byo_r53_subnet_response in 
+                    yes|y ) 
+                        echo "${GREEN}Using existing subnets for Route 53 resources...${RESET}"
+                        byo_r53_subnets=true
+                        if [[ "$az_count" == "1" ]]; then
+                            echo "${CYAN}$az_count availability zone chosen for Cloud Connectors. Minimum subnets for Route 53 resiliency is 2" 
+                            read -r -p "${CYAN}Please enter the first subnet ID (E.g subnet-05c32f4aa6bc02f8f): ${RESET}" subnet_1
+                            echo "You entered ${GREEN}$subnet_1${RESET}"
+                            read -r -p "${CYAN}Please enter the second subnet ID (E.g subnet-05c32f4aa6bc02f8f): ${RESET}" subnet_2
+                            echo "You entered ${GREEN}$subnet_2${RESET}"
+                            echo "export TF_VAR_byo_r53_subnet_ids='[\"${subnet_1}\",\"${subnet_2}\"]'" >> .zsecrc
+                        elif [[ "$az_count" == "2" ]]; then
+                            echo "$az_count availability zones chosen"
+                            read -r -p "${CYAN}Please enter the first subnet ID (E.g subnet-05c32f4aa6bc02f8f): ${RESET}" subnet_1
+                            echo "You entered ${GREEN}$subnet_1${RESET}"
+                            read -r -p "${CYAN}Please enter the second subnet ID (E.g subnet-05c32f4aa6bc02f8f): ${RESET}" subnet_2
+                            echo "You entered ${GREEN}$subnet_2${RESET}"
+                            echo "export TF_VAR_byo_r53_subnet_ids='[\"${subnet_1}\",\"${subnet_2}\"]'" >> .zsecrc
+                        elif [[ "$az_count" == "3" ]]; then
+                            echo "$az_count availability zones chosen"
+                            read -r -p "${CYAN}Please enter the first subnet ID (E.g subnet-05c32f4aa6bc02f8f): ${RESET}" subnet_1
+                            echo "You entered ${GREEN}$subnet_1${RESET}"
+                            read -r -p "${CYAN}Please enter the second subnet ID (E.g subnet-05c32f4aa6bc02f8f): ${RESET}" subnet_2
+                            echo "You entered ${GREEN}$subnet_2${RESET}"
+                            read -r -p "${CYAN}Please enter the third subnet ID (E.g subnet-05c32f4aa6bc02f8f): ${RESET}" subnet_3
+                            echo "You entered ${GREEN}$subnet_3${RESET}"
+                            echo "export TF_VAR_byo_r53_subnet_ids='[\"${subnet_1}\",\"${subnet_2}\",\"${subnet_3}\"]'" >> .zsecrc
+                        fi
+                    break
+                    ;;
+                    no|n )
+                        echo "${GREEN}Terraform will attempt to create new subnets in $byo_vpc_id${RESET}"
+                        byo_r53_subnets=false
+                    break
+                    ;;
+                    * ) echo "${RED}Invalid response. Please enter yes or no${RESET}";;
+                    esac
+                done
+            fi
+
             #If byo_subnets is true, prompt for whether to create private CC subnet route tables or not. Assumption is they already exist
             if [[ "$byo_subnets" == "true" ]]; then
             cc_route_table_response_default="no"
@@ -1320,19 +1387,19 @@ first_run="yes"
                     yes|y )
                         echo "Configuring each Cloud Connector subnet range..."
                         if [[ "$az_count" == "1" ]]; then
-                            read -r -p "${CYAN}$az_count availability zone chosen. Please enter the desired subnet range that falls within $byo_vpc_id CIDR (E.g 10.2.0.0/24): ${RESET}" cc_subnets_1
+                            read -r -p "${CYAN}$az_count availability zone chosen. Please enter the desired subnet range to create that falls within $byo_vpc_id CIDR (E.g 10.2.0.0/24): ${RESET}" cc_subnets_1
                             echo "You entered ${GREEN}$cc_subnets_1${RESET}"
                             echo "export TF_VAR_cc_subnets='[\"${cc_subnets_1}\"]'" >> .zsecrc
                         elif [[ "$az_count" == "2" ]]; then
                             echo "$az_count availability zones chosen"
-                            read -r -p "${CYAN}Please enter the first subnet range (E.g 10.2.0.0/24): ${RESET}" cc_subnets_1
+                            read -r -p "${CYAN}Please enter the first subnet range to create (E.g 10.2.0.0/24): ${RESET}" cc_subnets_1
                             echo "You entered ${GREEN}$cc_subnets_1${RESET}"
                             read -r -p "${CYAN}Please enter the second subnet range (E.g 10.2.1.0/24): ${RESET}" cc_subnets_2
                             echo "You entered ${GREEN}$cc_subnets_2${RESET}"
                             echo "export TF_VAR_cc_subnets='[\"${cc_subnets_1}\",\"${cc_subnets_2}\"]'" >> .zsecrc
                         elif [[ "$az_count" == "3" ]]; then
                             echo "$az_count availability zones chosen"
-                            read -r -p "${CYAN}Please enter the first subnet range (E.g 10.2.0.0/24): ${RESET}" cc_subnets_1
+                            read -r -p "${CYAN}Please enter the first subnet range to create (E.g 10.2.0.0/24): ${RESET}" cc_subnets_1
                             echo "You entered ${GREEN}$cc_subnets_1${RESET}"
                             read -r -p "${CYAN}Please enter the second subnet ID (E.g 10.2.1.0/24): ${RESET}" cc_subnets_2
                             echo "You entered ${GREEN}$cc_subnets_2${RESET}"
@@ -1350,47 +1417,30 @@ first_run="yes"
                     esac
                 done 
             fi
-
-            # Prompt for ZPA/Route 53 enablement
-            while true; do
-                read -r -p "${CYAN}Enable Route 53 configuration for ZPA? (yes/no): ${RESET}" zpa_response
-                case $zpa_response in 
-                yes|y ) 
-                    echo "${GREEN}Enabling Route 53 module...${RESET}"
-                    zpa_enabled=true
-                    echo "export TF_VAR_zpa_enabled=$zpa_enabled" >> .zsecrc
-                break
-                ;;
-                no|n )
-                    echo "${GREEN}No ZPA enablement...${RESET}"
-                    zpa_enabled=false
-                    echo "export TF_VAR_zpa_enabled=$zpa_enabled" >> .zsecrc
-                break
-                ;;
-                * ) echo "${RED}Invalid response. Please enter yes or no${RESET}";;
-                esac
-            done 
     
-            if [[ "$byo_subnets" == "false" && "$zpa_enabled" == "true" ]]; then
+            if [[ "$byo_r53_subnets" == "false" ]]; then
                 while true; do
                     read -r -p "${CYAN}Do you want to manually define the Route 53 subnet ranges? (yes/no): ${RESET}" change_r53_cidr_response
                     case $change_r53_cidr_response in 
                     yes|y )
                         echo "Configuring each Route 53 subnet range..."
                         if [[ "$az_count" == "1" ]]; then
-                            read -r -p "${CYAN}$az_count availability zone chosen. Please enter the desired subnet range that falls within $byo_vpc_id CIDR (E.g 10.2.0.0/24): ${RESET}" r53_subnets_1
+                            echo "${CYAN}$az_count availability zone chosen for Cloud Connectors. Minimum subnets for Route 53 resiliency is 2" 
+                            read -r -p "${CYAN}Please enter the first subnet to create that falls within $byo_vpc_id CIDR range (E.g 10.2.0.0/24): ${RESET}" r53_subnets_1
                             echo "You entered ${GREEN}$r53_subnets_1${RESET}"
-                            echo "export TF_VAR_route53_subnets='[\"${cc_subnets_1}\"]'" >> .zsecrc
+                            read -r -p "${CYAN}Please enter the second subnet range (E.g 10.2.1.0/24): ${RESET}" r53_subnets_2
+                            echo "You entered ${GREEN}$r53_subnets_2${RESET}"
+                            echo "export TF_VAR_route53_subnets='[\"${r53_subnets_1}\",\"${r53_subnets_2}\"]'" >> .zsecrc
                         elif [[ "$az_count" == "2" ]]; then
                             echo "$az_count availability zones chosen"
-                            read -r -p "${CYAN}Please enter the first subnet range (E.g 10.2.0.0/24): ${RESET}" r53_subnets_1
+                            read -r -p "${CYAN}Please enter the first subnet range to create (E.g 10.2.0.0/24): ${RESET}" r53_subnets_1
                             echo "You entered ${GREEN}$r53_subnets_1${RESET}"
                             read -r -p "${CYAN}Please enter the second subnet range (E.g 10.2.1.0/24): ${RESET}" r53_subnets_2
                             echo "You entered ${GREEN}$r53_subnets_2${RESET}"
                             echo "export TF_VAR_route53_subnets='[\"${r53_subnets_1}\",\"${r53_subnets_2}\"]'" >> .zsecrc
                         elif [[ "$az_count" == "3" ]]; then
                             echo "$az_count availability zones chosen"
-                            read -r -p "${CYAN}Please enter the first subnet range (E.g 10.2.0.0/24): ${RESET}" r53_subnets_1
+                            read -r -p "${CYAN}Please enter the first subnet range to create (E.g 10.2.0.0/24): ${RESET}" r53_subnets_1
                             echo "You entered ${GREEN}$r53_subnets_1${RESET}"
                             read -r -p "${CYAN}Please enter the second subnet range (E.g 10.2.1.0/24): ${RESET}" r53_subnets_2
                             echo "You entered ${GREEN}$r53_subnets_2${RESET}"
