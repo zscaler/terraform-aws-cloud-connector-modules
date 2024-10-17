@@ -13,6 +13,10 @@ ENHANCEMENTS:
         - remove default security group usage per AWS best practices
     - terraform-zscc-gwlbendpoint-aws:
         - add variable byo_endpoint_service_name supporting brownfield deployments using a pre-existing VPC Endpoint Service
+    - terraform-zscc-network-aws:
+        - add variables byo_r53_subnet_ids and r53_route_table_enabled option for custom zpa deployments with existing Route53 subnets and/or Route Tables
+        - change aws_subnet.route53_subnet resource count from hard coded "2" to the value of var.az_count or minimum 2 (whichever is greater) for more consistent private subnet creations
+* refactor: add zsec prompts brownfield zpa network options
 
 ## 1.3.3 (August 30, 2024)
 ENHANCEMENTS:
