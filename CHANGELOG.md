@@ -3,8 +3,16 @@ ENHANCEMENTS:
 * Module Changes:
     - terraform-zscc-ccvm-aws:
         - add variable additional_management_security_group_ids
+        - add variables hostname_type and resource_name_dns_a_record_enabled
+        - change default private_dns_name_options hostname_type to AWS recommended resource-name from ip-name
+        - lifecycle ignore private_dns_name_options on aws_instance resource
+            - **While AWS supports changing hostname_type for deployed instances if stopped first, Cloud Connector does not. This change will only apply to newly deployed EC2 instances**
     - terraform-zscc-asg-aws:
         - add variable additional_management_security_group_ids
+        - add variables hostname_type and resource_name_dns_a_record_enabled
+        - change default private_dns_name_options hostname_type to AWS recommended resource-name from ip-name
+        - lifecycle ignore private_dns_name_options on aws_launch_template resource
+            - **While AWS supports changing hostname_type for deployed instances if stopped first, Cloud Connector does not. This change will only apply to newly deployed EC2 instances**
     - terraform-zscc-sg-aws:
         - add resource aws_security_group.outbound_endpoint_sg
         - add variables byo_route53_resolver_outbound_endpoint_group_id and zpa_enabled
@@ -16,7 +24,10 @@ ENHANCEMENTS:
     - terraform-zscc-network-aws:
         - add variables byo_r53_subnet_ids and r53_route_table_enabled option for custom zpa deployments with existing Route53 subnets and/or Route Tables
         - change aws_subnet.route53_subnet resource count from hard coded "2" to the value of var.az_count or minimum 2 (whichever is greater) for more consistent private subnet creations
+        - add variables hostname_type and resource_name_dns_a_record_enabled
+        - change default private_dns_hostname_type_on_launch to AWS recommended resource-name from ip-name for greenfield CC Subnet creations
 * refactor: add zsec prompts brownfield zpa network options
+        
 
 ## 1.3.3 (August 30, 2024)
 ENHANCEMENTS:
