@@ -139,3 +139,23 @@ variable "byo_kms_key_alias" {
   description = "Requires var.ebs_encryption_enabled to be true. Set to null by default which is the AWS default managed/master key. Set as 'alias/<key-alias>' to use a custom KMS key"
   default     = null
 }
+
+variable "hostname_type" {
+  type        = string
+  description = "Type of hostname for Amazon EC2 instances"
+  default     = "resource-name"
+
+  validation {
+    condition = (
+      var.hostname_type == "resource-name" ||
+      var.hostname_type == "ip-name"
+    )
+    error_message = "Input hostname_type must be set to either resource-name or ip-name."
+  }
+}
+
+variable "resource_name_dns_a_record_enabled" {
+  type        = bool
+  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS A records. Default is false"
+  default     = false
+}

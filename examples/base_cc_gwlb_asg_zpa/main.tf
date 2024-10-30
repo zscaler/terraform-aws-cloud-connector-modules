@@ -134,23 +134,25 @@ data "aws_ami" "cloudconnector" {
 
 # Create the specified CC VMs via Launch Template and Autoscaling Group
 module "cc_asg" {
-  source                    = "../../modules/terraform-zscc-asg-aws"
-  name_prefix               = var.name_prefix
-  resource_tag              = random_string.suffix.result
-  global_tags               = local.global_tags
-  cc_subnet_ids             = module.network.cc_subnet_ids
-  zonal_asg_enabled         = var.zonal_asg_enabled
-  ccvm_instance_type        = var.ccvm_instance_type
-  cc_instance_size          = var.cc_instance_size
-  instance_key              = aws_key_pair.deployer.key_name
-  user_data                 = local.userdata
-  iam_instance_profile      = module.cc_iam.iam_instance_profile_id
-  mgmt_security_group_id    = module.cc_sg.mgmt_security_group_id
-  service_security_group_id = module.cc_sg.service_security_group_id
-  ami_id                    = contains(var.ami_id, "") ? [data.aws_ami.cloudconnector.id] : var.ami_id
-  ebs_volume_type           = var.ebs_volume_type
-  ebs_encryption_enabled    = var.ebs_encryption_enabled
-  byo_kms_key_alias         = var.byo_kms_key_alias
+  source                             = "../../modules/terraform-zscc-asg-aws"
+  name_prefix                        = var.name_prefix
+  resource_tag                       = random_string.suffix.result
+  global_tags                        = local.global_tags
+  cc_subnet_ids                      = module.network.cc_subnet_ids
+  zonal_asg_enabled                  = var.zonal_asg_enabled
+  ccvm_instance_type                 = var.ccvm_instance_type
+  cc_instance_size                   = var.cc_instance_size
+  instance_key                       = aws_key_pair.deployer.key_name
+  user_data                          = local.userdata
+  iam_instance_profile               = module.cc_iam.iam_instance_profile_id
+  mgmt_security_group_id             = module.cc_sg.mgmt_security_group_id
+  service_security_group_id          = module.cc_sg.service_security_group_id
+  ami_id                             = contains(var.ami_id, "") ? [data.aws_ami.cloudconnector.id] : var.ami_id
+  ebs_volume_type                    = var.ebs_volume_type
+  ebs_encryption_enabled             = var.ebs_encryption_enabled
+  byo_kms_key_alias                  = var.byo_kms_key_alias
+  hostname_type                      = var.hostname_type
+  resource_name_dns_a_record_enabled = var.resource_name_dns_a_record_enabled
 
   max_size                  = var.max_size
   min_size                  = var.min_size

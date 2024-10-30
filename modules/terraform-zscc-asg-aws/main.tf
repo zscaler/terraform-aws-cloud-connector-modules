@@ -91,10 +91,19 @@ resource "aws_launch_template" "cc_launch_template" {
     }
   }
 
+  private_dns_name_options {
+    enable_resource_name_dns_a_record = var.resource_name_dns_a_record_enabled
+    hostname_type                     = var.hostname_type
+  }
+
   tags = merge(var.global_tags)
 
   lifecycle {
     create_before_destroy = true
+    ignore_changes        = [private_dns_name_options]
+    #While AWS supports changing hostname_type for deployed instances if stopped first, Cloud Connector does not. 
+    #Whatever hostname_type value set at deployment will persist the lifetime of the EC2
+    #If you do want to change this, you must destroy and redeploy the instance(s).
   }
 }
 

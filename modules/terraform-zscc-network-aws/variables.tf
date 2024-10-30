@@ -94,6 +94,27 @@ variable "base_only" {
   description = "Default is falase. Only applicable for base deployment type resulting in workload and bastion hosts, but no Cloud Connector resources. Setting this to true will point workload route able to nat_gateway_id"
 }
 
+variable "hostname_type" {
+  type        = string
+  description = "Type of hostname for Amazon EC2 instances"
+  default     = "resource-name"
+
+  validation {
+    condition = (
+      var.hostname_type == "resource-name" ||
+      var.hostname_type == "ip-name"
+    )
+    error_message = "Input hostname_type must be set to either resource-name or ip-name."
+  }
+}
+
+variable "resource_name_dns_a_record_enabled" {
+  type        = bool
+  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS A records. Default is false"
+  default     = false
+}
+
+
 # BYO (Bring-your-own) variables list
 
 variable "byo_vpc" {
