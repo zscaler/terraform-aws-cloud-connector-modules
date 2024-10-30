@@ -62,12 +62,14 @@ No modules.
 | <a name="input_ebs_encryption_enabled"></a> [ebs\_encryption\_enabled](#input\_ebs\_encryption\_enabled) | true/false whether to enable EBS encryption on the root volume. Default is true | `bool` | `true` | no |
 | <a name="input_ebs_volume_type"></a> [ebs\_volume\_type](#input\_ebs\_volume\_type) | (Optional) Type of volume. Valid values include standard, gp2, gp3, io1, io2, sc1, or st1. Defaults to gp3 | `string` | `"gp3"` | no |
 | <a name="input_global_tags"></a> [global\_tags](#input\_global\_tags) | Populate any custom user defined tags from a map | `map(string)` | `{}` | no |
+| <a name="input_hostname_type"></a> [hostname\_type](#input\_hostname\_type) | Type of hostname for Amazon EC2 instances | `string` | `"resource-name"` | no |
 | <a name="input_iam_instance_profile"></a> [iam\_instance\_profile](#input\_iam\_instance\_profile) | IAM instance profile ID assigned to Cloud Connector | `list(string)` | n/a | yes |
 | <a name="input_imdsv2_enabled"></a> [imdsv2\_enabled](#input\_imdsv2\_enabled) | true/false whether to force IMDSv2 only for instance bring up. Default is true | `bool` | `true` | no |
 | <a name="input_instance_key"></a> [instance\_key](#input\_instance\_key) | SSH Key for instances | `string` | n/a | yes |
 | <a name="input_mgmt_security_group_id"></a> [mgmt\_security\_group\_id](#input\_mgmt\_security\_group\_id) | Cloud Connector EC2 Instance management security group id | `list(string)` | n/a | yes |
 | <a name="input_mgmt_subnet_id"></a> [mgmt\_subnet\_id](#input\_mgmt\_subnet\_id) | Cloud Connector EC2 Instance management subnet id | `list(string)` | n/a | yes |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | A prefix to associate to all the Cloud Connector module resources | `string` | `null` | no |
+| <a name="input_resource_name_dns_a_record_enabled"></a> [resource\_name\_dns\_a\_record\_enabled](#input\_resource\_name\_dns\_a\_record\_enabled) | Indicates whether to respond to DNS queries for instance hostnames with DNS A records. Default is false | `bool` | `false` | no |
 | <a name="input_resource_tag"></a> [resource\_tag](#input\_resource\_tag) | A tag to associate to all the Cloud Connector module resources | `string` | `null` | no |
 | <a name="input_service_security_group_id"></a> [service\_security\_group\_id](#input\_service\_security\_group\_id) | Cloud Connector EC2 Instance service security group id | `list(string)` | n/a | yes |
 | <a name="input_service_subnet_id"></a> [service\_subnet\_id](#input\_service\_subnet\_id) | Cloud Connector EC2 Instance service subnet id | `list(string)` | n/a | yes |

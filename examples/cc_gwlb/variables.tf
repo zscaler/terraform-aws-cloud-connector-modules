@@ -298,6 +298,26 @@ variable "zssupport_server" {
   default     = "199.168.148.101/32" #for commercial clouds
 }
 
+variable "hostname_type" {
+  type        = string
+  description = "Type of hostname for Amazon EC2 instances"
+  default     = "resource-name"
+
+  validation {
+    condition = (
+      var.hostname_type == "resource-name" ||
+      var.hostname_type == "ip-name"
+    )
+    error_message = "Input hostname_type must be set to either resource-name or ip-name."
+  }
+}
+
+variable "resource_name_dns_a_record_enabled" {
+  type        = bool
+  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS A records. Default is false"
+  default     = false
+}
+
 
 # BYO (Bring-your-own) variables list
 
