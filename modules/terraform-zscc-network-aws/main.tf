@@ -169,9 +169,11 @@ resource "aws_route_table_association" "workload_rt_association" {
 resource "aws_subnet" "cc_subnet" {
   count = var.byo_subnets == false ? var.az_count : 0
 
-  availability_zone = data.aws_availability_zones.available.names[count.index]
-  cidr_block        = var.cc_subnets != null ? element(var.cc_subnets, count.index) : cidrsubnet(try(data.aws_vpc.vpc_selected[0].cidr_block, aws_vpc.vpc[0].cidr_block), 8, count.index + 200)
-  vpc_id            = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
+  availability_zone                           = data.aws_availability_zones.available.names[count.index]
+  cidr_block                                  = var.cc_subnets != null ? element(var.cc_subnets, count.index) : cidrsubnet(try(data.aws_vpc.vpc_selected[0].cidr_block, aws_vpc.vpc[0].cidr_block), 8, count.index + 200)
+  vpc_id                                      = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
+  enable_resource_name_dns_a_record_on_launch = var.resource_name_dns_a_record_enabled
+  private_dns_hostname_type_on_launch         = var.hostname_type
 
   tags = merge(var.global_tags,
     { Name = "${var.name_prefix}-cc-subnet-${count.index + 1}-${var.resource_tag}" }
