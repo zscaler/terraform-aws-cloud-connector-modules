@@ -1,5 +1,5 @@
-## UNRELEASED (TBD)
-ENHANCEMENTS:
+## 1.4.0 (November 12, 2024)
+FEATURES:
 * Module Changes:
     - terraform-zscc-ccvm-aws:
         - add variable additional_management_security_group_ids
@@ -26,6 +26,9 @@ ENHANCEMENTS:
         - change aws_subnet.route53_subnet resource count from hard coded "2" to the value of var.az_count or minimum 2 (whichever is greater) for more consistent private subnet creations
         - add variables hostname_type and resource_name_dns_a_record_enabled
         - change default private_dns_hostname_type_on_launch to AWS recommended resource-name from ip-name for greenfield CC Subnet creations
+* feat: add zsec configuration support for Zscaler Cloud: zscalergov.net 
+
+ENHANCEMENTS:
 * refactor: add zsec prompts brownfield zpa network options
         
 
