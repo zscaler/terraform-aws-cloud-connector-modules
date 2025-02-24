@@ -58,6 +58,16 @@ resource "aws_vpc_security_group_egress_rule" "egress_cc_mgmt_udp_123" {
   to_port           = 123
 }
 
+resource "aws_vpc_security_group_egress_rule" "egress_cc_mgmt_udp_53" {
+  count             = var.byo_security_group == false ? var.sg_count : 0
+  description       = "Recommended: CC Mgmt outbound DNS"
+  security_group_id = aws_security_group.cc_mgmt_sg[count.index].id
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 53
+  ip_protocol       = "udp"
+  to_port           = 53
+}
+
 
 resource "aws_vpc_security_group_egress_rule" "egress_cc_mgmt_tcp_12002" {
   count             = var.byo_security_group == false && var.support_access_enabled == true ? var.sg_count : 0
@@ -151,6 +161,16 @@ resource "aws_vpc_security_group_egress_rule" "egress_cc_service_udp_123" {
   from_port         = 123
   ip_protocol       = "udp"
   to_port           = 123
+}
+
+resource "aws_vpc_security_group_egress_rule" "egress_cc_service_udp_53" {
+  count             = var.byo_security_group == false ? var.sg_count : 0
+  description       = "Recommended: CC Service outbound DNS"
+  security_group_id = aws_security_group.cc_service_sg[count.index].id
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 53
+  ip_protocol       = "udp"
+  to_port           = 53
 }
 
 #Default required for GWLB deployments
