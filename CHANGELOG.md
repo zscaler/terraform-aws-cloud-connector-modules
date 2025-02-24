@@ -1,3 +1,8 @@
+## TBD (Unreleased)
+
+BUG FIXES:
+* fix: add explicit egress udp/53 rules to security group module
+
 ## 1.4.0 (November 12, 2024)
 FEATURES:
 * Module Changes:
