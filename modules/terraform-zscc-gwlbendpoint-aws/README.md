@@ -38,7 +38,7 @@ No modules.
 | <a name="input_allowed_principals"></a> [allowed\_principals](#input\_allowed\_principals) | List of AWS Principal ARNs who are allowed access to the GWLB Endpoint Service. E.g. ["arn:aws:iam::1234567890:root"]`. See https://docs.aws.amazon.com/vpc/latest/privatelink/configure-endpoint-service.html#accept-reject-connection-requests` | `list(string)` | `[]` | no |
 | <a name="input_byo_endpoint_service_name"></a> [byo\_endpoint\_service\_name](#input\_byo\_endpoint\_service\_name) | Exising GWLB Endpoint Service name to associate GWLB Endpoints to. Example string format:  "com.amazonaws.vpce.<region>.<service id>" | `string` | `null` | no |
 | <a name="input_global_tags"></a> [global\_tags](#input\_global\_tags) | Populate any custom user defined tags from a map | `map(string)` | `{}` | no |
-| <a name="input_gwlb_arn"></a> [gwlb\_arn](#input\_gwlb\_arn) | ARN of GWLB for Endpoint Service to be assigned | `string` | n/a | yes |
+| <a name="input_gwlb_arn"></a> [gwlb\_arn](#input\_gwlb\_arn) | Optional: ARN of GWLB for Endpoint Service to be assigned. Only required created a new endpoint service | `string` | `null` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | A prefix to associate to all the GWLB Endpoint module resources | `string` | `null` | no |
 | <a name="input_resource_tag"></a> [resource\_tag](#input\_resource\_tag) | A tag to associate to all the GWLB Endpoint module resources | `string` | `null` | no |
 | <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | List of Subnet ID to create GLWB Endpoints in | `list(string)` | n/a | yes |

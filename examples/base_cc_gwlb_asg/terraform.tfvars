@@ -90,6 +90,21 @@
 
 #vpc_cidr                                   = "10.1.0.0/16"
 
+##    Subnet space. (Minimum /28 required. Default is null). If you do not specify subnets, they will automatically be assigned based on the default cidrsubnet
+##    creation within the VPC CIDR block. Uncomment and modify if byo_vpc is set to true but byo_subnets is left false meaning you want terraform to create 
+##    NEW subnets in that existing VPC. OR if you choose to modify the vpc_cidr from the default /16 so a smaller CIDR, you may need to edit the below variables 
+##    to accommodate that address space.
+
+##    ***** Note *****
+##    It does not matter how many subnets you specify here. this script will only create in order 1 or as many as defined in the az_count variable
+##    Default/Minumum: 1 - Maximum: 3
+##    Example: If you change vpc_cidr to "10.2.0.0/24", set below variables to cidrs that fit in that /24 like cc_subnets = ["10.2.0.0/27","10.2.0.32/27"] etc.
+
+#public_subnets                             = ["10.x.y.z/24","10.x.y.z/24"]
+#workloads_subnets                          = ["10.x.y.z/24","10.x.y.z/24"]
+#cc_subnets                                 = ["10.x.y.z/24","10.x.y.z/24"]
+#route53_subnets                            = ["10.x.y.z/24","10.x.y.z/24"]
+
 ## 15. Number of Workload VMs to be provisioned in the workload subnet. Only limitation is available IP space
 ##    in subnet configuration. Only applicable for "base" deployment types. Default workload subnet is /24 so 250 max
 
