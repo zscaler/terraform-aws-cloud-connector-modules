@@ -9,14 +9,14 @@ This module creates all AWS EC2 instance, IAM, and Security Group resources need
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.32 |
-| <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.2.0 |
+| <a name="requirement_local"></a> [local](#requirement\_local) | >= 2.2.0, < 2.6 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.32 |
-| <a name="provider_local"></a> [local](#provider\_local) | ~> 2.2.0 |
+| <a name="provider_local"></a> [local](#provider\_local) | >= 2.2.0, < 2.6 |
 
 ## Modules
 
