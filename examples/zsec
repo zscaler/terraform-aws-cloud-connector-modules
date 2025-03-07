@@ -55,48 +55,54 @@ fi
 if [[ "$deployment" == "greenfield" ]]; then
     PS3="${CYAN}Select desired deployment type: ${RESET}"
     dtypes=(
+        "Deploy Zero Trust Gateway Endpoints in a new VPC" 
         "Deploy 1 Cloud Connector in a new VPC" 
         "Deploy 1 Cloud Connector in a new VPC with Route 53 rules for ZPA" 
         "Deploy multiple Cloud Connectors + Gateway Load Balancer in a new VPC" 
         "Deploy multiple Cloud Connectors + Gateway Load Balancer in a new VPC with Route 53 rules for ZPA" 
         "Deploy Auto Scaling Cloud Connectors + Gateway Load Balancer in a new VPC" 
         "Deploy Auto Scaling Cloud Connectors + Gateway Load Balancer in a new VPC with Route 53 rules for ZPA" 
-        "Deploy a new VPC - No Cloud Connector resources" 
+        "Deploy a new VPC - No Cloud Connector resources"
     )    
     select greenfield_type in "${dtypes[@]}"
     do
         case $REPLY in
             1)
+            echo "Deployment type base_ztgateway selected..."
+            dtype=base_ztgateway
+            break
+            ;;
+            2)
             echo "Deployment type base_1cc selected..."
             dtype=base_1cc
             break
             ;;
-            2)
+            3)
             echo "Deployment type base_1cc_zpa selected..."
             dtype=base_1cc_zpa
             break
             ;;
-            3)
+            4)
             echo "Deployment type base_cc_gwlb selected..."
             dtype=base_cc_gwlb
             break
             ;;
-            4)
+            5)
             echo "Deployment type base_cc_gwlb_zpa selected..."
             dtype=base_cc_gwlb_zpa
             break
             ;;
-            5)
+            6)
             echo "Deployment type base_cc_gwlb_asg selected..."
             dtype=base_cc_gwlb_asg
             break
             ;;
-            6)
+            7)
             echo "Deployment type base_cc_gwlb_asg_zpa selected..."
             dtype=base_cc_gwlb_asg_zpa
             break
             ;;
-            7)
+            8)
             echo "Deployment type base selected..."
             dtype=base
             break
@@ -108,6 +114,7 @@ if [[ "$deployment" == "greenfield" ]]; then
 elif [[ "$deployment" == "brownfield" ]]; then
     PS3="${CYAN}Select desired deployment type: ${RESET}"
     dtypes=(
+        "Deploy Zero Trust Gateway Endpoints in a new or existing VPC" 
         "Deploy multiple Cloud Connectors + Gateway Load Balancer in a new or existing VPC"
         "Deploy Auto Scaling Cloud Connectors + Gateway Load Balancer in a new or existing VPC"
     )
@@ -115,11 +122,16 @@ elif [[ "$deployment" == "brownfield" ]]; then
     do
         case $REPLY in
             1)
+            echo "Deployment type ztgateway selected..."
+            dtype=ztgateway
+            break
+            ;;
+            2)
             echo "Deployment type cc_gwlb selected..."
             dtype=cc_gwlb
             break
             ;;
-            2)
+            3)
             echo "Deployment type cc_gwlb_asg selected..."
             dtype=cc_gwlb_asg
             break
@@ -170,64 +182,97 @@ elif [[ ! -d $dir ]]; then
     exit 1
 fi
 
-
 if [[ "$oper" == "up" && ! -e ./.zsecrc ]]; then
 first_run="yes"
-
-    # AWS Region selection
-    PS3="${CYAN}Select desired AWS region: ${RESET}"
-    region_list=(
-        "af-south-1"
-        "ap-east-1"
-        "ap-northeast-1"
-        "ap-northeast-2"
-        "ap-northeast-3"
-        "ap-south-1"
-        "ap-south-2"
-        "ap-southeast-1"
-        "ap-southeast-2"
-        "ap-southeast-3"
-        "ap-southeast-4"
-        "ca-central-1"
-        "cn-north-1"
-        "cn-northwest-1"
-        "eu-central-1"
-        "eu-central-2"
-        "eu-north-1"
-        "eu-south-1"
-        "eu-south-2"
-        "eu-west-1"
-        "eu-west-2"
-        "eu-west-3"
-        "il-central-1"
-        "me-central-1"
-        "me-south-1"
-        "sa-east-1"
-        "us-east-1"
-        "us-east-2"
-        "us-gov-east-1"
-        "us-gov-west-1"
-        "us-west-1"
-        "us-west-2"
-        )
-        select region_selection in "${region_list[@]}"; do
-            for region_choice in "${region_list[@]}"; do
-                if [[ $region_choice == $region_selection ]]; then
-                    aws_region=$region_selection
-                    echo "AWS region ${GREEN}$aws_region${RESET} selected..."
-                    echo "export TF_VAR_aws_region='$aws_region'" > .zsecrc
-                    echo "export AWS_DEFAULT_REGION='$aws_region'" >> .zsecrc
-                    if [[ "$aws_region" == "cn"* ]]; then
-                        aws_partition="aws-cn"
-                    elif [[ "$aws_region" == "us-gov"* ]]; then
-                        aws_partition="aws-us-gov"
-                    else
-                        aws_partition="aws"
-                    fi  
-                break 2
-                fi
+    if [[ "$dtype" == *"ztgateway"* ]]; then
+        # AWS Region selection for Zero Trust Gateway
+        PS3="${CYAN}Select desired AWS region: ${RESET}"
+        region_list=(
+            "ap-south-1"
+            "ap-southeast-1"
+            "ap-southeast-2"
+            "eu-central-1"
+            "eu-west-1"
+            "eu-west-2"
+            "us-east-1"
+            "us-east-2"
+            "us-west-1"
+            "us-west-2"
+            )
+            select region_selection in "${region_list[@]}"; do
+                for region_choice in "${region_list[@]}"; do
+                    if [[ $region_choice == $region_selection ]]; then
+                        aws_region=$region_selection
+                        echo "AWS region ${GREEN}$aws_region${RESET} selected..."
+                        echo "export TF_VAR_aws_region='$aws_region'" > .zsecrc
+                        echo "export AWS_DEFAULT_REGION='$aws_region'" >> .zsecrc
+                        if [[ "$aws_region" == "cn"* ]]; then
+                            aws_partition="aws-cn"
+                        elif [[ "$aws_region" == "us-gov"* ]]; then
+                            aws_partition="aws-us-gov"
+                        else
+                            aws_partition="aws"
+                        fi  
+                    break 2
+                    fi
+                done
             done
-        done
+    else
+        # AWS Region selection for customer managed Cloud Connectors
+        PS3="${CYAN}Select desired AWS region: ${RESET}"
+        region_list=(
+            "af-south-1"
+            "ap-east-1"
+            "ap-northeast-1"
+            "ap-northeast-2"
+            "ap-northeast-3"
+            "ap-south-1"
+            "ap-south-2"
+            "ap-southeast-1"
+            "ap-southeast-2"
+            "ap-southeast-3"
+            "ap-southeast-4"
+            "ca-central-1"
+            "cn-north-1"
+            "cn-northwest-1"
+            "eu-central-1"
+            "eu-central-2"
+            "eu-north-1"
+            "eu-south-1"
+            "eu-south-2"
+            "eu-west-1"
+            "eu-west-2"
+            "eu-west-3"
+            "il-central-1"
+            "me-central-1"
+            "me-south-1"
+            "sa-east-1"
+            "us-east-1"
+            "us-east-2"
+            "us-gov-east-1"
+            "us-gov-west-1"
+            "us-west-1"
+            "us-west-2"
+            )
+            select region_selection in "${region_list[@]}"; do
+                for region_choice in "${region_list[@]}"; do
+                    if [[ $region_choice == $region_selection ]]; then
+                        aws_region=$region_selection
+                        echo "AWS region ${GREEN}$aws_region${RESET} selected..."
+                        echo "export TF_VAR_aws_region='$aws_region'" > .zsecrc
+                        echo "export AWS_DEFAULT_REGION='$aws_region'" >> .zsecrc
+                        if [[ "$aws_region" == "cn"* ]]; then
+                            aws_partition="aws-cn"
+                        elif [[ "$aws_region" == "us-gov"* ]]; then
+                            aws_partition="aws-us-gov"
+                        else
+                            aws_partition="aws"
+                        fi  
+                    break 2
+                    fi
+                done
+            done
+    fi
 
     # AWS Profile Lookup
     if [[ ! -e ~/.aws/config ]]; then
@@ -344,7 +389,265 @@ first_run="yes"
         done     
     fi
 
-    if [[ "$dtype" != "base" ]]; then
+    # Zero Trust Gateway configuration parameters
+    if [[ "$dtype" == *"ztgateway"* ]]; then
+        read -r -p "${CYAN}Enter Zero Trust Gateway Endpoint Service Name (e.g. com.amazonaws.vpce.$aws_region.vpce-svc-1234567890): ${RESET}" ztg_endpoint_service_name
+        echo "You entered: $ztg_endpoint_service_name"
+        echo "export TF_VAR_byo_endpoint_service_name='$ztg_endpoint_service_name'" >> .zsecrc
+        # add validation that endpoint service name is in the same region as aws_region input
+
+        #Map ZT Gateway AWS Regions to their available Zone IDs
+        apsouth1_azids="aps1-az1 aps1-az2 aps1-az3"
+        apsoutheast1_azids="apse1-az1 apse1-az2 apse1-az3"
+        apsoutheast_2azids="apse2-az1 apse2-az2 apse2-az3"
+        eucentral1_azids="euc1-az1 euc1-az2 euc1-az3"
+        euwest1_azids="euw1-az1 euw1-az2 euw1-az3"
+        euwest2_azids="euw2-az1 euw2-az2 euw2-az3"
+        useast1_azids="use1-az1 use1-az2 use1-az4 use1-az5 use1-az6"
+        useast2_azids="use2-az1 use2-az2 use2-az3"
+        uswest1_azids="usw1-az1 usw1-az3"
+        uswest2_azids="usw2-az1 usw2-az2 usw2-az3 usw2-az4"
+
+        PS3='Please select all Availability Zone IDs to deploy endpoints (select "done" when complete): '
+            if [[ "$aws_region" == "ap-south-1" ]]; then
+                options=($apsouth1_azids)
+            elif [[ "$aws_region" == "ap-southeast-1" ]]; then
+                options=($apsoutheast1_azids)
+            elif [[ "$aws_region" == "ap-southeast-2" ]]; then
+                options=($apsoutheast_2azids)
+            elif [[ "$aws_region" == "eu-central-1" ]]; then
+                options=($eucentral1_azids)
+            elif [[ "$aws_region" == "eu-west-1" ]]; then
+                options=($euwest1_azids)
+            elif [[ "$aws_region" == "eu-west-2" ]]; then
+                options=($euwest2_azids)
+            elif [[ "$aws_region" == "us-east-1" ]]; then
+                options=($useast1_azids)
+            elif [[ "$aws_region" == "us-east-2" ]]; then
+                options=($useast2_azids)
+            elif [[ "$aws_region" == "us-west-1" ]]; then
+                options=($uswest1_azids)
+            elif [[ "$aws_region" == "us-west-2" ]]; then
+                options=($uswest2_azids)
+            else
+                echo "${RED}Availability Zone lookup failed for $aws_region...${RESET}"
+                echo "${YELLOW}Delete .zsecrc file and re-run zsec up...${RESET}"
+                exit 1
+            fi
+            selections=()
+            select selection in "${options[@]}" "done"; do
+                # Stop choosing on this option
+                [[ $selection = "done" ]] && break
+                if [[ ! " ${options[@]} " =~ " $selection " ]]; then
+                    echo "Invalid selection"
+                else
+                    # Append the choice to the array
+                    selections+=( "$selection" )
+                    echo "$selection selected. Select additional AZ IDs or done option to proceed"
+                fi
+            done
+
+            # Sort and remove any duplicates
+            for i in ${selections[@]}; do echo $i > /dev/null; done | sort
+            for i in ${selections[@]}; do echo $i > /dev/null; done | sort -u
+            selections=( `for i in ${selections[@]}; do echo $i; done | sort -u` )
+            # convert number of unique AZ ID selections
+            az_count=$(echo "${#selections[@]}")
+            # Write out each choice
+            printf "You selected the following: "
+            az_id_list_formatted="'[ "
+            for selection in "${selections[@]}"
+            do
+                printf "%s " \"$selection\",
+                az_id_list_formatted+=$(printf "%s " \"$selection\",)
+            done
+            printf '\n'
+            az_id_list_formatted+="]'"
+            echo "export TF_VAR_az_ids=$az_id_list_formatted" >> .zsecrc
+    
+        #Brownfield/BYO Networking Options
+        if [[ "$deployment" == "brownfield" ]]; then
+            echo "Configure Networking Infrastructure..."
+            while true; do
+                read -r -p "${CYAN}Are you deploying to an existing VPC in $aws_region? (yes/no): ${RESET}" byo_vpc_response
+                case $byo_vpc_response in 
+                yes|y ) 
+                    echo "${GREEN}Using an existing VPC...${RESET}"
+                    echo "export TF_VAR_byo_vpc=true" >> .zsecrc
+                    byo_vpc=true
+                    read -r -p "${CYAN}Enter existing VPC ID (E.g vpc-0588ce674df615334): ${RESET}" byo_vpc_id
+                    echo "You entered ${GREEN}$byo_vpc_id${RESET}"
+                    echo "export TF_VAR_byo_vpc_id=$byo_vpc_id" >> .zsecrc
+                break
+                ;;
+                no|n )
+                    echo "${GREEN}Terraform will create new VPC and Subnets${RESET}"
+                    echo "export TF_VAR_byo_vpc=false" >> .zsecrc
+                break
+                ;;
+                * ) echo "${RED}Invalid response. Please enter yes or no${RESET}";;
+                esac
+            done
+        
+            # Query for existing subnet IDs if byo_vpc true
+            if [[ "$byo_vpc" == "true" ]]; then
+                echo "Attemping deployment to existing VPC $byo_vpc_id..."
+                while true; do
+                    read -r -p "${CYAN}Are you deploying to existing subnets in $byo_vpc_id? (yes/no): ${RESET}" byo_subnet_response
+                    case $byo_subnet_response in 
+                    yes|y ) 
+                        echo "${GREEN}Using existing subnets to deploy ZT Endpoints...${RESET}"
+                        echo "export TF_VAR_byo_subnets=true" >> .zsecrc
+                        byo_subnets=true
+                        if [[ "$az_count" == "1" ]]; then
+                            read -r -p "${CYAN}$az_count availability zone chosen. Please enter the desired subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[1]}: ${RESET}" byo_subnet_ids
+                            echo "You entered ${GREEN}$byo_subnet_ids${RESET}"
+                            echo "export TF_VAR_byo_subnet_ids='[\"${byo_subnet_ids}\"]'" >> .zsecrc
+                        elif [[ "$az_count" == "2" ]]; then
+                            echo "$az_count availability zones chosen"
+                            read -r -p "${CYAN}Please enter the first subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[1]}: ${RESET}" subnet_1
+                            echo "You entered ${GREEN}$subnet_1${RESET}"
+                            read -r -p "${CYAN}Please enter the second subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[2]}: ${RESET}" subnet_2
+                            echo "You entered ${GREEN}$subnet_2${RESET}"
+                            echo "export TF_VAR_byo_subnet_ids='[\"${subnet_1}\",\"${subnet_2}\"]'" >> .zsecrc
+                        elif [[ "$az_count" == "3" ]]; then
+                            echo "$az_count availability zones chosen"
+                            read -r -p "${CYAN}Please enter the first subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[1]}: ${RESET}" subnet_1
+                            echo "You entered ${GREEN}$subnet_1${RESET}"
+                            read -r -p "${CYAN}Please enter the second subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[2]}: ${RESET}" subnet_2
+                            echo "You entered ${GREEN}$subnet_2${RESET}"
+                            read -r -p "${CYAN}Please enter the third subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[3]}: ${RESET}" subnet_3
+                            echo "You entered ${GREEN}$subnet_3${RESET}"
+                            echo "export TF_VAR_byo_subnet_ids='[\"${subnet_1}\",\"${subnet_2}\",\"${subnet_3}\"]'" >> .zsecrc
+                        elif [[ "$az_count" == "4" ]]; then
+                            echo "$az_count availability zones chosen"
+                            read -r -p "${CYAN}Please enter the first subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[1]}: ${RESET}" subnet_1
+                            echo "You entered ${GREEN}$subnet_1${RESET}"
+                            read -r -p "${CYAN}Please enter the second subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[2]}: ${RESET}" subnet_2
+                            echo "You entered ${GREEN}$subnet_2${RESET}"
+                            read -r -p "${CYAN}Please enter the third subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[3]}: ${RESET}" subnet_3
+                            echo "You entered ${GREEN}$subnet_3${RESET}"
+                            read -r -p "${CYAN}Please enter the fourth subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[4]}: ${RESET}" subnet_4
+                            echo "You entered ${GREEN}$subnet_4${RESET}"
+                            echo "export TF_VAR_byo_subnet_ids='[\"${subnet_1}\",\"${subnet_2}\",\"${subnet_3}\",\"${subnet_4}\"]'" >> .zsecrc
+                        elif [[ "$az_count" == "5" ]]; then
+                            echo "$az_count availability zones chosen"
+                            read -r -p "${CYAN}Please enter the first subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[1]}: ${RESET}" subnet_1
+                            echo "You entered ${GREEN}$subnet_1${RESET}"
+                            read -r -p "${CYAN}Please enter the second subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[2]}: ${RESET}" subnet_2
+                            echo "You entered ${GREEN}$subnet_2${RESET}"
+                            read -r -p "${CYAN}Please enter the third subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[3]}: ${RESET}" subnet_3
+                            echo "You entered ${GREEN}$subnet_3${RESET}"
+                            read -r -p "${CYAN}Please enter the fourth subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[4]}: ${RESET}" subnet_4
+                            echo "You entered ${GREEN}$subnet_4${RESET}"
+                            read -r -p "${CYAN}Please enter the fifth subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[5]}: ${RESET}" subnet_5
+                            echo "You entered ${GREEN}$subnet_5${RESET}"
+                            echo "export TF_VAR_byo_subnet_ids='[\"${subnet_1}\",\"${subnet_2}\",\"${subnet_3}\",\"${subnet_4}\",\"${subnet_5}\"]'" >> .zsecrc
+                        fi
+                    break
+                    ;;
+                    no|n )
+                        echo "${GREEN}Terraform will attempt to create new subnets in $byo_vpc_id${RESET}"
+                        echo "export TF_VAR_byo_subnets=false" >> .zsecrc
+                        byo_subnets=false
+                    break
+                    ;;
+                    * ) echo "${RED}Invalid response. Please enter yes or no${RESET}";;
+                    esac
+                done
+            fi
+
+            #If byo_subnets is true, prompt for whether to create private Zscaler subnet route tables or not. Assumption is they already exist
+            if [[ "$byo_subnets" == "true" ]]; then
+            cc_route_table_response_default="no"
+                while true; do
+                    echo "Existing VPC and Subnets detected..."
+                    read -r -p "${CYAN}Do you want Terraform to create new custom Route Tables and associate with these subnets? [Default=$cc_route_table_response_default]: ${RESET}" cc_route_table_response_input
+                    cc_route_table_response=${cc_route_table_response_input:-$cc_route_table_response_default}
+                    case $cc_route_table_response in 
+                    yes|y )
+                        echo "Terraform will attempt to create new route tables and associate with existing subnets..."
+                        echo "export TF_VAR_zs_route_table_enabled=true" >> .zsecrc
+                    break
+                    ;;
+                    no|n )
+                        echo "${YELLOW}Terraform will not create any new route tables for subnets...${RESET}"
+                        echo "export TF_VAR_zs_route_table_enabled=false" >> .zsecrc
+                    break
+                    ;;
+                    * ) echo "${RED}Invalid response. Please enter yes or no${RESET}";;
+                    esac
+                done 
+            fi
+
+            #Query for subnet creation range override
+            if [[ "$byo_subnets" == "false" ]]; then
+                echo "Existing VPC $byo_vpc_id selected, but subnets need created..."
+                echo "By default, Terraform assumes VPC CIDR is a /16 and will try to create /24 subnets within"
+                while true; do
+                    read -r -p "${CYAN}Do you want to manually define the subnet CIDR ranges? (yes/no): ${RESET}" change_cc_cidr_response
+                    case $change_cc_cidr_response in 
+                    yes|y )
+                        echo "Configuring each subnet range..."
+                        if [[ "$az_count" == "1" ]]; then
+                            read -r -p "${CYAN}$az_count availability zone chosen. Please enter the desired subnet range to create that falls within $byo_vpc_id CIDR (E.g 10.2.0.0/24): ${RESET}" cc_subnets_1
+                            echo "You entered ${GREEN}$cc_subnets_1${RESET}"
+                            echo "export TF_VAR_endpoint_subnets='[\"${cc_subnets_1}\"]'" >> .zsecrc
+                        elif [[ "$az_count" == "2" ]]; then
+                            echo "$az_count availability zones chosen"
+                            read -r -p "${CYAN}Please enter the first subnet range to create (E.g 10.2.0.0/24): ${RESET}" cc_subnets_1
+                            echo "You entered ${GREEN}$cc_subnets_1${RESET}"
+                            read -r -p "${CYAN}Please enter the second subnet range (E.g 10.2.1.0/24): ${RESET}" cc_subnets_2
+                            echo "You entered ${GREEN}$cc_subnets_2${RESET}"
+                            echo "export TF_VAR_endpoint_subnets='[\"${cc_subnets_1}\",\"${cc_subnets_2}\"]'" >> .zsecrc
+                        elif [[ "$az_count" == "3" ]]; then
+                            echo "$az_count availability zones chosen"
+                            read -r -p "${CYAN}Please enter the first subnet range to create (E.g 10.2.0.0/24): ${RESET}" cc_subnets_1
+                            echo "You entered ${GREEN}$cc_subnets_1${RESET}"
+                            read -r -p "${CYAN}Please enter the second subnet ID (E.g 10.2.1.0/24): ${RESET}" cc_subnets_2
+                            echo "You entered ${GREEN}$cc_subnets_2${RESET}"
+                            read -r -p "${CYAN}Please enter the third subnet range (E.g 10.2.2.0/24): ${RESET}" cc_subnets_3
+                            echo "You entered ${GREEN}$cc_subnets_3${RESET}"
+                            echo "export TF_VAR_endpoint_subnets='[\"${cc_subnets_1}\",\"${cc_subnets_2}\",\"${cc_subnets_3}\"]'" >> .zsecrc
+                        elif [[ "$az_count" == "4" ]]; then
+                            echo "$az_count availability zones chosen"
+                            read -r -p "${CYAN}Please enter the first subnet range to create (E.g 10.2.0.0/24): ${RESET}" cc_subnets_1
+                            echo "You entered ${GREEN}$cc_subnets_1${RESET}"
+                            read -r -p "${CYAN}Please enter the second subnet ID (E.g 10.2.1.0/24): ${RESET}" cc_subnets_2
+                            echo "You entered ${GREEN}$cc_subnets_2${RESET}"
+                            read -r -p "${CYAN}Please enter the third subnet range (E.g 10.2.2.0/24): ${RESET}" cc_subnets_3
+                            echo "You entered ${GREEN}$cc_subnets_3${RESET}"
+                            ead -r -p "${CYAN}Please enter the fourth subnet range (E.g 10.2.2.0/24): ${RESET}" cc_subnets_4
+                            echo "You entered ${GREEN}$cc_subnets_4${RESET}"
+                            echo "export TF_VAR_endpoint_subnets='[\"${cc_subnets_1}\",\"${cc_subnets_2}\",\"${cc_subnets_3}\",\"${cc_subnets_4}\"]'" >> .zsecrc
+                        elif [[ "$az_count" == "5" ]]; then
+                            echo "$az_count availability zones chosen"
+                            read -r -p "${CYAN}Please enter the first subnet range to create (E.g 10.2.0.0/24): ${RESET}" cc_subnets_1
+                            echo "You entered ${GREEN}$cc_subnets_1${RESET}"
+                            read -r -p "${CYAN}Please enter the second subnet ID (E.g 10.2.1.0/24): ${RESET}" cc_subnets_2
+                            echo "You entered ${GREEN}$cc_subnets_2${RESET}"
+                            read -r -p "${CYAN}Please enter the third subnet range (E.g 10.2.2.0/24): ${RESET}" cc_subnets_3
+                            echo "You entered ${GREEN}$cc_subnets_3${RESET}"
+                            ead -r -p "${CYAN}Please enter the fourth subnet range (E.g 10.2.2.0/24): ${RESET}" cc_subnets_4
+                            echo "You entered ${GREEN}$cc_subnets_4${RESET}"
+                            ead -r -p "${CYAN}Please enter the fifth subnet range (E.g 10.2.2.0/24): ${RESET}" cc_subnets_5
+                            echo "You entered ${GREEN}$cc_subnets_5${RESET}"
+                            echo "export TF_VAR_endpoint_subnets='[\"${cc_subnets_1}\",\"${cc_subnets_2}\",\"${cc_subnets_3}\",\"${cc_subnets_4}\",\"${cc_subnets_5}\"]'" >> .zsecrc
+                        fi
+                    break
+                    ;;
+                    no|n )
+                        echo "${GREEN}Terraform will attempt to automatically create new subnets in $byo_vpc_id${RESET}"
+                    break
+                    ;;
+                    * ) echo "${RED}Invalid response. Please enter yes or no${RESET}";;
+                    esac
+                done 
+            fi
+        fi
+    fi
+       
+    if [[ "$dtype" != "base" && "$dtype" != *"ztgateway"* ]]; then
         PS3="${CYAN}Select your Zscaler Cloud: ${RESET}"
         zs_clouds=("zscloud.net" "zscaler.net" "zscalertwo.net" "zscalerthree.net" "zscalerten.net" "zscalergov.net" "zscalerbeta.net" "other")
         select zscaler_cloud in "${zs_clouds[@]}"
@@ -469,7 +772,7 @@ first_run="yes"
         fi
     fi
 
-    if [[ "$dtype" != "base" ]]; then
+    if [[ "$dtype" != "base" && "$dtype" != *"ztgateway"* ]]; then
         # Cloud Connector Size Selection
         if [[ "$dtype" != *"asg"* ]]; then
         PS3="${CYAN}Select desired Cloud Connector Instance Size: ${RESET}"
@@ -1380,9 +1683,9 @@ first_run="yes"
             #Query for subnet creation range override
             if [[ "$byo_subnets" == "false" ]]; then
                 echo "Existing VPC $byo_vpc_id selected, but subnets need created..."
-                echo "By default, Terraform assumeds VPC CIDR is a /16 and will try to create /24 subnets within"
+                echo "By default, Terraform assumes VPC CIDR is a /16 and will try to create /24 subnets within"
                 while true; do
-                    read -r -p "${CYAN}Do you want to manually define the CC subnet ranges? (yes/no): ${RESET}" change_cc_cidr_response
+                    read -r -p "${CYAN}Do you want to manually define the CC subnet CIDR ranges? (yes/no): ${RESET}" change_cc_cidr_response
                     case $change_cc_cidr_response in 
                     yes|y )
                         echo "Configuring each Cloud Connector subnet range..."
@@ -1687,7 +1990,7 @@ if [[ -z "$AWS_ACCESS_KEY_ID" && -z "$AWS_SECRET_ACCESS_KEY" && -z "$AWS_PROFILE
     exit 1
 fi
 
-if [[ $dtype != "base" ]]; then
+if [[ $dtype != "base" && $dtype != *"ztgateway"* ]]; then
     echo "Checking Cloud Connector provisioning info"
   if [ -z "$TF_VAR_cc_vm_prov_url" ] || [ -z "$TF_VAR_secret_name" ] || [ -z "$TF_VAR_http_probe_port" ] || [ -z "$TF_VAR_cc_instance_size" ] || [ -z "$TF_VAR_ccvm_instance_type" ]; then
     echo "${RED}Cloud Connector provisioning info is missing. Remove .zsecrc file and rerun $0 $1${RESET}"
