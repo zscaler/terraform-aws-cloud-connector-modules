@@ -21,14 +21,14 @@ Subscribe and accept terms of using Zscaler Cloud Connector image at [this link]
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.32 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | >= 2.2.0, < 2.6 |
-| <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.1.0, < 3.3 |
+| <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.1, < 3.3 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.32 |
-| <a name="provider_null"></a> [null](#provider\_null) | ~> 3.1.0, < 3.3 |
+| <a name="provider_null"></a> [null](#provider\_null) | ~> 3.1, < 3.3 |
 
 ## Modules
 
