@@ -28,7 +28,8 @@ variable "global_tags" {
 
 variable "gwlb_arn" {
   type        = string
-  description = "ARN of GWLB for Endpoint Service to be assigned"
+  description = "Optional: ARN of GWLB for Endpoint Service to be assigned. Only required created a new endpoint service"
+  default     = null
 }
 
 variable "acceptance_required" {

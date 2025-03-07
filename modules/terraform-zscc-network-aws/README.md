@@ -95,4 +95,7 @@ No modules.
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | VPC ID |
 | <a name="output_workload_route_table_ids"></a> [workload\_route\_table\_ids](#output\_workload\_route\_table\_ids) | Workloads Route Table ID |
 | <a name="output_workload_subnet_ids"></a> [workload\_subnet\_ids](#output\_workload\_subnet\_ids) | Workloads Subnet ID |
+| <a name="output_zs_subnet_az_ids"></a> [zs\_subnet\_az\_ids](#output\_zs\_subnet\_az\_ids) | Zscaler Subnet Availability Zone IDs |
+| <a name="output_zs_subnet_az_names"></a> [zs\_subnet\_az\_names](#output\_zs\_subnet\_az\_names) | Zscaler Subnet Availability Zone Names |
+| <a name="output_zs_subnet_cidrs"></a> [zs\_subnet\_cidrs](#output\_zs\_subnet\_cidrs) | Zscaler Subnet CIDR blocks |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
