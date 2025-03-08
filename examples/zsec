@@ -30,19 +30,19 @@ fi
 
 if [[ "$oper" == "up" ]]; then
     PS3="${CYAN}Select desired deployment: ${RESET}"
-    deployments=("greenfield - Recommended for isolated test/POV deployments. Creates new network infrastructure, test workloads, and a public bastion host" "brownfield - Recommended for prod deployments. Bring-your-own existing network infrastructure customizations + no workload/bastion creation")
+    deployments=("${GREEN}greenfield${RESET} - Recommended for isolated test/POV deployments. Creates new network infrastructure, test workloads, and a public bastion host" "${CYAN}brownfield${RESET} - Recommended for prod deployments. Bring-your-own existing network infrastructure customizations + no workload/bastion creation")
     select deployment in "${deployments[@]}"
     do
         case $REPLY in
             1)
-            echo "Greenfield deployment selected..."
+            echo "${GREEN}Greenfield deployment selected...${RESET}"
             echo "${YELLOW}**Caution** These deployments include test workloads and publicly accessible bastion hosts and are intended primarily for lab/test environments${RESET}"
             echo ""
             deployment=greenfield
             break
             ;;
             2)
-            echo "Brownfield deployment selected..."
+            echo "${GREEN}Brownfield deployment selected...${RESET}"
             deployment=brownfield
             break
             ;;
@@ -68,42 +68,42 @@ if [[ "$deployment" == "greenfield" ]]; then
     do
         case $REPLY in
             1)
-            echo "Deployment type base_ztgateway selected..."
+            echo "Deployment type ${GREEN}base_ztgateway${RESET} selected..."
             dtype=base_ztgateway
             break
             ;;
             2)
-            echo "Deployment type base_1cc selected..."
+            echo "Deployment type ${GREEN}base_1cc${RESET} selected..."
             dtype=base_1cc
             break
             ;;
             3)
-            echo "Deployment type base_1cc_zpa selected..."
+            echo "Deployment type ${GREEN}base_1cc_zpa${RESET} selected..."
             dtype=base_1cc_zpa
             break
             ;;
             4)
-            echo "Deployment type base_cc_gwlb selected..."
+            echo "Deployment type ${GREEN}base_cc_gwlb${RESET} selected..."
             dtype=base_cc_gwlb
             break
             ;;
             5)
-            echo "Deployment type base_cc_gwlb_zpa selected..."
+            echo "Deployment type ${GREEN}base_cc_gwlb_zpa${RESET} selected..."
             dtype=base_cc_gwlb_zpa
             break
             ;;
             6)
-            echo "Deployment type base_cc_gwlb_asg selected..."
+            echo "Deployment type ${GREEN}base_cc_gwlb_asg${RESET} selected..."
             dtype=base_cc_gwlb_asg
             break
             ;;
             7)
-            echo "Deployment type base_cc_gwlb_asg_zpa selected..."
+            echo "Deployment type ${GREEN}base_cc_gwlb_asg_zpa${RESET} selected..."
             dtype=base_cc_gwlb_asg_zpa
             break
             ;;
             8)
-            echo "Deployment type base selected..."
+            echo "Deployment type ${GREEN}base${RESET} selected..."
             dtype=base
             break
             ;;
@@ -122,17 +122,17 @@ elif [[ "$deployment" == "brownfield" ]]; then
     do
         case $REPLY in
             1)
-            echo "Deployment type ztgateway selected..."
+            echo "Deployment type ${GREEN}ztgateway${RESET} selected..."
             dtype=ztgateway
             break
             ;;
             2)
-            echo "Deployment type cc_gwlb selected..."
+            echo "Deployment type ${GREEN}cc_gwlb${RESET} selected..."
             dtype=cc_gwlb
             break
             ;;
             3)
-            echo "Deployment type cc_gwlb_asg selected..."
+            echo "Deployment type ${GREEN}cc_gwlb_asg${RESET} selected..."
             dtype=cc_gwlb_asg
             break
             ;;
@@ -391,10 +391,17 @@ first_run="yes"
 
     # Zero Trust Gateway configuration parameters
     if [[ "$dtype" == *"ztgateway"* ]]; then
-        read -r -p "${CYAN}Enter Zero Trust Gateway Endpoint Service Name (e.g. com.amazonaws.vpce.$aws_region.vpce-svc-1234567890): ${RESET}" ztg_endpoint_service_name
-        echo "You entered: $ztg_endpoint_service_name"
-        echo "export TF_VAR_byo_endpoint_service_name='$ztg_endpoint_service_name'" >> .zsecrc
-        # add validation that endpoint service name is in the same region as aws_region input
+        while true; do
+            read -r -p "${CYAN}Enter Zero Trust Gateway Endpoint Service Name${RESET} (e.g. com.amazonaws.vpce.$aws_region.vpce-svc-1234567890): " ztg_endpoint_service_name
+            case $ztg_endpoint_service_name in
+                "com.amazonaws.vpce.$aws_region."* )
+                echo "You entered: ${GREEN}$ztg_endpoint_service_name${RESET}"
+                echo "export TF_VAR_byo_endpoint_service_name='$ztg_endpoint_service_name'" >> .zsecrc
+                break
+                ;;
+                * ) echo "${RED}Invalid Endpoint Service Name. Check formatting and try again...${RESET}";;
+            esac
+        done
 
         #Map ZT Gateway AWS Regions to their available Zone IDs
         apsouth1_azids="aps1-az1 aps1-az2 aps1-az3"
@@ -408,7 +415,7 @@ first_run="yes"
         uswest1_azids="usw1-az1 usw1-az3"
         uswest2_azids="usw2-az1 usw2-az2 usw2-az3 usw2-az4"
 
-        PS3='Please select all Availability Zone IDs to deploy endpoints (select "done" when complete): '
+        PS3="${CYAN}Please select all Availability Zone IDs to deploy endpoints${RESET}  (select ${YELLOW}finished${RESET} when done adding):"
             if [[ "$aws_region" == "ap-south-1" ]]; then
                 options=($apsouth1_azids)
             elif [[ "$aws_region" == "ap-southeast-1" ]]; then
@@ -435,15 +442,15 @@ first_run="yes"
                 exit 1
             fi
             selections=()
-            select selection in "${options[@]}" "done"; do
+            select selection in "${options[@]}" "finished"; do
                 # Stop choosing on this option
-                [[ $selection = "done" ]] && break
+                [[ $selection = "finished" ]] && break
                 if [[ ! " ${options[@]} " =~ " $selection " ]]; then
-                    echo "Invalid selection"
+                    echo "${RED}Invalid selection${RESET}"
                 else
                     # Append the choice to the array
                     selections+=( "$selection" )
-                    echo "$selection selected. Select additional AZ IDs or done option to proceed"
+                    echo "${GREEN}$selection${RESET} selected. Select another zone id or ${YELLOW}finished${RESET} to continue"
                 fi
             done
 
@@ -458,7 +465,7 @@ first_run="yes"
             az_id_list_formatted="'[ "
             for selection in "${selections[@]}"
             do
-                printf "%s " \"$selection\",
+                printf "${GREEN}%s " \"$selection\",${RESET}
                 az_id_list_formatted+=$(printf "%s " \"$selection\",)
             done
             printf '\n'
@@ -1832,7 +1839,7 @@ first_run="yes"
                 yes|y ) 
                     echo "${GREEN}Terraform will try to associate GWLB Endpoints to an existing Endpoint Service...${RESET}"
                     while true; do
-                        read -r -p "${CYAN}Enter the Endpoint Service Name (e.g. com.amazonaws.vpce.$aws_region.<service id>): ${RESET}" byo_endpoint_service_name_response
+                        read -r -p "${CYAN}Enter the Endpoint Service Name${RESET} (e.g. com.amazonaws.vpce.$aws_region.<service id>): " byo_endpoint_service_name_response
                         case $byo_endpoint_service_name_response in
                         "com.amazonaws.vpce.$aws_region."* )
                             echo "You entered ${GREEN}$byo_endpoint_service_name_response${RESET}"
