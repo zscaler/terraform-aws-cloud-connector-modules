@@ -219,7 +219,7 @@ resource "aws_route_table" "cc_rt" {
 # CC subnet Route Table Association
 resource "aws_route_table_association" "cc_rt_asssociation" {
   count          = var.cc_route_table_enabled ? length(local.zssubnetslist) : 0
-  subnet_id      = try(length(data.aws_subnet.cc_subnet_selected[count.index].id), length(aws_subnet.cc_subnet[count.index].id))
+  subnet_id      = try(data.aws_subnet.cc_subnet_selected[count.index].id, aws_subnet.cc_subnet[count.index].id)
   route_table_id = aws_route_table.cc_rt[count.index].id
 }
 
