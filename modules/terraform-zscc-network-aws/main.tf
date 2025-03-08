@@ -95,7 +95,7 @@ data "aws_nat_gateway" "ngw_selected" {
 ################################################################################
 # Create equal number of Public/NAT Subnets to how many Cloud Connector subnets exist. This will not be created if var.byo_ngw or var.exclude_igw is set to True
 resource "aws_subnet" "public_subnet" {
-  count                = var.byo_ngw || var.exclude_igw ? 0 : length(data.aws_subnet.cc_subnet_selected[*].id)
+  count                = var.byo_ngw ? 0 : length(local.zssubnetslist)
   availability_zone    = var.az_ids != null ? null : data.aws_availability_zones.available.names[count.index]
   availability_zone_id = var.az_ids != null ? element(var.az_ids, count.index) : null
   cidr_block           = var.public_subnets != null ? element(var.public_subnets, count.index) : cidrsubnet(try(data.aws_vpc.vpc_selected[0].cidr_block, aws_vpc.vpc[0].cidr_block), 8, count.index + 101)
@@ -136,7 +136,7 @@ resource "aws_route_table_association" "public_rt_association" {
 ################################################################################
 # Create equal number of Workload/Private Subnets to how many Cloud Connector subnets exist. This will not be created if var.workloads_enabled is set to False
 resource "aws_subnet" "workload_subnet" {
-  count                = var.workloads_enabled ? length(data.aws_subnet.cc_subnet_selected[*].id) : 0
+  count                = var.workloads_enabled ? length(local.zssubnetslist) : 0
   availability_zone    = var.az_ids != null ? null : data.aws_availability_zones.available.names[count.index]
   availability_zone_id = var.az_ids != null ? element(var.az_ids, count.index) : null
   cidr_block           = var.workloads_subnets != null ? element(var.workloads_subnets, count.index) : cidrsubnet(try(data.aws_vpc.vpc_selected[0].cidr_block, aws_vpc.vpc[0].cidr_block), 8, count.index + 1)
@@ -203,7 +203,7 @@ data "aws_subnet" "cc_subnet_selected" {
 # Optionally, you could just set cc_route_table_enabled to false and not create any route table, but that goes against
 # security best practices as the subnet would adopt the VPC default route table which may not be desired.
 resource "aws_route_table" "cc_rt" {
-  count  = var.cc_route_table_enabled ? try(length(data.aws_subnet.cc_subnet_selected[*].id), length(aws_subnet.cc_subnet[*].id)) : 0
+  count  = var.cc_route_table_enabled ? length(local.zssubnetslist) : 0
   vpc_id = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
   route {
     cidr_block      = "0.0.0.0/0"
@@ -218,8 +218,8 @@ resource "aws_route_table" "cc_rt" {
 
 # CC subnet Route Table Association
 resource "aws_route_table_association" "cc_rt_asssociation" {
-  count          = var.cc_route_table_enabled ? length(data.aws_subnet.cc_subnet_selected[*].id) : 0
-  subnet_id      = data.aws_subnet.cc_subnet_selected[count.index].id
+  count          = var.cc_route_table_enabled ? length(local.zssubnetslist) : 0
+  subnet_id      = try(length(data.aws_subnet.cc_subnet_selected[count.index].id), length(aws_subnet.cc_subnet[count.index].id))
   route_table_id = aws_route_table.cc_rt[count.index].id
 }
 
@@ -230,7 +230,7 @@ resource "aws_route_table_association" "cc_rt_asssociation" {
 # Optional Route53 subnet creation for ZPA
 # Create Route53 reserved subnets in X availability zones per az_count variable or minimum of 2; whichever is greater
 resource "aws_subnet" "route53_subnet" {
-  count                = var.zpa_enabled && length(var.byo_r53_subnet_ids) == 0 ? max(length(data.aws_subnet.cc_subnet_selected[*].id), 2) : 0
+  count                = var.zpa_enabled && length(var.byo_r53_subnet_ids) == 0 ? max(length(local.zssubnetslist), 2) : 0
   availability_zone    = var.az_ids != null ? null : data.aws_availability_zones.available.names[count.index]
   availability_zone_id = var.az_ids != null ? element(var.az_ids, count.index) : null
   cidr_block           = var.route53_subnets != null ? element(var.route53_subnets, count.index) : cidrsubnet(try(data.aws_vpc.vpc_selected[0].cidr_block, aws_vpc.vpc[0].cidr_block), 12, (64 + count.index * 16))

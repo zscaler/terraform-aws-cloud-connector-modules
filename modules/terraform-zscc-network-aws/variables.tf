@@ -216,4 +216,5 @@ variable "az_ids" {
 
 locals {
   createzssubnets = var.az_ids != null ? length(var.az_ids) : var.az_count
+  zssubnetslist   = var.byo_subnets ? data.aws_subnet.cc_subnet_selected[*].id : aws_subnet.cc_subnet[*].id
 }
