@@ -14,16 +14,8 @@ By default, these templates store two critical files to the "examples" directory
 
 Login Instructions & Resource Attributes
 
-1) Copy the SSH key to BASTION home directory
-scp -F ssh_config ${var.name_prefix}-key-${random_string.suffix.result}.pem bastion
-
-2) SSH to BASTION
-ssh -F ssh_config bastion
-
-BASTION Instance ID:
-${module.bastion.instance_id}
-
-3) SSH to WORKLOAD
+WORKLOAD Details/Commands:
+SSH to WORKLOADS
 %{for k, v in local.workload_map~}
 ssh -F ssh_config workload-${k}
 %{endfor~}  
@@ -35,6 +27,18 @@ workload-${k} = ${v}
 
 WORKLOAD Instance IDs:
 ${join("\n", module.workload.instance_id)}
+
+
+BASTION Jump Host Details/Commands:
+1) Copy the SSH key to BASTION home directory
+scp -F ssh_config ${var.name_prefix}-key-${random_string.suffix.result}.pem bastion:~/.
+
+2) SSH to BASTION
+ssh -F ssh_config bastion
+
+BASTION Instance ID:
+${module.bastion.instance_id}
+
 
 VPC:         
 ${module.network.vpc_id}
