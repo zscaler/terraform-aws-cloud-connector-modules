@@ -277,6 +277,7 @@
 
 #byo_mgmt_security_group_id                 = ["mgmt-sg-1"]
 #byo_service_security_group_id              = ["service-sg-1"]
+#byo_route53_resolver_outbound_endpoint_group_id = ["r53-outbound-endpoint-sg"]   ####Only required, if zpa_enabled is true
 
 ## 34. By default, this script will create new route table resources associated to Cloud Connector defined private subnets
 ##     Uncomment, if you do NOT want to create new route tables (true or false. Default: true)

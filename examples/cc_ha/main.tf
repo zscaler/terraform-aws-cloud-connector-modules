@@ -190,6 +190,7 @@ module "cc_sg" {
   byo_mgmt_security_group_id    = var.byo_mgmt_security_group_id
   byo_service_security_group_id = var.byo_service_security_group_id
   # optional inputs. only required if byo_security_group set to true
+  byo_route53_resolver_outbound_endpoint_group_id = var.byo_route53_resolver_outbound_endpoint_group_id
 }
 
 
