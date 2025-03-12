@@ -20,10 +20,10 @@ output "service_security_group_arn" {
 
 output "outbound_endpoint_security_group_id" {
   description = "Route53 DNS Resolver Outbound Endpoint Security Group ID"
-  value       = var.byo_security_group ? data.aws_security_group.outbound_endpoint_sg_selected[*].id : aws_security_group.outbound_endpoint_sg[*].id
+  value       = var.byo_security_group && var.zpa_enabled ? data.aws_security_group.outbound_endpoint_sg_selected[*].id : aws_security_group.outbound_endpoint_sg[*].id
 }
 
 output "outbound_endpoint_security_group_arn" {
   description = "Route53 DNS Resolver Outbound Endpoint Security Group ARN"
-  value       = var.byo_security_group ? data.aws_security_group.outbound_endpoint_sg_selected[*].arn : aws_security_group.outbound_endpoint_sg[*].arn
+  value       = var.byo_security_group && var.zpa_enabled ? data.aws_security_group.outbound_endpoint_sg_selected[*].arn : aws_security_group.outbound_endpoint_sg[*].arn
 }
