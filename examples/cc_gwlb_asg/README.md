@@ -101,6 +101,7 @@ From cc_gwlb_asg directory execute:
 | <a name="input_byo_ngw"></a> [byo\_ngw](#input\_byo\_ngw) | Bring your own AWS NAT Gateway(s) Cloud Connector | `bool` | `false` | no |
 | <a name="input_byo_ngw_ids"></a> [byo\_ngw\_ids](#input\_byo\_ngw\_ids) | User provided existing AWS NAT Gateway IDs | `list(string)` | `null` | no |
 | <a name="input_byo_r53_subnet_ids"></a> [byo\_r53\_subnet\_ids](#input\_byo\_r53\_subnet\_ids) | User provided existing AWS Subnet IDs reserved for ZPA/Route53 use | `list(string)` | `[]` | no |
+| <a name="input_byo_route53_resolver_outbound_endpoint_group_id"></a> [byo\_route53\_resolver\_outbound\_endpoint\_group\_id](#input\_byo\_route53\_resolver\_outbound\_endpoint\_group\_id) | Route53 Resolver Outbound Endpoint Security Group ID | `list(string)` | `null` | no |
 | <a name="input_byo_security_group"></a> [byo\_security\_group](#input\_byo\_security\_group) | Bring your own Security Group for Cloud Connector | `bool` | `false` | no |
 | <a name="input_byo_service_security_group_id"></a> [byo\_service\_security\_group\_id](#input\_byo\_service\_security\_group\_id) | Service Security Group ID for Cloud Connector association | `list(string)` | `null` | no |
 | <a name="input_byo_sns_topic"></a> [byo\_sns\_topic](#input\_byo\_sns\_topic) | Determine whether or not to create an AWS SNS topic and topic subscription for email alerts. Setting this variable to true implies you should also set variable sns\_enabled to true | `bool` | `false` | no |

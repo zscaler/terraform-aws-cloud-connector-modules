@@ -15,6 +15,7 @@ BUG FIXES:
     - split all IAM Policies into separate CREATE/PUT/DELETE vs GET/LIST/DESCRIBE statements
     - add Zscaler specific namespace condition constraint to data.aws_iam_policy_document.cc_metrics_policy_document
     - update CCAllowTags minimum SQS/SNS IAM Policy dependencies
+* fix: byo_security_group logic with zpa outbound endpoints
 
 ## 1.4.0 (November 12, 2024)
 FEATURES:

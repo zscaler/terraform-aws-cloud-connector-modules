@@ -218,7 +218,8 @@ resource "aws_vpc_security_group_egress_rule" "egress_cc_service_all" {
 # Create Security Group and Rules for Route53 DNS Resolver Outbound Endpoint
 ################################################################################
 resource "aws_security_group" "outbound_endpoint_sg" {
-  count       = var.zpa_enabled == true && var.byo_security_group == false ? 1 : 0
+  # Only create outbound endpoint security group if zpa is enabled
+  count       = var.zpa_enabled && var.byo_security_group == false ? 1 : 0
   name        = "${var.name_prefix}-outbound-dns-endpoint-sg-${var.resource_tag}"
   description = "Security group for Route53 DNS Resolver Outbound Endpoint"
   vpc_id      = var.vpc_id
@@ -234,7 +235,8 @@ resource "aws_security_group" "outbound_endpoint_sg" {
 
 # Or use existing Route53 DNS Resolver Outbound Endpoint Security Group ID
 data "aws_security_group" "outbound_endpoint_sg_selected" {
-  count = var.byo_security_group ? length(var.byo_route53_resolver_outbound_endpoint_group_id) : 0
+  # Only look for an existing outbound endpoint security group if byo_security_group is true AND zpa is enabled
+  count = var.zpa_enabled && var.byo_security_group ? length(var.byo_route53_resolver_outbound_endpoint_group_id) : 0
   id    = element(var.byo_route53_resolver_outbound_endpoint_group_id, count.index)
 }
 

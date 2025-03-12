@@ -323,6 +323,12 @@ variable "byo_service_security_group_id" {
   default     = null
 }
 
+variable "byo_route53_resolver_outbound_endpoint_group_id" {
+  type        = list(string)
+  description = "Route53 Resolver Outbound Endpoint Security Group ID"
+  default     = null
+}
+
 variable "workload_route_table_ids_to_cc_1" {
   type        = list(string)
   description = "User provided existing AWS Route Table IDs sending to Cloud Connector 1 in pair"

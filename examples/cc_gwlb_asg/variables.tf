@@ -518,6 +518,12 @@ variable "byo_service_security_group_id" {
   default     = null
 }
 
+variable "byo_route53_resolver_outbound_endpoint_group_id" {
+  type        = list(string)
+  description = "Route53 Resolver Outbound Endpoint Security Group ID"
+  default     = null
+}
+
 variable "cc_route_table_enabled" {
   type        = bool
   description = "For brownfield environments where VPC subnets already exist, set to false to not create a new route table to associate to Cloud Connector subnet(s). Default is true which means module will try to create new route tables"
