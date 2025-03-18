@@ -13,7 +13,10 @@ ENHANCEMENTS:
     - terraform-zscc-gwlbendpoint-aws:
         - variable gwlb_arn made optional with default null value added supporting module use with byo endpoint service
     - terraform-zscc-workload-aws:
-        - and output instance_id
+        - add output instance_id
+    - terraform-zscc-bastion-aws:
+        - add output instance_id
+* refactor: include ssh_config generation with auto mapping all workload/cc instances for base/greenfield deployments
 
 BUG FIXES:
 * fix: add explicit egress udp/53 rules to security group module
@@ -51,7 +54,6 @@ FEATURES:
 ENHANCEMENTS:
 * refactor: add zsec prompts brownfield zpa network options
         
-
 ## 1.3.3 (August 30, 2024)
 ENHANCEMENTS:
 * refactor: add china marketplace specific product-code ("axnpwhsb4facossmbm1h9yad6") lookup 
