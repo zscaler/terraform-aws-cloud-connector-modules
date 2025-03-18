@@ -12,11 +12,28 @@ By default, these templates store two critical files to the "examples" directory
    You (and subsequently Zscaler) will NOT be able to remotely access these VMs once deployed without valid SSH access.
 ***Disclaimer***
 
+Login Instructions & Resource Attributes
+
+CLOUD CONNECTOR Details/Commands:
+SSH to CLOUD CONNECTOR
+Note: Due to the dynamic nature of autoscaling groups, you will need to login to the AWS console and identify the mgmt IP (network interface device index #1) for each CC deployed and insert into the above command replacing "<< CC mgmt IP >>"
+Note: You can also login to the Cloud Connectors directly from the AWS Console via Session Manager Connect.
+
+All Autoscaling Group IDs:
+${join("\n", module.cc_asg.autoscaling_group_ids)}
+
+Launch Template ID:
+${module.cc_asg.launch_template_id}
+
+CLOUD CONNECTOR IAM Role ARNs:
+${join("\n", module.cc_iam.iam_instance_profile_arn)}
+
+
 VPC:         
 ${module.network.vpc_id}
 
-All CC AZs:
-${join("\n", module.cc_asg.availability_zone)}
+Zscaler Subnet IDs:
+${join("\n", module.network.cc_subnet_ids)}
 
 All NAT GW IPs:
 ${join("\n", module.network.nat_gateway_ips)}
@@ -30,17 +47,8 @@ ${module.gwlb_endpoint.vpce_service_arn}
 All GWLB Endpoint IDs:
 ${join("\n", module.gwlb_endpoint.gwlbe)}
 
-GWLB:
+GWLB ARN:
 ${module.gwlb.gwlb_arn}
-
-All CC IAM Role ARNs:
-${join("\n", module.cc_iam.iam_instance_profile_arn)}
-
-All Autoscaling Group IDs:
-${join("\n", module.cc_asg.autoscaling_group_ids)}
-
-Launch Template ID:
-${module.cc_asg.launch_template_id}
 
 TB
 }

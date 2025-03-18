@@ -56,6 +56,7 @@ No modules.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_instance_id"></a> [instance\_id](#output\_instance\_id) | ID of the EC2 instance |
 | <a name="output_public_dns"></a> [public\_dns](#output\_public\_dns) | Instance Public DNS |
 | <a name="output_public_ip"></a> [public\_ip](#output\_public\_ip) | Instance Public IP |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
