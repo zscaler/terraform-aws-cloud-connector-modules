@@ -56,5 +56,6 @@ No modules.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_instance_id"></a> [instance\_id](#output\_instance\_id) | ID of the EC2 instance |
 | <a name="output_private_ip"></a> [private\_ip](#output\_private\_ip) | Instance Private IP |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
