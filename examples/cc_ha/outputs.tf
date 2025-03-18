@@ -12,30 +12,33 @@ By default, these templates store two critical files to the "examples" directory
    You (and subsequently Zscaler) will NOT be able to remotely access these VMs once deployed without valid SSH access.
 ***Disclaimer***
 
+Login Instructions & Resource Attributes
+
+CLOUD CONNECTOR Details/Commands:
+CLOUD CONNECTOR Instance IDs:
+${join("\n", module.cc_vm.id)}
+
+CLOUD CONNECTOR Forwarding/Service IPs:
+${join("\n", module.cc_vm.forwarding_ip)}
+
+CLOUD CONNECTOR Forwarding/Service ENIs:
+${join("\n", module.cc_vm.forwarding_eni)}
+
+CLOUD CONNECTOR AZs:
+${join("\n", distinct(module.cc_vm.availability_zone))}
+
+CLOUD CONNECTOR IAM Role ARNs:
+${join("\n", module.cc_iam.iam_instance_profile_arn)}
+
+
 VPC:         
 ${module.network.vpc_id}
 
-All CC AZs:
-${join("\n", distinct(module.cc_vm.availability_zone))}
-
-All CC Instance IDs:
-${join("\n", module.cc_vm.id)}
-
-All CC Management IPs:
-${join("\n", module.cc_vm.management_ip)}
-
-All CC Forwarding/Service IPs:
-${join("\n", module.cc_vm.forwarding_ip)}
-
-All CC Forwarding/Service ENIs:
-${join("\n", module.cc_vm.forwarding_eni)}
+Zscaler Subnet IDs:
+${join("\n", module.network.cc_subnet_ids)}
 
 All NAT GW IPs:
 ${join("\n", module.network.nat_gateway_ips)}
-
-All CC IAM Role ARNs:
-${join("\n", module.cc_iam.iam_instance_profile_arn)}
-
 
 TB
 }
