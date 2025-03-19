@@ -471,7 +471,33 @@ first_run="yes"
             printf '\n'
             az_id_list_formatted+="]'"
             echo "export TF_VAR_az_ids=$az_id_list_formatted" >> .zsecrc
-    
+
+        if [[ "$deployment" == "greenfield" ]]; then
+            # Define the range
+            min=1
+            max=100
+
+            while true; do
+                read -p "${CYAN}How many test client workloads should be deployed? Enter a number between $min and $max: ${RESET}" workload_count_input
+
+                # Check if the input is a number
+                if ! [[ "$workload_count_input" =~ ^[0-9]+$ ]]; then
+                    echo "${RED}Invalid selection. Specify a number within the range${RESET}"
+                    continue
+                fi
+
+                # Check if the number is within the range
+                if (( workload_count_input >= min && workload_count_input <= max )); then
+                    echo "${GREEN}$workload_count_input workload instances will be deployed across $az_count AZs${RESET}"
+                    echo "export TF_VAR_workload_count=$workload_count_input" >> .zsecrc
+                    break
+                else
+                    echo "${RED}Invalid selection. Specify a number within the range${RESET}"
+                    continue
+                fi
+            done
+        fi
+
         #Brownfield/BYO Networking Options
         if [[ "$deployment" == "brownfield" ]]; then
             echo "Configure Networking Infrastructure..."
