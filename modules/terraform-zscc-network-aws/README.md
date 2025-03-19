@@ -94,6 +94,9 @@ No modules.
 | <a name="output_route53_subnet_ids"></a> [route53\_subnet\_ids](#output\_route53\_subnet\_ids) | Route 53 Subnet ID |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | VPC ID |
 | <a name="output_workload_route_table_ids"></a> [workload\_route\_table\_ids](#output\_workload\_route\_table\_ids) | Workloads Route Table ID |
+| <a name="output_workload_subnet_az_ids"></a> [workload\_subnet\_az\_ids](#output\_workload\_subnet\_az\_ids) | Workload Subnet Availability Zone IDs |
+| <a name="output_workload_subnet_az_names"></a> [workload\_subnet\_az\_names](#output\_workload\_subnet\_az\_names) | Workload Subnet Availability Zone Names |
+| <a name="output_workload_subnet_cidrs"></a> [workload\_subnet\_cidrs](#output\_workload\_subnet\_cidrs) | Workloads Subnet CIDR blocks |
 | <a name="output_workload_subnet_ids"></a> [workload\_subnet\_ids](#output\_workload\_subnet\_ids) | Workloads Subnet ID |
 | <a name="output_zs_subnet_az_ids"></a> [zs\_subnet\_az\_ids](#output\_zs\_subnet\_az\_ids) | Zscaler Subnet Availability Zone IDs |
 | <a name="output_zs_subnet_az_names"></a> [zs\_subnet\_az\_names](#output\_zs\_subnet\_az\_names) | Zscaler Subnet Availability Zone Names |

@@ -25,6 +25,21 @@ output "workload_subnet_ids" {
   description = "Workloads Subnet ID"
   value       = aws_subnet.workload_subnet[*].id
 }
+
+output "workload_subnet_cidrs" {
+  description = "Workloads Subnet CIDR blocks"
+  value       = aws_subnet.workload_subnet[*].cidr_block
+}
+
+output "workload_subnet_az_names" {
+  description = "Workload Subnet Availability Zone Names"
+  value       = aws_subnet.workload_subnet[*].availability_zone
+}
+output "workload_subnet_az_ids" {
+  description = "Workload Subnet Availability Zone IDs"
+  value       = aws_subnet.workload_subnet[*].availability_zone_id
+}
+
 output "public_subnet_ids" {
   description = "Public Subnet ID"
   value       = aws_subnet.public_subnet[*].id

@@ -28,6 +28,18 @@ workload-${k} = ${v}
 WORKLOAD Instance IDs:
 ${join("\n", module.workload.instance_id)}
 
+WORKLOAD Subnet IDs:
+${join("\n", module.network.workload_subnet_ids)}
+
+WORKLOAD Subnet CIDR Ranges:
+${join("\n", module.network.workload_subnet_cidrs)}
+
+WORKLOAD Subnet Availability Zone Names:
+${join("\n", module.network.workload_subnet_az_names)}
+
+WORKLOAD Subnet Availability Zone ID Mapping:
+${join("\n", module.network.workload_subnet_az_ids)}
+
 
 BASTION Jump Host Details/Commands:
 1) Copy the SSH key to BASTION home directory
