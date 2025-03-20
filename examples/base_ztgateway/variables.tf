@@ -74,18 +74,6 @@ variable "bastion_nsg_source_prefix" {
   default     = ["0.0.0.0/0"]
 }
 
-variable "exclude_igw" {
-  type        = bool
-  description = "By default, example templates require an Internet Gateway to either be created or already exist. Set this variable to true to ensure this module does not depend on either. Only recommended in niche customer environments where internet egresses through a private connection like Direct Connect or ZT Gateway Service deployments"
-  default     = false
-}
-
-variable "exclude_ngw" {
-  type        = bool
-  description = "By default, example templates require one or more NAT Gateway to either be created or already exist. Set this variable to true to ensure this module does not depend on either. Only recommended in niche customer environments where Cloud Connectors are deployed with Public IP Addresses or ZT Gateway Service deployments"
-  default     = true
-}
-
 variable "byo_endpoint_service_name" {
   type        = string
   description = "Exising GWLB Endpoint Service name to associate GWLB Endpoints to. Example string format:  \"com.amazonaws.vpce.<region>.<service id>\""

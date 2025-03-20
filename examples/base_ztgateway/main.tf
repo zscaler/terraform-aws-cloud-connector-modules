@@ -62,8 +62,8 @@ module "network" {
   cc_subnets        = var.endpoint_subnets
   gwlb_enabled      = true
   gwlb_endpoint_ids = module.gwlb_endpoint.gwlbe
-  exclude_igw       = var.exclude_igw
-  exclude_ngw       = var.exclude_ngw
+  exclude_igw       = false # IGW only created for public bastion host resource access
+  exclude_ngw       = true
 }
 
 ################################################################################

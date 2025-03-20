@@ -93,7 +93,7 @@ data "aws_nat_gateway" "ngw_selected" {
 ################################################################################
 # Public (NAT Gateway) Subnet & Route Tables
 ################################################################################
-# Create equal number of Public/NAT Subnets to how many Cloud Connector subnets exist. This will not be created if var.byo_ngw or var.exclude_igw is set to True
+# Create equal number of Public/NAT Subnets to how many Cloud Connector subnets exist. This will not be created if var.byo_ngw is set to True
 resource "aws_subnet" "public_subnet" {
   count                = var.byo_ngw ? 0 : length(local.zssubnetslist)
   availability_zone    = var.az_ids != null ? null : data.aws_availability_zones.available.names[count.index]
