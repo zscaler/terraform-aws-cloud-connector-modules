@@ -4,6 +4,15 @@ This deployment type is intended for greenfield/pov/lab purposes. It will deploy
 
 Additionally: Creates 1 or more Zscaler private subnets based on how many availability zone ids specified; 1 Zero Trust Endpoint per AZ; workload private subnet route table default route pointing to ZT Endpoint in each respective AZ.
 
+## Components
+![base_ztgateway Topology](https://github.com/zscaler/terraform-aws-cloud-connector-modules/blob/topologies/docs/assets/example_topologies/base_ztgateway.svg)
+
+### Topology Details
+- A new VPC will be deployed in the user provided region
+- New Zscaler Subnets will be deployed based on how many ZT Endpoint resources are deployed (1 per AZ)
+- New Workload Subnets and Workload EC2 Instances will be deployed based on how many workloads and AZs are specified
+- A new Internet Gateway, Public Subnet, and Public Bastion EC2 with EIP will be deployed (only to facilitate remote SSH access to the test workloads)
+- New Route Tables will be configured per Workload Subnet with static default routes configured per ZT Endpoint configured
 
 ## How to deploy:
 
