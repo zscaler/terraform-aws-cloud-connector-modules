@@ -538,42 +538,42 @@ first_run="yes"
                             echo "export TF_VAR_byo_subnet_ids='[\"${byo_subnet_ids}\"]'" >> .zsecrc
                         elif [[ "$az_count" == "2" ]]; then
                             echo "$az_count availability zones chosen"
-                            read -r -p "${CYAN}Please enter the first subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[1]}: ${RESET}" subnet_1
+                            read -r -p "${CYAN}Please enter the first subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[0]}: ${RESET}" subnet_1
                             echo "You entered ${GREEN}$subnet_1${RESET}"
-                            read -r -p "${CYAN}Please enter the second subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[2]}: ${RESET}" subnet_2
+                            read -r -p "${CYAN}Please enter the second subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[1]}: ${RESET}" subnet_2
                             echo "You entered ${GREEN}$subnet_2${RESET}"
                             echo "export TF_VAR_byo_subnet_ids='[\"${subnet_1}\",\"${subnet_2}\"]'" >> .zsecrc
                         elif [[ "$az_count" == "3" ]]; then
                             echo "$az_count availability zones chosen"
-                            read -r -p "${CYAN}Please enter the first subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[1]}: ${RESET}" subnet_1
+                            read -r -p "${CYAN}Please enter the first subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[0]}: ${RESET}" subnet_1
                             echo "You entered ${GREEN}$subnet_1${RESET}"
-                            read -r -p "${CYAN}Please enter the second subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[2]}: ${RESET}" subnet_2
+                            read -r -p "${CYAN}Please enter the second subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[1]}: ${RESET}" subnet_2
                             echo "You entered ${GREEN}$subnet_2${RESET}"
-                            read -r -p "${CYAN}Please enter the third subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[3]}: ${RESET}" subnet_3
+                            read -r -p "${CYAN}Please enter the third subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[2]}: ${RESET}" subnet_3
                             echo "You entered ${GREEN}$subnet_3${RESET}"
                             echo "export TF_VAR_byo_subnet_ids='[\"${subnet_1}\",\"${subnet_2}\",\"${subnet_3}\"]'" >> .zsecrc
                         elif [[ "$az_count" == "4" ]]; then
                             echo "$az_count availability zones chosen"
-                            read -r -p "${CYAN}Please enter the first subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[1]}: ${RESET}" subnet_1
+                            read -r -p "${CYAN}Please enter the first subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[0]}: ${RESET}" subnet_1
                             echo "You entered ${GREEN}$subnet_1${RESET}"
-                            read -r -p "${CYAN}Please enter the second subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[2]}: ${RESET}" subnet_2
+                            read -r -p "${CYAN}Please enter the second subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[1]}: ${RESET}" subnet_2
                             echo "You entered ${GREEN}$subnet_2${RESET}"
-                            read -r -p "${CYAN}Please enter the third subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[3]}: ${RESET}" subnet_3
+                            read -r -p "${CYAN}Please enter the third subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[2]}: ${RESET}" subnet_3
                             echo "You entered ${GREEN}$subnet_3${RESET}"
-                            read -r -p "${CYAN}Please enter the fourth subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[4]}: ${RESET}" subnet_4
+                            read -r -p "${CYAN}Please enter the fourth subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[3]}: ${RESET}" subnet_4
                             echo "You entered ${GREEN}$subnet_4${RESET}"
                             echo "export TF_VAR_byo_subnet_ids='[\"${subnet_1}\",\"${subnet_2}\",\"${subnet_3}\",\"${subnet_4}\"]'" >> .zsecrc
                         elif [[ "$az_count" == "5" ]]; then
                             echo "$az_count availability zones chosen"
-                            read -r -p "${CYAN}Please enter the first subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[1]}: ${RESET}" subnet_1
+                            read -r -p "${CYAN}Please enter the first subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[0]}: ${RESET}" subnet_1
                             echo "You entered ${GREEN}$subnet_1${RESET}"
-                            read -r -p "${CYAN}Please enter the second subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[2]}: ${RESET}" subnet_2
+                            read -r -p "${CYAN}Please enter the second subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[1]}: ${RESET}" subnet_2
                             echo "You entered ${GREEN}$subnet_2${RESET}"
-                            read -r -p "${CYAN}Please enter the third subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[3]}: ${RESET}" subnet_3
+                            read -r -p "${CYAN}Please enter the third subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[2]}: ${RESET}" subnet_3
                             echo "You entered ${GREEN}$subnet_3${RESET}"
-                            read -r -p "${CYAN}Please enter the fourth subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[4]}: ${RESET}" subnet_4
+                            read -r -p "${CYAN}Please enter the fourth subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[3]}: ${RESET}" subnet_4
                             echo "You entered ${GREEN}$subnet_4${RESET}"
-                            read -r -p "${CYAN}Please enter the fifth subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[5]}: ${RESET}" subnet_5
+                            read -r -p "${CYAN}Please enter the fifth subnet ID (E.g subnet-05c32f4aa6bc02f8f) in ${selections[4]}: ${RESET}" subnet_5
                             echo "You entered ${GREEN}$subnet_5${RESET}"
                             echo "export TF_VAR_byo_subnet_ids='[\"${subnet_1}\",\"${subnet_2}\",\"${subnet_3}\",\"${subnet_4}\",\"${subnet_5}\"]'" >> .zsecrc
                         fi
