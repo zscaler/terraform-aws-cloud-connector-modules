@@ -42,13 +42,15 @@
 
 #owner_tag                                  = "username@company.com"
 
-## 5a. The number of ZT Gateway Subnets to create by explicit availability zone ID
+## The number of unique ZT Gateway Subnets to create. Options 5a OR 5b exist, but it is highly recommended to utilize option 5a
+
+## 5a. By explicit availability zone ID:
 ##    **** NOTE - This value will be ignored if byo_vpc / byo_subnets is set
-##    **** NOTE - This value will take precedence over az_count and the preferred variable to use
+##    **** NOTE - This value will take precedence over az_count and is the preferred variable to use for granularity and compatibility
 
 #az_ids                                     = ["use1-az1" "use1-az5"]
 
-## 5a. The number of ZT Gateway Subnets to create in sequential availability zones. Available input range 1-3 (Default: 2)
+## 5b. By lookup of currently available and sequential availability zones. Available input range 1-3 (Default: 2)
 ##    **** NOTE - This value will be ignored if byo_vpc / byo_subnets is set
 ##    #### NOTE - This value will be ignored if az_ids is set to a non-null value
 
