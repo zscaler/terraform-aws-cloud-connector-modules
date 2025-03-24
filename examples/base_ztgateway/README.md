@@ -1,7 +1,18 @@
-# Zscaler "Base" deployment type
+# Starter Deployment Template with Zero Trust Gateway (Base_ZTGateway)
 
-This deployment type is just for greenfield/POV reference and/or spoke workload testing. It does not deploy any Cloud Connector appliances. Full set of resources provisioned list below, but this will effectively create all network infrastructure dependencies for an AWS environment. Creates 1 new VPC with 1 public subnet and 1 private/workload subnet; 1 IGW; 1 NAT Gateway; 1 Amazon Linux 2023 server workload in the private subnet routing to NAT Gateway; 1 Bastion Host in the public subnet assigned an Elastic IP and routing to the IGW; generates local key pair .pem file for ssh access
+This deployment type is intended for greenfield/pov/lab purposes. It will deploy a fully functioning sandbox environment in a new VPC with test workload VMs to integrate with a Zscaler Zero Trust Gateway. Full set of resources provisioned listed below, but this will effectively create all network infrastructure dependencies for an AWS environment. Everything from "Base" deployment type (Creates 1 new VPC with 1 public subnet and 1 private/workload subnet; 1 IGW; 1 or more workloads in the private subnet routing to NAT Gateway; 1 Bastion Host in the public subnet assigned an Elastic IP and routing to the IGW; generates local key pair .pem file for ssh access)<br>
 
+Additionally: Creates 1 or more Zscaler private subnets based on how many availability zone ids specified; 1 Zero Trust Endpoint per AZ; workload private subnet route table default route pointing to ZT Endpoint in each respective AZ.
+
+## Components
+![base_ztgateway Topology](https://github.com/zscaler/terraform-aws-cloud-connector-modules/blob/topologies/docs/assets/example_topologies/base_ztgateway.svg)
+
+### Topology Details
+- A new VPC will be deployed in the user provided region
+- New Zscaler Subnets will be deployed based on how many ZT Endpoint resources are deployed (1 per AZ)
+- New Workload Subnets and Workload EC2 Instances will be deployed based on how many workloads and AZs are specified
+- A new Internet Gateway, Public Subnet, and Public Bastion EC2 with EIP will be deployed (only to facilitate remote SSH access to the test workloads)
+- New Route Tables will be configured per Workload Subnet with static default routes configured per ZT Endpoint configured
 
 ## How to deploy:
 
@@ -9,16 +20,16 @@ This deployment type is just for greenfield/POV reference and/or spoke workload 
 From the examples directory, run the zsec bash script that walks to all required inputs.
 - ./zsec up
 - enter "greenfield"
-- enter "base"
+- enter "base_ztgateway"
 - follow the remainder of the authentication and configuration input prompts.
 - script will detect client operating system and download/run a specific version of terraform in a temporary bin directory
 - inputs will be validated and terraform init/apply will automatically exectute.
 - verify all resources that will be created/modified and enter "yes" to confirm
 
 ### Option 2 (manual):
-Modify/populate any required variable input values in base/terraform.tfvars file and save.
+Modify/populate any required variable input values in base_ztgateway/terraform.tfvars file and save.
 
-From base directory execute:
+From base_ztgateway directory execute:
 - terraform init
 - terraform apply
 
@@ -29,7 +40,7 @@ From the examples directory, run the zsec bash script that walks to all required
 - ./zsec destroy
 
 ### Option 2 (manual):
-From base directory execute:
+From base_ztgateway directory execute:
 - terraform destroy
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
@@ -58,6 +69,7 @@ From base directory execute:
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_bastion"></a> [bastion](#module\_bastion) | ../../modules/terraform-zscc-bastion-aws | n/a |
+| <a name="module_gwlb_endpoint"></a> [gwlb\_endpoint](#module\_gwlb\_endpoint) | ../../modules/terraform-zscc-gwlbendpoint-aws | n/a |
 | <a name="module_network"></a> [network](#module\_network) | ../../modules/terraform-zscc-network-aws | n/a |
 | <a name="module_workload"></a> [workload](#module\_workload) | ../../modules/terraform-zscc-workload-aws | n/a |
 
@@ -78,7 +90,10 @@ From base directory execute:
 |------|-------------|------|---------|:--------:|
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region. | `string` | `"us-west-2"` | no |
 | <a name="input_az_count"></a> [az\_count](#input\_az\_count) | Default number of subnets to create based on availability zone | `number` | `1` | no |
+| <a name="input_az_ids"></a> [az\_ids](#input\_az\_ids) | By default, this module does a lookup for all regional availability zones marked as available.<br/>If creating new Zscaler private subnets, it then automatically loops through in order of the returned list based on the variable az\_count.<br/>Providing each AWS Zone ID explicitly here will take precedence over var.az\_count.<br/><br/>Example: When deploying a greenfield ZT Gateway template in region us-east-1 and 2 AZs where you want to ensure that new subnets<br/>are created in use1-az1 and use1-az5, set this variable to:<br/>az\_ids = ["use1-az1" "use1-az5"]<br/><br/>Caution: This argument is not supported in all regions or partitions | `list(string)` | `null` | no |
 | <a name="input_bastion_nsg_source_prefix"></a> [bastion\_nsg\_source\_prefix](#input\_bastion\_nsg\_source\_prefix) | CIDR blocks of trusted networks for bastion host ssh access | `list(string)` | <pre>[<br/>  "0.0.0.0/0"<br/>]</pre> | no |
+| <a name="input_byo_endpoint_service_name"></a> [byo\_endpoint\_service\_name](#input\_byo\_endpoint\_service\_name) | Exising GWLB Endpoint Service name to associate GWLB Endpoints to. Example string format:  "com.amazonaws.vpce.<region>.<service id>" | `string` | `null` | no |
+| <a name="input_endpoint_subnets"></a> [endpoint\_subnets](#input\_endpoint\_subnets) | Cloud Connector Subnets to create in VPC. This is only required if you want to override the default subnets that this code creates via vpc\_cidr variable. | `list(string)` | `null` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | The name prefix for all your resources | `string` | `"zscc"` | no |
 | <a name="input_owner_tag"></a> [owner\_tag](#input\_owner\_tag) | populate custom owner tag attribute | `string` | `"zscc-admin"` | no |
 | <a name="input_public_subnets"></a> [public\_subnets](#input\_public\_subnets) | Public/NAT GW Subnets to create in VPC. This is only required if you want to override the default subnets that this code creates via vpc\_cidr variable. | `list(string)` | `null` | no |

@@ -40,20 +40,20 @@ From base_cc_gwlb_zpa directory execute:
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.32.0, <= 5.49.0 |
-| <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.2.0 |
-| <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.1.0 |
-| <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.3.0 |
-| <a name="requirement_tls"></a> [tls](#requirement\_tls) | ~> 3.4.0 |
+| <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.5.0 |
+| <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.2.0 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.6.0 |
+| <a name="requirement_tls"></a> [tls](#requirement\_tls) | ~> 4.0.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.32.0, <= 5.49.0 |
-| <a name="provider_local"></a> [local](#provider\_local) | ~> 2.2.0 |
-| <a name="provider_null"></a> [null](#provider\_null) | ~> 3.1.0 |
-| <a name="provider_random"></a> [random](#provider\_random) | ~> 3.3.0 |
-| <a name="provider_tls"></a> [tls](#provider\_tls) | ~> 3.4.0 |
+| <a name="provider_local"></a> [local](#provider\_local) | ~> 2.5.0 |
+| <a name="provider_null"></a> [null](#provider\_null) | ~> 3.2.0 |
+| <a name="provider_random"></a> [random](#provider\_random) | ~> 3.6.0 |
+| <a name="provider_tls"></a> [tls](#provider\_tls) | ~> 4.0.0 |
 
 ## Modules
 
@@ -75,6 +75,7 @@ From base_cc_gwlb_zpa directory execute:
 |------|------|
 | [aws_key_pair.deployer](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/key_pair) | resource |
 | [local_file.private_key](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [local_file.ssh_config](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.testbed](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.user_data_file](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [null_resource.cc_error_checker](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |

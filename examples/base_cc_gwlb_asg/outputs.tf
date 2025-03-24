@@ -12,28 +12,55 @@ By default, these templates store two critical files to the "examples" directory
    You (and subsequently Zscaler) will NOT be able to remotely access these VMs once deployed without valid SSH access.
 ***Disclaimer***
 
-1) Copy the SSH key to the bastion host
-scp -i ${var.name_prefix}-key-${random_string.suffix.result}.pem ${var.name_prefix}-key-${random_string.suffix.result}.pem ec2-user@${module.bastion.public_dns}:/home/ec2-user/.
+Login Instructions & Resource Attributes
 
-2) SSH to the bastion host
-ssh -i ${var.name_prefix}-key-${random_string.suffix.result}.pem ec2-user@${module.bastion.public_dns}
-
-3) SSH to the Cloud Connectors
+CLOUD CONNECTOR Details/Commands:
+SSH to CLOUD CONNECTOR
 ssh -i ${var.name_prefix}-key-${random_string.suffix.result}.pem zsroot@<< CC mgmt IP >> -o "proxycommand ssh -W %h:%p -i ${var.name_prefix}-key-${random_string.suffix.result}.pem ec2-user@${module.bastion.public_dns}"
 Note: Due to the dynamic nature of autoscaling groups, you will need to login to the AWS console and identify the mgmt IP (network interface device index #1) for each CC deployed and insert into the above command replacing "<< CC mgmt IP >>"
-Note: You can also login to the Cloud Connectors directly from the AWS Console via Session Manager.
+Note: You can also login to the Cloud Connectors directly from the AWS Console via Session Manager Connect.
 
-4) SSH to the server host
-ssh -i ${var.name_prefix}-key-${random_string.suffix.result}.pem ec2-user@${module.workload.private_ip[0]} -o "proxycommand ssh -W %h:%p -i ${var.name_prefix}-key-${random_string.suffix.result}.pem ec2-user@${module.bastion.public_dns}"
+All Autoscaling Group IDs:
+${join("\n", module.cc_asg.autoscaling_group_ids)}
 
-All Workload IPs. Replace private IP below with ec2-user@"ip address" in ssh example command above.
-${join("\n", module.workload.private_ip)}
+Launch Template ID:
+${module.cc_asg.launch_template_id}
+
+CLOUD CONNECTOR IAM Role ARNs:
+${join("\n", module.cc_iam.iam_instance_profile_arn)}
+
+
+WORKLOAD Details/Commands:
+SSH to WORKLOADS
+%{for k, v in local.workload_map~}
+ssh -F ssh_config workload-${k}
+%{endfor~}  
+
+WORKLOAD IPs:
+%{for k, v in local.workload_map~}
+workload-${k} = ${v}
+%{endfor~} 
+
+WORKLOAD Instance IDs:
+${join("\n", module.workload.instance_id)}
+
+
+BASTION Jump Host Details/Commands:
+1) Copy the SSH key to BASTION home directory
+scp -F ssh_config ${var.name_prefix}-key-${random_string.suffix.result}.pem bastion:~/.
+
+2) SSH to BASTION
+ssh -F ssh_config bastion
+
+BASTION Instance ID:
+${module.bastion.instance_id}
+
 
 VPC:         
 ${module.network.vpc_id}
 
-All CC AZs:
-${join("\n", module.cc_asg.availability_zone)}
+Zscaler Subnet IDs:
+${join("\n", module.network.cc_subnet_ids)}
 
 All NAT GW IPs:
 ${join("\n", module.network.nat_gateway_ips)}
@@ -47,17 +74,8 @@ ${module.gwlb_endpoint.vpce_service_arn}
 All GWLB Endpoint IDs:
 ${join("\n", module.gwlb_endpoint.gwlbe)}
 
-GWLB:
+GWLB ARN:
 ${module.gwlb.gwlb_arn}
-
-All CC IAM Role ARNs:
-${join("\n", module.cc_iam.iam_instance_profile_arn)}
-
-All Autoscaling Group IDs:
-${join("\n", module.cc_asg.autoscaling_group_ids)}
-
-Launch Template ID:
-${module.cc_asg.launch_template_id}
 
 TB
 }
@@ -70,4 +88,30 @@ output "testbedconfig" {
 resource "local_file" "testbed" {
   content  = local.testbedconfig
   filename = "../testbed.txt"
+}
+
+resource "local_file" "ssh_config" {
+  content  = local.ssh_config_contents
+  filename = "../ssh_config"
+}
+locals {
+  workload_map = {
+    for index, ip in module.workload.private_ip :
+    index => ip
+  }
+  ssh_config_contents = <<SSH_CONFIG
+    Host bastion
+      HostName ${module.bastion.public_dns}
+      User ec2-user
+      IdentityFile ${var.name_prefix}-key-${random_string.suffix.result}.pem
+    %{for k, v in local.workload_map~}
+Host workload-${k}
+      HostName ${v}
+      User ec2-user
+      IdentityFile ${var.name_prefix}-key-${random_string.suffix.result}.pem
+      StrictHostKeyChecking no
+      ProxyJump bastion
+      ProxyCommand ssh bastion -W %h:%p
+    %{endfor~}
+  SSH_CONFIG
 }

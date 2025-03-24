@@ -12,24 +12,7 @@ By default, these templates store two critical files to the "examples" directory
    You (and subsequently Zscaler) will NOT be able to remotely access these VMs once deployed without valid SSH access.
 ***Disclaimer***
 
-Login Instructions & Resource Attributes
-
-CLOUD CONNECTOR Details/Commands:
-CLOUD CONNECTOR Instance IDs:
-${join("\n", module.cc_vm.id)}
-
-CLOUD CONNECTOR Forwarding/Service IPs:
-${join("\n", module.cc_vm.forwarding_ip)}
-
-CLOUD CONNECTOR Forwarding/Service ENIs:
-${join("\n", module.cc_vm.forwarding_eni)}
-
-CLOUD CONNECTOR AZs:
-${join("\n", distinct(module.cc_vm.availability_zone))}
-
-CLOUD CONNECTOR IAM Role ARNs:
-${join("\n", module.cc_iam.iam_instance_profile_arn)}
-
+Resource Attributes
 
 VPC:         
 ${module.network.vpc_id}
@@ -37,8 +20,14 @@ ${module.network.vpc_id}
 Zscaler Subnet IDs:
 ${join("\n", module.network.cc_subnet_ids)}
 
-All NAT GW IPs:
-${join("\n", module.network.nat_gateway_ips)}
+Zscaler Subnet CIDR Ranges:
+${join("\n", module.network.zs_subnet_cidrs)}
+
+Zscaler Subnet Availability Zone Names:
+${join("\n", module.network.zs_subnet_az_names)}
+
+Zscaler Subnet Availability Zone ID Mapping:
+${join("\n", module.network.zs_subnet_az_ids)}
 
 GWLB Endpoint Service Name:
 ${module.gwlb_endpoint.vpce_service_name}
@@ -48,9 +37,6 @@ ${module.gwlb_endpoint.vpce_service_arn}
 
 All GWLB Endpoint IDs:
 ${join("\n", module.gwlb_endpoint.gwlbe)}
-
-GWLB ARN:
-${module.gwlb.gwlb_arn}
 
 TB
 }

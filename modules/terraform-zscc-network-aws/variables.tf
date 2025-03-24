@@ -187,3 +187,34 @@ variable "r53_route_table_enabled" {
   description = "For brownfield environments where VPC subnets already exist, set to false to not create a new route table to associate to ZPA/Route 53 reserved subnet(s). Default is true which means module will try to create new route tables"
   default     = true
 }
+variable "exclude_igw" {
+  type        = bool
+  description = "By default, example templates require an Internet Gateway to either be created or already exist. Set this variable to true to ensure this module does not depend on either. Only recommended in niche customer environments where internet egresses through a private connection like Direct Connect or ZT Gateway Service deployments"
+  default     = false
+}
+variable "exclude_ngw" {
+  type        = bool
+  description = "By default, example templates require one or more NAT Gateway to either be created or already exist. Set this variable to true to ensure this module does not depend on either. Only recommended in niche customer environments where Cloud Connectors are deployed with Public IP Addresses or ZT Gateway Service deployments"
+  default     = false
+}
+
+variable "az_ids" {
+  type        = list(string)
+  description = <<-EOF
+  By default, this module does a lookup for all regional availability zones marked as available.
+  If creating new Zscaler private subnets, it then automatically loops through in order of the returned list based on the variable az_count.
+  Providing each AWS Zone ID explicitly here will take precedence over var.az_count.
+
+  Example: When deploying a greenfield ZT Gateway template in region us-east-1 and 2 AZs where you want to ensure that new subnets
+  are created in use1-az1 and use1-az5, set this variable to:
+  az_ids = ["use1-az1" "use1-az5"]
+
+  Caution: This argument is not supported in all regions or partitions
+  EOF
+  default     = null
+}
+
+locals {
+  createzssubnets = var.az_ids != null ? length(var.az_ids) : var.az_count
+  zssubnetslist   = var.byo_subnets ? data.aws_subnet.cc_subnet_selected[*].id : aws_subnet.cc_subnet[*].id
+}

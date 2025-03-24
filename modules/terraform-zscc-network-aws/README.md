@@ -9,6 +9,7 @@ This module has multi-purpose use and is leveraged by all other Zscaler Cloud Co
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.32 |
+| <a name="requirement_local"></a> [local](#requirement\_local) | >= 2.2.0, < 2.6 |
 
 ## Providers
 
@@ -52,6 +53,7 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_az_count"></a> [az\_count](#input\_az\_count) | Default number of subnets to create based on availability zone input | `number` | `2` | no |
+| <a name="input_az_ids"></a> [az\_ids](#input\_az\_ids) | By default, this module does a lookup for all regional availability zones marked as available.<br/>If creating new Zscaler private subnets, it then automatically loops through in order of the returned list based on the variable az\_count.<br/>Providing each AWS Zone ID explicitly here will take precedence over var.az\_count.<br/><br/>Example: When deploying a greenfield ZT Gateway template in region us-east-1 and 2 AZs where you want to ensure that new subnets<br/>are created in use1-az1 and use1-az5, set this variable to:<br/>az\_ids = ["use1-az1" "use1-az5"]<br/><br/>Caution: This argument is not supported in all regions or partitions | `list(string)` | `null` | no |
 | <a name="input_base_only"></a> [base\_only](#input\_base\_only) | Default is falase. Only applicable for base deployment type resulting in workload and bastion hosts, but no Cloud Connector resources. Setting this to true will point workload route able to nat\_gateway\_id | `bool` | `false` | no |
 | <a name="input_byo_igw"></a> [byo\_igw](#input\_byo\_igw) | Bring your own AWS VPC for Cloud Connector | `bool` | `false` | no |
 | <a name="input_byo_igw_id"></a> [byo\_igw\_id](#input\_byo\_igw\_id) | User provided existing AWS Internet Gateway ID | `string` | `null` | no |
@@ -65,6 +67,8 @@ No modules.
 | <a name="input_cc_route_table_enabled"></a> [cc\_route\_table\_enabled](#input\_cc\_route\_table\_enabled) | For brownfield environments where VPC subnets already exist, set to false to not create a new route table to associate to Cloud Connector subnet(s). Default is true which means module will try to create new route tables | `bool` | `true` | no |
 | <a name="input_cc_service_enis"></a> [cc\_service\_enis](#input\_cc\_service\_enis) | List of Cloud Connector Service ENIs for use in private workload and/or Route 53 subnet route tables with HA/non-GWLB deployments. Utilized if var.gwlb\_enabled is set to false | `list(string)` | <pre>[<br/>  ""<br/>]</pre> | no |
 | <a name="input_cc_subnets"></a> [cc\_subnets](#input\_cc\_subnets) | Cloud Connector Subnets to create in VPC. This is only required if you want to override the default subnets that this code creates via vpc\_cidr variable. | `list(string)` | `null` | no |
+| <a name="input_exclude_igw"></a> [exclude\_igw](#input\_exclude\_igw) | By default, example templates require an Internet Gateway to either be created or already exist. Set this variable to true to ensure this module does not depend on either. Only recommended in niche customer environments where internet egresses through a private connection like Direct Connect or ZT Gateway Service deployments | `bool` | `false` | no |
+| <a name="input_exclude_ngw"></a> [exclude\_ngw](#input\_exclude\_ngw) | By default, example templates require one or more NAT Gateway to either be created or already exist. Set this variable to true to ensure this module does not depend on either. Only recommended in niche customer environments where Cloud Connectors are deployed with Public IP Addresses or ZT Gateway Service deployments | `bool` | `false` | no |
 | <a name="input_global_tags"></a> [global\_tags](#input\_global\_tags) | Populate any custom user defined tags from a map | `map(string)` | `{}` | no |
 | <a name="input_gwlb_enabled"></a> [gwlb\_enabled](#input\_gwlb\_enabled) | Default is false. Workload/Route 53 subnet Route Tables will point to network\_interface\_id via var.cc\_service\_enis. If true, Route Tables will point to vpc\_endpoint\_id via var.gwlb\_endpoint\_ids input. | `bool` | `false` | no |
 | <a name="input_gwlb_endpoint_ids"></a> [gwlb\_endpoint\_ids](#input\_gwlb\_endpoint\_ids) | List of GWLB Endpoint IDs for use in private workload and/or Route 53 subnet route tables with GWLB deployments. Utilized if var.gwlb\_enabled is set to true | `list(string)` | <pre>[<br/>  ""<br/>]</pre> | no |
@@ -90,5 +94,11 @@ No modules.
 | <a name="output_route53_subnet_ids"></a> [route53\_subnet\_ids](#output\_route53\_subnet\_ids) | Route 53 Subnet ID |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | VPC ID |
 | <a name="output_workload_route_table_ids"></a> [workload\_route\_table\_ids](#output\_workload\_route\_table\_ids) | Workloads Route Table ID |
+| <a name="output_workload_subnet_az_ids"></a> [workload\_subnet\_az\_ids](#output\_workload\_subnet\_az\_ids) | Workload Subnet Availability Zone IDs |
+| <a name="output_workload_subnet_az_names"></a> [workload\_subnet\_az\_names](#output\_workload\_subnet\_az\_names) | Workload Subnet Availability Zone Names |
+| <a name="output_workload_subnet_cidrs"></a> [workload\_subnet\_cidrs](#output\_workload\_subnet\_cidrs) | Workloads Subnet CIDR blocks |
 | <a name="output_workload_subnet_ids"></a> [workload\_subnet\_ids](#output\_workload\_subnet\_ids) | Workloads Subnet ID |
+| <a name="output_zs_subnet_az_ids"></a> [zs\_subnet\_az\_ids](#output\_zs\_subnet\_az\_ids) | Zscaler Subnet Availability Zone IDs |
+| <a name="output_zs_subnet_az_names"></a> [zs\_subnet\_az\_names](#output\_zs\_subnet\_az\_names) | Zscaler Subnet Availability Zone Names |
+| <a name="output_zs_subnet_cidrs"></a> [zs\_subnet\_cidrs](#output\_zs\_subnet\_cidrs) | Zscaler Subnet CIDR blocks |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

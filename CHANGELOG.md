@@ -1,4 +1,22 @@
-## TBD (Unreleased)
+## TBD (UNRELEASED)
+FEATURES:
+* New templates: base_ztgateway (greenfield/pov) and ztgateway (brownfield/production) enabling Zero Trust Gateway deployments
+* ZSEC script support for ztgateway deployments
+
+ENHANCEMENTS:
+* Module Changes:
+    - terraform-zscc-network-aws:
+        - add variables exclude_igw and exclud_ngw supporting deployment configurations without requiring any NAT Gateway and/or Internet Gateway to be created or referenced such as Zero Trust Gateway topologies
+        - add variable az_ids to explicitly set CC/ZT Gateway Availability Zones if letting templates create new subnets. Setting this will take precedence over var.az_count 
+        - add outputs zs_subnet_az_names, zs_subnet_az_ids, and zs_subnet_az_cidrs
+        - general code refactoring and cleanup
+    - terraform-zscc-gwlbendpoint-aws:
+        - variable gwlb_arn made optional with default null value added supporting module use with byo endpoint service
+    - terraform-zscc-workload-aws:
+        - add output instance_id
+    - terraform-zscc-bastion-aws:
+        - add output instance_id
+* refactor: include ssh_config generation with auto mapping all workload/cc instances for base/greenfield deployments
 
 BUG FIXES:
 * fix: add explicit egress udp/53 rules to security group module
@@ -36,7 +54,6 @@ FEATURES:
 ENHANCEMENTS:
 * refactor: add zsec prompts brownfield zpa network options
         
-
 ## 1.3.3 (August 30, 2024)
 ENHANCEMENTS:
 * refactor: add china marketplace specific product-code ("axnpwhsb4facossmbm1h9yad6") lookup 

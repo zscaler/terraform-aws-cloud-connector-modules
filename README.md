@@ -9,8 +9,7 @@ Zscaler Cloud Connector AWS Terraform Modules
 ===========================================================================================================
 
 # **README for AWS Terraform**
-This README serves as a quick start guide to deploy Zscaler Cloud Connector resources in an AWS cloud using Terraform. To learn more about
-the resources created when deploying Cloud Connector with Terraform, see [Deployment Templates for Zscaler Cloud Connector](https://help.zscaler.com/cloud-branch-connector/deployment-templates-zscaler-cloud-connector).
+This README serves as a quick start guide to deploy Zscaler Cloud Connector resources in an AWS cloud using Terraform. To learn more about the resources created when deploying Cloud Connector with Terraform, see [Deployment Templates for Zscaler Cloud Connector](https://help.zscaler.com/cloud-branch-connector/deployment-templates-zscaler-cloud-connector).
 
 ## **AWS Deployment Scripts for Terraform**
 
@@ -19,14 +18,13 @@ cloud (VPC). The [examples](examples/) directory contains complete automation sc
 
 ## **Prerequisites**
 
-The AWS Terraform scripts leverage Terraform v1.1.9 which includes full binary and provider support for macOS M1 chips, but any Terraform
-version 0.13.7 should be generally supported.
+The AWS Terraform scripts leverage Terraform v1.1.9 which includes full binary and provider support for macOS M1 chips, but any Terraform version 0.13.7 should be generally supported.
 
 -   provider registry.terraform.io/hashicorp/aws v5.49.x (minimum 5.32.0)
--   provider registry.terraform.io/hashicorp/random v3.3.x
--   provider registry.terraform.io/hashicorp/local v2.2.x
--   provider registry.terraform.io/hashicorp/null v3.1.x
--   provider registry.terraform.io/providers/hashicorp/tls v3.4.x
+-   provider registry.terraform.io/hashicorp/random v3.6.x
+-   provider registry.terraform.io/hashicorp/local v2.5.x
+-   provider registry.terraform.io/hashicorp/null v3.2.x
+-   provider registry.terraform.io/providers/hashicorp/tls v4.0.x
 
 ### **AWS requirements**
 
@@ -80,15 +78,22 @@ Use the [**Starter Deployment Template with ASG and GWLB**](examples/base_cc_gwl
 
 Use the [**Starter Deployment Template with ASG, GWLB and ZPA**](examples/base_cc_gwlb_asg_zpa) to deploy your Cloud Connectors in a new VPC and to load balance traffic across multiple Cloud Connectors. Zscaler\'s recommended deployment method is Gateway Load Balancer (GWLB). GWLB distributes traffic across multiple Cloud Connectors and achieves high availability. For added resiliency and elasticity, Cloud Connectors are deployed via a Launch Template configured Auto Scaling group. Route 53 endpoints redirect DNS resolver capability for ZPA.
 
+### **Starter Deployment Template with Zero Trust Gateway**
+
+Use the [**Starter Deployment Template with Zero Trust Gateway**](examples/base_ztgateway) to deploy Zscaler Zero Trust Endpoints. This deployment type is intended for greenfield/pov/lab purposes. It will deploy a fully functioning sandbox environment in a new VPC with test workload VMs to integrate with an already provisioned Zscaler Zero Trust Gateway.
+
 ## **Brownfield Deployment**
 
-Brownfield deployment templates are most applicable for production deployments and have more customization options than a \"base\"
-deployment. They also do not include a bastion or workload hosts deployed. See [Modules](https://github.com/zscaler/terraform-aws-cloud-connector-modules/tree/main/examples) for the Terraform configurations for brownfield deployment.
+Brownfield deployment templates are most applicable for production deployments and have more customization options than a \"base\" deployment. They also do not include a bastion or workload hosts deployed. See [Modules](https://github.com/zscaler/terraform-aws-cloud-connector-modules/tree/main/examples) for the Terraform configurations for brownfield deployment.
 
 ### **Custom Deployment Template with Gateway Load Balancer (GWLB)**
 
-Use the [**Custom Deployment template with GWLB**](examples/cc_gwlb) to deploy your Cloud Connector in a new or existing VPC and load balance traffic across multiple Cloud Connectors. Zscaler\'s recommended deployment method is Gateway Load Balancer (GWLB). GWLB distributes traffic across multiple Cloud Connectors and achieves high availability. Optional ZPA/Route 53 add-on capabilities.
+Use the [**Custom Deployment Template with GWLB**](examples/cc_gwlb) to deploy your Cloud Connector in a new or existing VPC and load balance traffic across multiple Cloud Connectors. Zscaler\'s recommended deployment method is Gateway Load Balancer (GWLB). GWLB distributes traffic across multiple Cloud Connectors and achieves high availability. Optional ZPA/Route 53 add-on capabilities.
 
 ### **Custom Deployment Template with Auto Scaling and Gateway Load Balancer (GWLB)**
 
-Use the [**Custom Deployment template with GWLB**](examples/cc_gwlb_asg) to deploy your Cloud Connector in a new or existing VPC and load balance traffic across multiple Cloud Connectors. Zscaler\'s recommended deployment method is Gateway Load Balancer (GWLB). GWLB distributes traffic across multiple Cloud Connectors and achieves high availability. For added resiliency and elasticity, Cloud Connectors are deployed via a Launch Template configured Auto Scaling group. Optional ZPA/Route 53 add-on capabilities.
+Use the [**Custom Deployment Template with ASG and GWLB**](examples/cc_gwlb_asg) to deploy your Cloud Connector in a new or existing VPC and load balance traffic across multiple Cloud Connectors. Zscaler\'s recommended deployment method is Gateway Load Balancer (GWLB). GWLB distributes traffic across multiple Cloud Connectors and achieves high availability. For added resiliency and elasticity, Cloud Connectors are deployed via a Launch Template configured Auto Scaling group. Optional ZPA/Route 53 add-on capabilities.
+
+### **Custom Deployment Template with Zero Trust Gateway**
+
+Use the [**Custom Deployment Template with Zero Trust Gateway**](examples/ztgateway) to deploy Zscaler Zero Trust Endpoints in a new or existing AWS VPC environment to integrate with a Zero Trust Gateway.
