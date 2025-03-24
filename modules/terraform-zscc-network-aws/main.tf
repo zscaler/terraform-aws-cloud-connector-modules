@@ -93,9 +93,12 @@ data "aws_nat_gateway" "ngw_selected" {
 ################################################################################
 # Public (NAT Gateway) Subnet & Route Tables
 ################################################################################
-# Create equal number of Public/NAT Subnets to how many Cloud Connector subnets exist. This will not be created if var.byo_ngw is set to True
+# Create equal number of Public/NAT Subnets to how many Zscaler subnets exist. 
+#This will not be created if ANY of the following variables are set to "true"
+## - var.byo_ngw
+## - var.exclude_ngw
 resource "aws_subnet" "public_subnet" {
-  count                = var.byo_ngw ? 0 : length(local.zssubnetslist)
+  count                = var.byo_ngw || var.exclude_ngw ? 0 : length(local.zssubnetslist)
   availability_zone    = var.az_ids != null ? null : data.aws_availability_zones.available.names[count.index]
   availability_zone_id = var.az_ids != null ? element(var.az_ids, count.index) : null
   cidr_block           = var.public_subnets != null ? element(var.public_subnets, count.index) : cidrsubnet(try(data.aws_vpc.vpc_selected[0].cidr_block, aws_vpc.vpc[0].cidr_block), 8, count.index + 101)
