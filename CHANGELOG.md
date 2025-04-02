@@ -16,6 +16,7 @@ BUG FIXES:
     - add Zscaler specific namespace condition constraint to data.aws_iam_policy_document.cc_metrics_policy_document
     - update CCAllowTags minimum SQS/SNS IAM Policy dependencies
 * fix: byo_security_group logic with zpa outbound endpoints
+* fix: add explicit egress rule for Zscaler Repo Server to security group module
 
 ## 1.4.0 (November 12, 2024)
 FEATURES:
