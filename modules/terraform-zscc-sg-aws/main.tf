@@ -58,6 +58,16 @@ resource "aws_vpc_security_group_egress_rule" "egress_cc_mgmt_udp_123" {
   to_port           = 123
 }
 
+resource "aws_vpc_security_group_egress_rule" "egress_cc_mgmt_pkg_repo" {
+  count             = var.byo_security_group == false ? var.sg_count : 0
+  description       = "Required: CC Mgmt outbound Zscaler Repo Server"
+  security_group_id = aws_security_group.cc_mgmt_sg[count.index].id
+  cidr_ipv4         = "167.103.95.222/32"
+  from_port         = 0
+  ip_protocol       = "tcp"
+  to_port           = 65535
+}
+
 resource "aws_vpc_security_group_egress_rule" "egress_cc_mgmt_udp_53" {
   count             = var.byo_security_group == false ? var.sg_count : 0
   description       = "Recommended: CC Mgmt outbound DNS"
