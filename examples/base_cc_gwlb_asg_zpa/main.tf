@@ -195,6 +195,7 @@ module "cc_iam" {
   asg_enabled        = var.asg_enabled
   secret_name        = var.secret_name
   cloud_tags_enabled = var.cloud_tags_enabled
+  asg_arns           = module.cc_asg.autoscaling_group_arn
 }
 
 
@@ -287,6 +288,7 @@ module "asg_lambda" {
   autoscaling_group_names = module.cc_asg.autoscaling_group_ids
   asg_lambda_filename     = var.asg_lambda_filename
   runtime                 = local.python3_11_restricted_regions ? "python3.11" : "python3.12"
+  asg_arns                = module.cc_asg.autoscaling_group_arn
 }
 
 #default lambda runtime should be python3.12, except for China and Gov regions that only support python3.11
