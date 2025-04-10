@@ -8,6 +8,11 @@ output "autoscaling_group_ids" {
   value       = aws_autoscaling_group.cc_asg[*].id
 }
 
+output "autoscaling_group_arn" {
+  description = "Autoscaling group ARN"
+  value       = aws_autoscaling_group.cc_asg[*].arn
+}
+
 output "launch_template_id" {
   description = "Autoscaling Launch Template ID"
   value       = aws_launch_template.cc_launch_template[0].id
