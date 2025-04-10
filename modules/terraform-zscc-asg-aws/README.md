@@ -104,6 +104,7 @@ No modules.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_autoscaling_group_arn"></a> [autoscaling\_group\_arn](#output\_autoscaling\_group\_arn) | Autoscaling group ARN |
 | <a name="output_autoscaling_group_ids"></a> [autoscaling\_group\_ids](#output\_autoscaling\_group\_ids) | Autoscaling group ID |
 | <a name="output_availability_zone"></a> [availability\_zone](#output\_availability\_zone) | Availability zones used for ASG |
 | <a name="output_launch_template_id"></a> [launch\_template\_id](#output\_launch\_template\_id) | Autoscaling Launch Template ID |
