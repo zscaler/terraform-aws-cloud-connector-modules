@@ -114,7 +114,7 @@ data "aws_iam_policy_document" "cc_autoscale_lifecycle_policy_document" {
       "autoscaling:RecordLifecycleActionHeartbeat"
     ]
     #Restrict autoscaling actions to only your own ASG(s) if var.asg_arns provided. Else, default to any
-    resources = coalesce(var.asg_arns, ["*"])
+    resources = coalescelist(var.asg_arns, ["*"])
   }
 }
 
