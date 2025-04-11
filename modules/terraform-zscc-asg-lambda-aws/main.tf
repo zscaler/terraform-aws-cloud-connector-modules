@@ -65,16 +65,24 @@ data "aws_iam_policy_document" "lambda_autoscale_lifecycle_policy_document" {
     sid    = "LambdaAllowAutoscaleLifecycleActions"
     effect = "Allow"
     actions = [
-      "autoscaling:DescribeLifecycleHookTypes",
-      "autoscaling:DescribeLifecycleHooks",
-      "autoscaling:DescribeAutoScalingInstances",
       "autoscaling:CompleteLifecycleAction",
       "autoscaling:RecordLifecycleActionHeartbeat",
       "autoscaling:SetInstanceHealth",
-      "autoscaling:DescribeAutoScalingGroups",
-      "autoscaling:DescribeWarmPool",
+    ]
+    #Restrict autoscaling actions to only your own ASG(s) if var.asg_arns provided. Else, default to any
+    resources = coalesce(var.asg_arns, ["*"])
+  }
+  statement {
+    sid    = "LambdaAllowDescribe"
+    effect = "Allow"
+    actions = [
       "ec2:DescribeInstanceStatus",
-      "ec2:DescribeInstances"
+      "ec2:DescribeInstances",
+      "autoscaling:DescribeLifecycleHookTypes",
+      "autoscaling:DescribeLifecycleHooks",
+      "autoscaling:DescribeAutoScalingInstances",
+      "autoscaling:DescribeAutoScalingGroups",
+      "autoscaling:DescribeWarmPool"
     ]
     resources = ["*"]
   }

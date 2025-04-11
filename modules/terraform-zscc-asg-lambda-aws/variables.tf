@@ -64,3 +64,8 @@ variable "runtime" {
     error_message = "Invalid architecture. Must be either 'python3.11' or 'python3.12'."
   }
 }
+variable "asg_arns" {
+  type        = list(string)
+  description = "Recommended: Cloud Connector Autoscaling Group ARN(s) provided for IAM Policy Lifecycle least privilege. If no ARNs are provided, IAM Policy will default to any"
+  default     = null
+}

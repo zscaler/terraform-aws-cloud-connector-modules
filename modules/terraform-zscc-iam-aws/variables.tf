@@ -50,3 +50,19 @@ variable "cloud_tags_enabled" {
   description = "Determines whether or not to create the cc_tags_policy IAM Policy and attach it to the CC IAM Role"
   default     = false
 }
+
+variable "asg_arns" {
+  type        = list(string)
+  description = "Recommended: Cloud Connector Autoscaling Group ARN(s) provided for IAM Policy Lifecycle least privilege. If no ARNs are provided, IAM Policy will default to any"
+  default     = null
+}
+
+variable "iam_tags_condition" {
+  type = map(object({
+    test     = string
+    variable = string
+    values   = list(string)
+  }))
+  description = "Optional - customizable conditions map to be used with IAM policies such as KeyTag validation"
+  default     = {}
+}
