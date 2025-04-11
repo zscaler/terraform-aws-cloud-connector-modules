@@ -2,6 +2,7 @@
 # Create IAM role and instance profile w/ SSM and Secrets Manager access policies
 ################################################################################
 
+
 ################################################################################
 # Define AssumeRole access for EC2
 ################################################################################
@@ -69,6 +70,7 @@ data "aws_iam_policy_document" "cc_session_manager_policy_document" {
       "ssmmessages:OpenDataChannel"
     ]
     resources = ["*"]
+    # https://docs.aws.amazon.com/systems-manager/latest/userguide/getting-started-create-iam-instance-profile.html
   }
 }
 
@@ -94,17 +96,25 @@ resource "aws_iam_role_policy_attachment" "cc_session_manager_attachment" {
 data "aws_iam_policy_document" "cc_autoscale_lifecycle_policy_document" {
   version = "2012-10-17"
   statement {
+    sid    = "CCAllowDescribe"
+    effect = "Allow"
+    actions = [
+      "ec2:DescribeInstanceStatus",
+      "autoscaling:DescribeLifecycleHookTypes",
+      "autoscaling:DescribeLifecycleHooks",
+      "autoscaling:DescribeAutoScalingInstances"
+    ]
+    resources = ["*"]
+  }
+  statement {
     sid    = "CCAllowAutoscaleLifecycleActions"
     effect = "Allow"
     actions = [
-      "autoscaling:DescribeLifecycleHookTypes",
-      "autoscaling:DescribeLifecycleHooks",
-      "autoscaling:DescribeAutoScalingInstances",
       "autoscaling:CompleteLifecycleAction",
-      "autoscaling:RecordLifecycleActionHeartbeat",
-      "ec2:DescribeInstanceStatus"
+      "autoscaling:RecordLifecycleActionHeartbeat"
     ]
-    resources = ["*"]
+    #Restrict autoscaling actions to only your own ASG(s) if var.asg_arns provided. Else, default to any
+    resources = coalesce(var.asg_arns, ["*"])
   }
 }
 
@@ -128,12 +138,33 @@ resource "aws_iam_role_policy_attachment" "cc_autoscale_lifecycle_attachment" {
 data "aws_iam_policy_document" "cc_metrics_policy_document" {
   version = "2012-10-17"
   statement {
-    sid    = "CCAllowCloudWatchMetrics"
+    sid    = "CCAllowCloudWatchMetricsRW"
+    effect = "Allow"
+    actions = [
+      "cloudwatch:PutMetricData"
+    ]
+    resources = ["*"]
+    #Restrict cloudwatch metrics posting only to fixed Zscaler/CloudConnectors namespace
+    condition {
+      test     = "StringEquals"
+      variable = "cloudwatch:namespace"
+      values   = ["Zscaler/CloudConnectors"]
+    }
+  }
+
+  statement {
+    sid    = "CCAllowCloudWatchMetricsRO"
     effect = "Allow"
     actions = [
       "cloudwatch:GetMetricStatistics",
-      "cloudwatch:ListMetrics",
-      "cloudwatch:PutMetricData",
+      "cloudwatch:ListMetrics"
+    ]
+    resources = ["*"]
+  }
+  statement {
+    sid    = "CCAllowEC2DescribeTags"
+    effect = "Allow"
+    actions = [
       "ec2:DescribeTags"
     ]
     resources = ["*"]
@@ -175,6 +206,16 @@ data "aws_iam_policy_document" "cc_tags_policy_document" {
       "sns:Unsubscribe"
     ]
     resources = ["*"]
+
+    #Restrict policy to conditions configured via var.iam_tags_conditions
+    dynamic "condition" {
+      for_each = var.iam_tags_condition
+      content {
+        test     = condition.value.test
+        variable = condition.value.variable
+        values   = condition.value.values
+      }
+    }
   }
 }
 

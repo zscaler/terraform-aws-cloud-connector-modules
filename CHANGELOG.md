@@ -2,6 +2,11 @@
 
 BUG FIXES:
 * fix: add explicit egress udp/53 rules to security group module
+* fix: add IAM Policy least privilege best practices
+    - add variable asg_arns to restrict CC and Lambda ASG lifecycle actions to self ASG
+    - add variable iam_tags_condition for optional customization of data.aws_iam_policy_document.cc_tags_policy_document
+    - split all IAM Policies into separate CREATE/PUT/DELETE vs GET/LIST/DESCRIBE statements
+    - add Zscaler specific namespace condition constraint to data.aws_iam_policy_document.cc_metrics_policy_document
 
 ## 1.4.0 (November 12, 2024)
 FEATURES:
