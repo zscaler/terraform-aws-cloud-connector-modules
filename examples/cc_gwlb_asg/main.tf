@@ -179,6 +179,17 @@ module "cc_iam" {
   cloud_tags_enabled = var.cloud_tags_enabled
   asg_arns           = module.cc_asg.autoscaling_group_arn
 
+  #Example IAM Policy conditions that can apply to data.aws_iam_policy_document.cc_tags_policy_document
+  /*
+  iam_tags_condition = {
+    default = {
+      test = "StringLike"
+      variable = "aws:TagKeys"
+      values = ["example-notag-value"]
+    }
+  }
+  */
+
   byo_iam = var.byo_iam
   # optional inputs. only required if byo_iam set to true
   byo_iam_instance_profile_id = var.byo_iam_instance_profile_id
