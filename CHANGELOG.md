@@ -7,6 +7,7 @@ BUG FIXES:
     - add variable iam_tags_condition for optional customization of data.aws_iam_policy_document.cc_tags_policy_document
     - split all IAM Policies into separate CREATE/PUT/DELETE vs GET/LIST/DESCRIBE statements
     - add Zscaler specific namespace condition constraint to data.aws_iam_policy_document.cc_metrics_policy_document
+    - update CCAllowTags minimum SQS/SNS IAM Policy dependencies
 
 ## 1.4.0 (November 12, 2024)
 FEATURES:
