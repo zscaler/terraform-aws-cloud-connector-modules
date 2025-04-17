@@ -194,16 +194,12 @@ data "aws_iam_policy_document" "cc_tags_policy_document" {
     sid    = "CCAllowTags"
     effect = "Allow"
     actions = [
-      "sqs:DeleteMessage",
-      "sqs:ReceiveMessage",
-      "sqs:GetQueueUrl",
-      "sqs:GetQueueAttributes",
-      "sqs:SetQueueAttributes",
-      "sqs:DeleteQueue",
-      "sqs:CreateQueue",
+      "sns:ListTopics",
       "sns:ListSubscriptions",
       "sns:Subscribe",
-      "sns:Unsubscribe"
+      "sns:Unsubscribe",
+      "sqs:CreateQueue",
+      "sqs:DeleteQueue"
     ]
     resources = ["*"]
 
