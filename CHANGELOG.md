@@ -1,4 +1,4 @@
-## TBD (Unreleased)
+## 1.4.1 (Unreleased)
 ENHANCEMENTS:
 * Module Changes:
     - terraform-zscc-workload-aws:
@@ -17,6 +17,7 @@ BUG FIXES:
     - update CCAllowTags minimum SQS/SNS IAM Policy dependencies
 * fix: byo_security_group logic with zpa outbound endpoints
 * fix: add explicit egress rule for Zscaler Repo Server to security group module
+* fix: new ASG Lambda version [v1.0.6.1](modules/terraform-zscc-asg-lambda-aws/zscaler_cc_lambda_service.zip) updating requests Python library from version 2.29.0 to 2.32.2
 
 ## 1.4.0 (November 12, 2024)
 FEATURES:

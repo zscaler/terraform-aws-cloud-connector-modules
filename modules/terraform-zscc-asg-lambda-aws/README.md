@@ -4,6 +4,7 @@ This module creates the Lambda Function, IAM Policies, and Cloudwatch Events/Tar
 
 | Lambda Version | SHA256 Hash | GitHub Release Date/Tag |
 | ----------- | --------| ------------ |
+| 1.0.6.1 | 7648af936248e15a98f593ba4af8c06d6021a28d9e537b9cf0a89ebc5cced18e | 04/28/2024 - [v1.4.1](https://github.com/zscaler/terraform-aws-cloud-connector-modules/releases/tag/v1.4.1) |
 | 1.0.6 | A309E9B2EE9AE5611FE1221896A21783CD7B12346208119D7772039E7E27A117 | 04/14/2024 - [v1.3.0](https://github.com/zscaler/terraform-aws-cloud-connector-modules/releases/tag/v1.3.0) |
 | 1.0.5 | 4E15BA95A55DCD0EF193341484FD787E7F2FB8914BDBAE86F0055CBB40F2FD0A | 10/19/2023 - [v1.0.0](https://github.com/zscaler/terraform-aws-cloud-connector-modules/releases/tag/v1.0.0) |
 
