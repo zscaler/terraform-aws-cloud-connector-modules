@@ -2,6 +2,20 @@
 
 This module creates IAM Policies, Roles, and Instance Profile resources required for successful Cloud Connector deployments. As part of Zscaler provided deployment templates most resources have conditional create options leveraged "byo" variables should a customer want to leverage the module outputs with data reference to resources that may already exist in their AWS environment.
 
+
+|Policy Name|Dependency|<center>Action</center>|<center>Resource/Scope</center>|Deployment Type (asg/non-asg/both)|<center>Description</center>|
+|:--:|:--:|:--|:--|:--:|:--|
+| CCAssumeRole | Required | [<br/>"sts:AssumeRole"<br/>] | Service:ec2.amazonaws.com | Both | Policy which permits CC Control Plan to assume IAM Identity|
+| CCPermitGetSecrets | Required | [<br/>"secretsmanager:GetSecretValue"<br/>] | ID of Secrets Manager Name | Both | Policy which permits CCs to retrieve and decrypt the encrypted data from Secrets Manager|
+| CCPermitSSMSessionManager | Optional |[<br/>"ssm:UpdateInstanceInformation",<br/>"ssmmessages:CreateControlChannel",<br/>"ssmmessages:CreateDataChannel",<br/>"ssmmessages:OpenControlChannel",<br/>"ssmmessages:OpenDataChannel",<br/>] | <center>["*"]</center> | Both | Policy which permits CCs to register to SSM Manager for Console Connect functionality"|
+| ASGAllowDescribe | Required | [<br/>"ec2:DescribeInstanceStatus",<br/>"autoscaling:DescribeLifecycleHookTypes",<br/>"autoscaling:DescribeLifecycleHooks",<br/>"autoscaling:DescribeAutoScalingInstances"<br/>]| <center>["*"]</center> | ASG | Policy which permits CCs to send lifecycle actions when hook is enabled|
+| ASGAllowAutoscaleLifecycleActions | Required | [<br/>"autoscaling:CompleteLifecycleAction",<br/>"autoscaling:RecordLifecycleActionHeartbeat"<br/>]| List of ASG ARNs recommended | ASG | Policy which permits CCs to send lifecycle actions when hook is enabled|
+| CCAllowCloudWatchMetricsRW | Required | [<br/>"cloudwatch:PutMetricData"<br/>]|condition {<br/>test = "StringEquals"<br/>variable = "cloudwatch:namespace"<br/>values =["Zscaler/CloudConnectors"]<br/>}| ASG | Policy which permits CCs to send custom metrics to CloudWatch|
+| CCAllowCloudWatchMetricsRO | Required | [<br/>"cloudwatch:GetMetricStatistics",<br/>"cloudwatch:ListMetrics"<br/>]| <center>["*"]</center>| ASG | Policy which permits CCs to send custom metrics to CloudWatch|
+| CCAllowEC2DescribeTags | Required | [<br/>"ec2:DescribeTags"<br/>]| <center>["*"]</center> | ASG | Policy which permits CCs to send custom metrics to CloudWatch|
+| CCAllowTags | Optional | [<br/>"sns:ListTopics",<br/>"sns:ListSubscriptions",<br/>"sns:Subscribe",<br/>"sns:Unsubscribe",<br/>"sqs:CreateQueue",<br/>"sqs:DeleteQueue"<br/>]| <center>["*"]</center> | Both | Policy which permits CCs to subscribe for tags changes|
+
+
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 
