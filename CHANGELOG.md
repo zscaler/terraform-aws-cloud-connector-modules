@@ -1,4 +1,4 @@
-## 1.4.1 (Unreleased)
+## 1.4.1 (May 6, 2025)
 ENHANCEMENTS:
 * Module Changes:
     - terraform-zscc-workload-aws:
