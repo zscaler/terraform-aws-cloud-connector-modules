@@ -96,7 +96,7 @@ resource "aws_iam_role_policy_attachment" "cc_session_manager_attachment" {
 data "aws_iam_policy_document" "cc_autoscale_lifecycle_policy_document" {
   version = "2012-10-17"
   statement {
-    sid    = "CCAllowDescribe"
+    sid    = "ASGAllowDescribe"
     effect = "Allow"
     actions = [
       "ec2:DescribeInstanceStatus",
@@ -107,7 +107,7 @@ data "aws_iam_policy_document" "cc_autoscale_lifecycle_policy_document" {
     resources = ["*"]
   }
   statement {
-    sid    = "CCAllowAutoscaleLifecycleActions"
+    sid    = "ASGAllowAutoscaleLifecycleActions"
     effect = "Allow"
     actions = [
       "autoscaling:CompleteLifecycleAction",
