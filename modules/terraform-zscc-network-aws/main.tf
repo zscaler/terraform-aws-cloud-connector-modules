@@ -104,15 +104,19 @@ resource "aws_route_table" "public_rt" {
   count  = var.byo_ngw == false ? 1 : 0
   vpc_id = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
 
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = data.aws_internet_gateway.igw_selected.internet_gateway_id
-  }
-
-  tags = merge(var.global_tags,
-    { Name = "${var.name_prefix}-public-rt-${var.resource_tag}" }
-  )
+  tags = merge(var.global_tags, {
+    Name = "${var.name_prefix}-public-rt-${var.resource_tag}"
+  })
 }
+
+resource "aws_route" "public_rt_default_route" {
+  count = var.byo_ngw == false ? 1 : 0
+
+  route_table_id         = aws_route_table.public_rt[0].id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = data.aws_internet_gateway.igw_selected.internet_gateway_id
+}
+
 
 
 # Create equal number of Route Table associations to how many Public subnets exist. This will not be created if var.byo_ngw is set to True
@@ -142,16 +146,34 @@ resource "aws_subnet" "workload_subnet" {
 resource "aws_route_table" "workload_rt" {
   count  = length(aws_subnet.workload_subnet[*].id)
   vpc_id = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
-  route {
-    cidr_block           = "0.0.0.0/0"
-    vpc_endpoint_id      = var.gwlb_enabled == true ? element(var.gwlb_endpoint_ids, count.index) : null
-    network_interface_id = var.gwlb_enabled == false ? element(var.cc_service_enis, count.index) : null
-    nat_gateway_id       = var.base_only == true ? element(data.aws_nat_gateway.ngw_selected[*].id, count.index) : null
-  }
 
-  tags = merge(var.global_tags,
-    { Name = "${var.name_prefix}-workload-to-cc-${count.index + 1}-rt-${var.resource_tag}" }
-  )
+  tags = merge(var.global_tags, {
+    Name = "${var.name_prefix}-workload-to-cc-${count.index + 1}-rt-${var.resource_tag}"
+  })
+}
+
+resource "aws_route" "workload_rt_gwlb" {
+  count = var.gwlb_enabled ? length(aws_subnet.workload_subnet[*].id) : 0
+
+  route_table_id    = aws_route_table.workload_rt[count.index].id
+  destination_cidr_block = "0.0.0.0/0"
+  vpc_endpoint_id   = element(var.gwlb_endpoint_ids, count.index)
+}
+
+resource "aws_route" "workload_rt_eni" {
+  count = var.gwlb_enabled == false && var.base_only == false ? length(aws_subnet.workload_subnet[*].id) : 0
+
+  route_table_id         = aws_route_table.workload_rt[count.index].id
+  destination_cidr_block = "0.0.0.0/0"
+  network_interface_id   = element(var.cc_service_enis, count.index)
+}
+
+resource "aws_route" "workload_rt_nat" {
+  count = var.base_only == true ? length(aws_subnet.workload_subnet[*].id) : 0
+
+  route_table_id         = aws_route_table.workload_rt[count.index].id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = element(data.aws_nat_gateway.ngw_selected[*].id, count.index)
 }
 
 # Create Workload Route Table Association
@@ -191,14 +213,18 @@ data "aws_subnet" "cc_subnet_selected" {
 resource "aws_route_table" "cc_rt" {
   count  = var.cc_route_table_enabled ? length(data.aws_subnet.cc_subnet_selected[*].id) : 0
   vpc_id = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = element(data.aws_nat_gateway.ngw_selected[*].id, count.index)
-  }
 
-  tags = merge(var.global_tags,
-    { Name = "${var.name_prefix}-cc-rt-${count.index + 1}-${var.resource_tag}" }
-  )
+  tags = merge(var.global_tags, {
+    Name = "${var.name_prefix}-cc-rt-${count.index + 1}-${var.resource_tag}"
+  })
+}
+
+resource "aws_route" "cc_rt_route" {
+  count = var.cc_route_table_enabled ? length(data.aws_subnet.cc_subnet_selected[*].id) : 0
+
+  route_table_id         = aws_route_table.cc_rt[count.index].id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = element(data.aws_nat_gateway.ngw_selected[*].id, count.index)
 }
 
 # CC subnet Route Table Association
@@ -234,17 +260,29 @@ data "aws_subnet" "route53_subnet_selected" {
 
 # Create Route Table for Route53 routing to GWLB Endpoint in the same AZ for DNS redirection
 resource "aws_route_table" "route53_rt" {
-  count  = var.zpa_enabled && var.r53_route_table_enabled ? length(coalescelist(data.aws_subnet.route53_subnet_selected[*].id, aws_subnet.route53_subnet[*].id)) : 0
-  vpc_id = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
-  route {
-    cidr_block           = "0.0.0.0/0"
-    vpc_endpoint_id      = var.gwlb_enabled == true ? element(var.gwlb_endpoint_ids, count.index) : null
-    network_interface_id = var.gwlb_enabled == false ? element(var.cc_service_enis, count.index) : null
-  }
+  count = var.zpa_enabled && var.r53_route_table_enabled ? length(coalescelist(data.aws_subnet.route53_subnet_selected[*].id, aws_subnet.route53_subnet[*].id)) : 0
 
-  tags = merge(var.global_tags,
-    { Name = "${var.name_prefix}-route53-to-cc-${count.index + 1}-rt-${var.resource_tag}" }
-  )
+  vpc_id = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
+
+  tags = merge(var.global_tags, {
+    Name = "${var.name_prefix}-route53-to-cc-${count.index + 1}-rt-${var.resource_tag}"
+  })
+}
+
+resource "aws_route" "route53_rt_gwlb" {
+  count = var.zpa_enabled && var.r53_route_table_enabled && var.gwlb_enabled ? length(coalescelist(data.aws_subnet.route53_subnet_selected[*].id, aws_subnet.route53_subnet[*].id)) : 0
+
+  route_table_id         = aws_route_table.route53_rt[count.index].id
+  destination_cidr_block = "0.0.0.0/0"
+  vpc_endpoint_id        = element(var.gwlb_endpoint_ids, count.index)
+}
+
+resource "aws_route" "route53_rt_eni" {
+  count = var.zpa_enabled && var.r53_route_table_enabled && !var.gwlb_enabled ? length(coalescelist(data.aws_subnet.route53_subnet_selected[*].id, aws_subnet.route53_subnet[*].id)) : 0
+
+  route_table_id         = aws_route_table.route53_rt[count.index].id
+  destination_cidr_block = "0.0.0.0/0"
+  network_interface_id   = element(var.cc_service_enis, count.index)
 }
 
 # Route53 Subnets Route Table Assocation
