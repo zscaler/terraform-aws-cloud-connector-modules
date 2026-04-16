@@ -1,9 +1,10 @@
 ## [1.4.2] - (April 15, 2026)
 
-### Security
-- Updated urllib3 from 2.4.0 to 2.6.3
-- Updated requests from 2.32.2 to 2.32.5
-- Addresses security vulnerabilities in autoscale Lambda dependencies
+Bug Fixes:
+* fix: release Lambda version 1.0.6.2
+    - Updated urllib3 from 2.4.0 to 2.6.3
+    - Updated requests from 2.32.2 to 2.32.5
+    - Addresses security vulnerabilities in autoscale Lambda dependencies
 
 ## 1.4.1 (May 6, 2025)
 ENHANCEMENTS:
