@@ -1,6 +1,6 @@
 ## [1.4.2] - (April 15, 2026)
 
-Bug Fixes:
+BUG FIXES:
 * fix: release Lambda version 1.0.6.2
     - Updated urllib3 from 2.4.0 to 2.6.3
     - Updated requests from 2.32.2 to 2.32.5
