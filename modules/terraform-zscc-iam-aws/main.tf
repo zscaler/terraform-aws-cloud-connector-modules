@@ -54,6 +54,37 @@ resource "aws_iam_role_policy_attachment" "cc_get_secrets_attachment" {
   role       = aws_iam_role.cc_node_iam_role[count.index].name
 }
 
+################################################################################
+# Define AWS KMS Decrypt if Secret Manager is encrypted
+################################################################################
+
+# Define policy to KMS Decrypt
+data "aws_iam_policy_document" "cc_kms_policy_document" {
+  version = "2012-10-17"
+  statement {
+    sid       = "CCPermitKMSDecrypt"
+    effect    = "Allow"
+    actions   = ["kms:Decrypt", ]
+    resources = ["*"]
+  }
+}
+
+# Create Get Secrets Policy
+resource "aws_iam_policy" "cc_kms_decrypt_policy" {
+  count       = var.byo_iam == false ? var.iam_count : 0
+  description = "Policy which permits CCs to decrypt the encrypted data from Secrets Manager"
+  name        = "${var.name_prefix}-cc-${count.index + 1}-decrypt-kms-${var.resource_tag}"
+  policy      = data.aws_iam_policy_document.cc_kms_policy_document.json
+}
+
+# Attach Get Secrets Policy to IAM Role
+resource "aws_iam_role_policy_attachment" "cc_kms_decrypt_attachment" {
+  count      = var.byo_iam == false ? var.iam_count : 0
+  policy_arn = aws_iam_policy.cc_kms_decrypt_policy[count.index].arn
+  role       = aws_iam_role.cc_node_iam_role[count.index].name
+}
+
+
 
 ################################################################################
 # Define AWS Managed SSM Session Manager Policy
