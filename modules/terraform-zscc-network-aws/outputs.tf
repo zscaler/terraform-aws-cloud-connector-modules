@@ -8,6 +8,11 @@ output "cc_subnet_ids" {
   value       = data.aws_subnet.cc_subnet_selected[*].id
 }
 
+output "cc_subnet_cidr" {
+  value       = data.aws_subnet.cc_subnet_selected[*].cidr_block
+  description = "Cloud Connector Subnet CIDR"
+}
+
 output "workload_subnet_ids" {
   description = "Workloads Subnet ID"
   value       = aws_subnet.workload_subnet[*].id

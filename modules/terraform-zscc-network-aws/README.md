@@ -85,6 +85,7 @@ No modules.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_cc_subnet_cidr"></a> [cc\_subnet\_cidr](#output\_cc\_subnet\_cidr) | Cloud Connector Subnet CIDR |
 | <a name="output_cc_subnet_ids"></a> [cc\_subnet\_ids](#output\_cc\_subnet\_ids) | Cloud Connector Subnet ID |
 | <a name="output_nat_gateway_ips"></a> [nat\_gateway\_ips](#output\_nat\_gateway\_ips) | NAT Gateway Public IP |
 | <a name="output_public_subnet_ids"></a> [public\_subnet\_ids](#output\_public\_subnet\_ids) | Public Subnet ID |

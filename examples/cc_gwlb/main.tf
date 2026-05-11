@@ -184,6 +184,7 @@ module "cc_sg" {
   all_ports_egress_enabled = var.all_ports_egress_enabled
   support_access_enabled   = var.support_access_enabled
   zssupport_server         = var.zssupport_server
+  cc_subnet_cidr           = module.network.cc_subnet_cidr
 
   byo_security_group = var.byo_security_group
   # optional inputs. only required if byo_security_group set to true

@@ -5,6 +5,22 @@ data "aws_vpc" "selected" {
   id = var.vpc_id
 }
 
+resource "aws_ec2_managed_prefix_list" "cc_vpc_cidrs" {
+  name           = "${var.name_prefix}-cc-vpc-cidrs-${var.resource_tag}"
+  address_family = "IPv4"
+  max_entries    = 5
+
+  dynamic "entry" {
+    for_each = try(var.cc_subnet_cidr, [data.aws_vpc.selected.cidr_block])
+    content {
+      cidr        = entry.value
+      description = "${var.name_prefix}-cc-vpc-cidr-${entry.key}-${var.resource_tag}"
+    }
+  }
+
+  tags = merge(var.global_tags)
+}
+
 
 ################################################################################
 # Create Security Group and Rules for Cloud Connector Management Interfaces
@@ -136,7 +152,17 @@ resource "aws_vpc_security_group_ingress_rule" "ingress_cc_service_https_local" 
   count             = var.byo_security_group == false ? var.sg_count : 0
   description       = "Required: CC inbound internal VPC cluster TCP 443 communication"
   security_group_id = aws_security_group.cc_service_sg[count.index].id
-  cidr_ipv4         = data.aws_vpc.selected.cidr_block
+  prefix_list_id    = aws_ec2_managed_prefix_list.cc_vpc_cidrs.id
+  from_port         = 443
+  ip_protocol       = "tcp"
+  to_port           = 443
+}
+
+resource "aws_vpc_security_group_egress_rule" "egress_cc_service_https_local" {
+  count             = var.byo_security_group == false && var.gwlb_enabled ? var.sg_count : 0
+  description       = "Required: CC outbound internal VPC cluster TCP 443 communication"
+  security_group_id = aws_security_group.cc_service_sg[count.index].id
+  prefix_list_id    = aws_ec2_managed_prefix_list.cc_vpc_cidrs.id
   from_port         = 443
   ip_protocol       = "tcp"
   to_port           = 443
@@ -188,7 +214,7 @@ resource "aws_vpc_security_group_ingress_rule" "ingress_cc_service_geneve" {
   count             = var.byo_security_group == false && var.gwlb_enabled ? var.sg_count : 0
   description       = "Required: CC GENEVE encapsulation traffic to CC Service from GWLB"
   security_group_id = aws_security_group.cc_service_sg[count.index].id
-  cidr_ipv4         = data.aws_vpc.selected.cidr_block
+  prefix_list_id    = aws_ec2_managed_prefix_list.cc_vpc_cidrs.id
   from_port         = 6081
   ip_protocol       = "udp"
   to_port           = 6081
@@ -198,7 +224,7 @@ resource "aws_vpc_security_group_egress_rule" "egress_cc_service_geneve" {
   count             = var.byo_security_group == false && var.gwlb_enabled ? var.sg_count : 0
   description       = "Required: CC GENEVE encapsulation traffic to GWLB from CC Service"
   security_group_id = aws_security_group.cc_service_sg[count.index].id
-  cidr_ipv4         = data.aws_vpc.selected.cidr_block
+  prefix_list_id    = aws_ec2_managed_prefix_list.cc_vpc_cidrs.id
   from_port         = 6081
   ip_protocol       = "udp"
   to_port           = 6081
@@ -207,8 +233,8 @@ resource "aws_vpc_security_group_egress_rule" "egress_cc_service_geneve" {
 
 #Default required for non-GWLB deployments
 resource "aws_vpc_security_group_ingress_rule" "ingress_cc_service_all" {
-  count             = var.byo_security_group == false ? var.sg_count : 0
-  description       = "Optional: Permit All Intra-VPC Traffic / Ensure CC Service Interfaces are able to communicate with each other freely"
+  count             = var.byo_security_group == false && var.gwlb_enabled == false ? var.sg_count : 0
+  description       = "Permit all intra-vpc workload sourced traffic"
   security_group_id = aws_security_group.cc_service_sg[count.index].id
   cidr_ipv4         = data.aws_vpc.selected.cidr_block
   ip_protocol       = "-1"
