@@ -24,6 +24,7 @@ No modules.
 
 | Name | Type |
 |------|------|
+| [aws_ec2_managed_prefix_list.cc_vpc_cidrs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ec2_managed_prefix_list) | resource |
 | [aws_security_group.cc_mgmt_sg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [aws_security_group.cc_service_sg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [aws_security_group.outbound_endpoint_sg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
@@ -34,6 +35,7 @@ No modules.
 | [aws_vpc_security_group_egress_rule.egress_cc_mgmt_udp_53](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_egress_rule) | resource |
 | [aws_vpc_security_group_egress_rule.egress_cc_service_all](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_egress_rule) | resource |
 | [aws_vpc_security_group_egress_rule.egress_cc_service_geneve](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_egress_rule) | resource |
+| [aws_vpc_security_group_egress_rule.egress_cc_service_https_local](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_egress_rule) | resource |
 | [aws_vpc_security_group_egress_rule.egress_cc_service_tcp_443](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_egress_rule) | resource |
 | [aws_vpc_security_group_egress_rule.egress_cc_service_udp_123](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_egress_rule) | resource |
 | [aws_vpc_security_group_egress_rule.egress_cc_service_udp_443](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_egress_rule) | resource |
@@ -61,6 +63,7 @@ No modules.
 | <a name="input_byo_route53_resolver_outbound_endpoint_group_id"></a> [byo\_route53\_resolver\_outbound\_endpoint\_group\_id](#input\_byo\_route53\_resolver\_outbound\_endpoint\_group\_id) | Route53 Resolver Outbound Endpoint Security Group ID | `list(string)` | `null` | no |
 | <a name="input_byo_security_group"></a> [byo\_security\_group](#input\_byo\_security\_group) | Bring your own Security Group for Cloud Connector. Setting this variable to true will effectively instruct this module to not create any resources and only reference data resources from values provided in byo\_mgmt\_security\_group\_id and byo\_service\_security\_group\_id | `bool` | `false` | no |
 | <a name="input_byo_service_security_group_id"></a> [byo\_service\_security\_group\_id](#input\_byo\_service\_security\_group\_id) | Service Security Group ID for Cloud Connector association | `list(string)` | `null` | no |
+| <a name="input_cc_subnet_cidr"></a> [cc\_subnet\_cidr](#input\_cc\_subnet\_cidr) | Cloud Connector EC2 Instance subnet CIDR list | `list(string)` | n/a | yes |
 | <a name="input_global_tags"></a> [global\_tags](#input\_global\_tags) | Populate any custom user defined tags from a map | `map(string)` | `{}` | no |
 | <a name="input_gwlb_enabled"></a> [gwlb\_enabled](#input\_gwlb\_enabled) | Default is true which creates ingress/egress rules only for GENEVE traffic. If false, these rules are replaced with an allow all ports/protocols ingress. Value ignored if not creating a security group | `bool` | `true` | no |
 | <a name="input_http_probe_port"></a> [http\_probe\_port](#input\_http\_probe\_port) | Port number for Cloud Connector cloud init to enable listener port for HTTP probe from GWLB Target Group | `number` | `50000` | no |

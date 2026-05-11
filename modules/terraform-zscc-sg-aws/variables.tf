@@ -99,3 +99,8 @@ variable "zssupport_server" {
   description = "destination IP address of Zscaler Support access server. IP resolution of remotesupport.<zscaler_customer_cloud>.net"
   default     = "199.168.148.101/32" #for commercial clouds
 }
+
+variable "cc_subnet_cidr" {
+  type        = list(string)
+  description = "Cloud Connector EC2 Instance subnet CIDR list"
+}

@@ -196,6 +196,7 @@ module "cc_sg" {
   all_ports_egress_enabled = var.all_ports_egress_enabled
   support_access_enabled   = var.support_access_enabled
   zssupport_server         = var.zssupport_server
+  cc_subnet_cidr           = module.network.cc_subnet_cidr
 }
 
 

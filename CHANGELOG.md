@@ -1,3 +1,15 @@
+## [1.4.3] - (TBD)
+ENHANCEMENTS:
+* Module Changes:
+    - terraform-zscc-network-aws:
+        - add output cc_subnet_cidr
+    - terraform-zscc-sg-aws:
+        - add resource aws_ec2_managed_prefix_list.cc_vpc_cidrs
+        - add variable cc_subnet_cidr
+        - add resource aws_vpc_security_group_egress_rule.egress_cc_service_https_local
+        - add logic to dynamically create one of more aws_vpc_security_group_ingress_rule.ingress_cc_service_https_local rules restricted to Zscaler Cloud Connector associated CIDR blocks via preflix list
+        - refactor ingress_cc_service_geneve and egress_cc_service_geneve rules restricted to Zscaler Cloud Connector associated CIDR blocks via preflix list
+
 ## [1.4.2] - (April 15, 2026)
 
 BUG FIXES:
