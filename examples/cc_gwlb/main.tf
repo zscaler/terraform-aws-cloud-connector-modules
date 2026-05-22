@@ -90,6 +90,7 @@ locals {
 CC_URL=${var.cc_vm_prov_url}
 SECRET_NAME=${var.secret_name}
 HTTP_PROBE_PORT=${var.http_probe_port}
+FIPS_ENABLED=${var.fips_enabled}
 USERDATA
 }
 
