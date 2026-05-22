@@ -363,3 +363,12 @@ variable "spokes" {
     "spoke-2" = { cidr = "10.2.0.0/16", name = "spoke-2" }
   }
 }
+variable "fips_enabled" {
+  type        = string
+  description = "Enable FIPS mode for Cloud Connector provisioning. Supported values are 'False' or 'True'."
+  default     = "False"
+  validation {
+    condition     = var.fips_enabled == "False" || var.fips_enabled == "True"
+    error_message = "Variable fips_enabled must be either 'False' or 'True'."
+  }
+}
