@@ -61,6 +61,7 @@ if [[ "$deployment" == "greenfield" ]]; then
         "Deploy multiple Cloud Connectors + Gateway Load Balancer in a new VPC with Route 53 rules for ZPA" 
         "Deploy Auto Scaling Cloud Connectors + Gateway Load Balancer in a new VPC" 
         "Deploy Auto Scaling Cloud Connectors + Gateway Load Balancer in a new VPC with Route 53 rules for ZPA" 
+        "Deploy multiple Cloud Connectors + Gateway Load Balancer + Transit Gateway Hub and Spoke in a new VPC" 
         "Deploy a new VPC - No Cloud Connector resources" 
     )    
     select greenfield_type in "${dtypes[@]}"
@@ -97,6 +98,11 @@ if [[ "$deployment" == "greenfield" ]]; then
             break
             ;;
             7)
+            echo "Deployment type base_cc_gwlb_tgw selected..."
+            dtype=base_cc_gwlb_tgw
+            break
+            ;;
+            8)
             echo "Deployment type base selected..."
             dtype=base
             break
