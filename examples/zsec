@@ -116,6 +116,7 @@ elif [[ "$deployment" == "brownfield" ]]; then
     dtypes=(
         "Deploy multiple Cloud Connectors + Gateway Load Balancer in a new or existing VPC"
         "Deploy Auto Scaling Cloud Connectors + Gateway Load Balancer in a new or existing VPC"
+        "Deploy multiple Cloud Connectors + Gateway Load Balancer + Transit Gateway Hub and Spoke in an existing VPC"
     )
     select brownfield_type in "${dtypes[@]}"
     do
@@ -128,6 +129,11 @@ elif [[ "$deployment" == "brownfield" ]]; then
             2)
             echo "Deployment type cc_gwlb_asg selected..."
             dtype=cc_gwlb_asg
+            break
+            ;;
+            3)
+            echo "Deployment type cc_gwlb_tgw selected..."
+            dtype=cc_gwlb_tgw
             break
             ;;
             *) 
