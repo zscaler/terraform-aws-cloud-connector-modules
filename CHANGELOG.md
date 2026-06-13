@@ -1,3 +1,8 @@
+## [1.4.3] - (June 12, 2026)
+
+BUG FIXES:
+* fix: release Lambda version 1.0.6.3 with security changes
+
 ## [1.4.2] - (April 15, 2026)
 
 BUG FIXES:
