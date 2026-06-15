@@ -23,7 +23,7 @@ data "aws_ssm_parameter" "amazon_linux_latest" {
 # Create IAM Assume Role, Policies, and Host/Instance Profiles
 ################################################################################
 resource "aws_iam_role" "node_iam_role" {
-  name = "${var.name_prefix}-node-iam-role-${var.resource_tag}"
+  name = var.workload_iam_role_name != null ? var.workload_iam_role_name : "${var.name_prefix}-node-iam-role-${var.resource_tag}"
 
   assume_role_policy = <<POLICY
 {
