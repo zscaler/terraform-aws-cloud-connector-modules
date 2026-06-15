@@ -84,7 +84,7 @@ data "aws_iam_policy_document" "bastion_instance_assume_role_policy" {
 # Create Bastion IAM Role and Host/Instance Profile
 ################################################################################
 resource "aws_iam_role" "bastion_iam_role" {
-  name               = "${var.name_prefix}-bastion-iam-role-${var.resource_tag}"
+  name               = var.bastion_iam_role_name != null ? var.bastion_iam_role_name : "${var.name_prefix}-bastion-iam-role-${var.resource_tag}"
   assume_role_policy = data.aws_iam_policy_document.bastion_instance_assume_role_policy.json
 
   tags = merge(var.global_tags)

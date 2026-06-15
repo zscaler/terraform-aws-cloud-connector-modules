@@ -48,3 +48,9 @@ variable "iam_role_policy_ssmcore" {
   description = "AWS EC2 Instance predefined IAM Role to access AWS SSM"
   default     = "AmazonSSMManagedInstanceCore"
 }
+
+variable "workload_iam_role_name" {
+  type        = string
+  description = "Specify a custom name for the workload IAM role. If not set, defaults to name_prefix + resource_tag pattern. Useful to avoid AWS 64-character IAM role name limit."
+  default     = null
+}

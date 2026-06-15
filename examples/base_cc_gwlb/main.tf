@@ -76,6 +76,7 @@ module "bastion" {
   public_subnet             = module.network.public_subnet_ids[0]
   instance_key              = aws_key_pair.deployer.key_name
   bastion_nsg_source_prefix = var.bastion_nsg_source_prefix
+  bastion_iam_role_name     = "cc-bastion-iam-role-${random_string.suffix.result}"
 }
 
 
