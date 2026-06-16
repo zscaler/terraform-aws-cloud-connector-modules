@@ -1,14 +1,10 @@
 ################################################################################
 # Spoke 2 VPC — Workload VMs + TGW route to Hub for centralized inspection
-#
-# Key differences from base_cc_gwlb/spoke-2.tf:
-#   - NO local GWLB endpoint
-#   - Inline AWS resources replace terraform-zscc-spoke-network-aws module
-#   - aws_route.spoke_2_workload_to_tgw: 0.0.0.0/0 → TGW
+# Traffic path: Workload → TGW → Hub TGW attach subnet → GWLB Endpoint → CC
 ################################################################################
 
 ################################################################################
-# 1. Create Spoke 2 VPC network infrastructure (inline — no spoke module)
+# 1. Create Spoke 2 VPC network infrastructure
 ################################################################################
 resource "aws_vpc" "spoke_2" {
   cidr_block           = var.spoke_2_vpc_cidr
