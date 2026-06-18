@@ -433,3 +433,39 @@ variable "r53_route_table_enabled" {
   description = "For brownfield environments where VPC subnets already exist, set to false to not create a new route table to associate to ZPA/Route 53 reserved subnet(s). Default is true which means module will try to create new route tables"
   default     = true
 }
+
+
+################################################################################
+# TGW (Transit Gateway) Hub-and-Spoke variables
+# Only applicable when tgw_enabled = true (centralized GWLB inspection model)
+################################################################################
+
+variable "tgw_enabled" {
+  type        = bool
+  description = "Enable Transit Gateway Hub-and-Spoke routing support. When true, Terraform will inject routes into existing TGW attach and GWLB endpoint subnet route tables to steer spoke traffic through Cloud Connector for centralized inspection. Requires byo_tgw_id, byo_tgw_attach_rt_ids, byo_gwlb_endpoint_rt_ids, and spoke_vpc_cidrs to be set."
+  default     = false
+}
+
+variable "byo_tgw_id" {
+  type        = string
+  description = "Existing Transit Gateway ID. Used to add east-west return routes (spoke CIDRs → TGW) in GWLB endpoint subnet route tables. Only required if tgw_enabled is true."
+  default     = null
+}
+
+variable "byo_tgw_attach_rt_ids" {
+  type        = list(string)
+  description = "Existing route table IDs associated with the TGW attach subnets (one per AZ). Terraform will inject a 0.0.0.0/0 → GWLB Endpoint route into each. Only required if tgw_enabled is true."
+  default     = []
+}
+
+variable "byo_gwlb_endpoint_rt_ids" {
+  type        = list(string)
+  description = "Existing route table IDs associated with the GWLB endpoint subnets (one per AZ). Terraform will inject spoke_vpc_cidrs → TGW routes for east-west return traffic. Only required if tgw_enabled is true."
+  default     = []
+}
+
+variable "spoke_vpc_cidrs" {
+  type        = list(string)
+  description = "List of Spoke VPC CIDR blocks. A route will be added to each GWLB endpoint subnet route table for each CIDR pointing to the Transit Gateway. Required for east-west traffic return path after CC inspection. Only required if tgw_enabled is true. Example: [\"10.1.0.0/16\", \"10.2.0.0/16\"]"
+  default     = []
+}

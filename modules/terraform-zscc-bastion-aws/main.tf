@@ -104,7 +104,7 @@ resource "aws_iam_role_policy_attachment" "ssm_managed_instance_core" {
 # Assign IAM Role to Instance Profile for Bastion instance attachment
 ################################################################################
 resource "aws_iam_instance_profile" "bastion_host_profile" {
-  name = "${var.name_prefix}-bastion-host-profile-${var.resource_tag}"
+  name = var.bastion_iam_role_name != null ? "${var.bastion_iam_role_name}-profile" : "${var.name_prefix}-bastion-host-profile-${var.resource_tag}"
   role = aws_iam_role.bastion_iam_role.name
 
   tags = merge(var.global_tags)

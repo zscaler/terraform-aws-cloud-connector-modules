@@ -53,14 +53,15 @@ module "network" {
   name_prefix       = var.name_prefix
   resource_tag      = random_string.suffix.result
   global_tags       = local.global_tags
-  workloads_enabled = true
+  workloads_enabled = !var.tgw_enabled
   az_count          = var.az_count
-  vpc_cidr          = var.vpc_cidr
+  vpc_cidr          = var.tgw_enabled ? var.hub_vpc_cidr : var.vpc_cidr
   public_subnets    = var.public_subnets
   workloads_subnets = var.workloads_subnets
   cc_subnets        = var.cc_subnets
-  gwlb_enabled      = var.gwlb_enabled
-  gwlb_endpoint_ids = module.gwlb_endpoint.gwlbe
+  gwlb_enabled      = var.tgw_enabled ? false : var.gwlb_enabled
+  gwlb_endpoint_ids = var.tgw_enabled ? [] : module.gwlb_endpoint.gwlbe
+  tgw_enabled       = var.tgw_enabled
 }
 
 
@@ -84,6 +85,7 @@ module "bastion" {
 # 3. Create Workload Hosts to test traffic connectivity through CC
 ################################################################################
 module "workload" {
+  count          = var.tgw_enabled ? 0 : 1
   workload_count = var.workload_count
   source         = "../../modules/terraform-zscc-workload-aws"
   name_prefix    = "${var.name_prefix}-workload"
@@ -231,7 +233,7 @@ module "gwlb_endpoint" {
   resource_tag        = random_string.suffix.result
   global_tags         = local.global_tags
   vpc_id              = module.network.vpc_id
-  subnet_ids          = module.network.cc_subnet_ids
+  subnet_ids          = var.tgw_enabled ? module.network.gwlb_endpoint_subnet_ids : module.network.cc_subnet_ids
   gwlb_arn            = module.gwlb.gwlb_arn
   acceptance_required = var.acceptance_required
   allowed_principals  = var.allowed_principals
