@@ -255,6 +255,42 @@ module "route53" {
 
 
 ################################################################################
+# 8. (Optional) TGW Hub-and-Spoke route injection
+#    Only created when tgw_enabled = true. Injects:
+#      - 0.0.0.0/0 → GWLB Endpoint into each TGW attach subnet route table
+#      - spoke_vpc_cidrs → TGW into each GWLB endpoint subnet route table
+#    This enables centralized CC inspection of spoke VPC traffic routed via TGW.
+################################################################################
+resource "aws_route" "tgw_attach_to_gwlbe" {
+  count                  = var.tgw_enabled ? var.az_count : 0
+  route_table_id         = var.byo_tgw_attach_rt_ids[count.index]
+  destination_cidr_block = "0.0.0.0/0"
+  vpc_endpoint_id        = module.gwlb_endpoint.gwlbe[count.index]
+
+  depends_on = [module.gwlb_endpoint]
+}
+
+locals {
+  gwlbe_rt_spoke_routes = var.tgw_enabled ? flatten([
+    for az_idx, rt_id in var.byo_gwlb_endpoint_rt_ids : [
+      for cidr in var.spoke_vpc_cidrs : {
+        key   = "${az_idx}-${cidr}"
+        rt_id = rt_id
+        cidr  = cidr
+      }
+    ]
+  ]) : []
+}
+
+resource "aws_route" "gwlbe_to_tgw" {
+  for_each               = { for r in local.gwlbe_rt_spoke_routes : r.key => r }
+  route_table_id         = each.value.rt_id
+  destination_cidr_block = each.value.cidr
+  transit_gateway_id     = var.byo_tgw_id
+}
+
+
+################################################################################
 # Validation for Cloud Connector instance size and EC2 Instance Type 
 # compatibilty. Terraform does not have a good/native way to raise an error at 
 # the moment, so this will trigger off an invalid count value if there is an 

@@ -305,3 +305,33 @@ variable "resource_name_dns_a_record_enabled" {
   description = "Indicates whether to respond to DNS queries for instance hostnames with DNS A records. Default is false"
   default     = false
 }
+
+variable "tgw_enabled" {
+  type        = bool
+  description = "If true, deploys a Transit Gateway Hub-and-Spoke topology: Hub VPC (CC + GWLB, no workloads) connected to two Spoke VPCs (workloads only) via TGW. All spoke traffic is forwarded to the Hub for centralized inspection. Default is false (single-VPC GWLB deployment)."
+  default     = false
+}
+
+variable "tgw_name" {
+  type        = string
+  description = "Name tag for the Transit Gateway resource. Only used when tgw_enabled = true."
+  default     = "zscc-tgw"
+}
+
+variable "hub_vpc_cidr" {
+  type        = string
+  description = "Hub VPC CIDR when tgw_enabled = true. All Hub subnets (public, TGW attach, GWLB endpoint, CC) are derived from this /16. Ignored when tgw_enabled = false (vpc_cidr is used instead)."
+  default     = "10.0.0.0/16"
+}
+
+variable "spoke_1_vpc_cidr" {
+  type        = string
+  description = "Spoke 1 VPC CIDR. Used when tgw_enabled = true to create the first spoke VPC with workload subnets and TGW routing."
+  default     = "10.1.0.0/16"
+}
+
+variable "spoke_2_vpc_cidr" {
+  type        = string
+  description = "Spoke 2 VPC CIDR. Used when tgw_enabled = true to create the second spoke VPC with workload subnets and TGW routing."
+  default     = "10.2.0.0/16"
+}

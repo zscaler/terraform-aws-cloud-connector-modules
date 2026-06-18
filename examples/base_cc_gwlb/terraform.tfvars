@@ -202,3 +202,18 @@
 
 #support_access_enabled                     = false
 #zssupport_server                           = "199.168.148.101/32"
+
+## 27. (TGW Hub-and-Spoke) Set tgw_enabled to true to deploy a Transit Gateway topology instead of the
+##     default single-VPC GWLB deployment. When enabled:
+##       - A Hub VPC is created using hub_vpc_cidr (CCs + GWLB + TGW attach + GWLB endpoint subnets)
+##       - Two Spoke VPCs (spoke_1_vpc_cidr / spoke_2_vpc_cidr) are created with workload VMs only
+##       - All spoke workload egress routes to 0.0.0.0/0 → TGW for centralized inspection in the Hub
+##       - tgw_name sets the Name tag on the Transit Gateway resource
+##     The three VPC CIDRs must not overlap. Default spoke CIDRs assume hub = 10.0.0.0/16,
+##     spoke1 = 10.1.0.0/16, spoke2 = 10.2.0.0/16.
+
+#tgw_enabled                                = true
+#tgw_name                                   = "zscc-tgw"
+#hub_vpc_cidr                               = "10.0.0.0/16"
+#spoke_1_vpc_cidr                           = "10.1.0.0/16"
+#spoke_2_vpc_cidr                           = "10.2.0.0/16"
