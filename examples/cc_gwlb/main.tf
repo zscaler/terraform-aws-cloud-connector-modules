@@ -222,11 +222,11 @@ module "gwlb" {
 #    per Cloud Connector subnet/availability zone.
 ################################################################################
 module "gwlb_endpoint" {
-  source                    = "../../modules/terraform-zscc-gwlbendpoint-aws"
-  name_prefix               = var.name_prefix
-  resource_tag              = random_string.suffix.result
-  global_tags               = local.global_tags
-  vpc_id                    = module.network.vpc_id
+  source       = "../../modules/terraform-zscc-gwlbendpoint-aws"
+  name_prefix  = var.name_prefix
+  resource_tag = random_string.suffix.result
+  global_tags  = local.global_tags
+  vpc_id       = module.network.vpc_id
   # In TGW Hub-and-Spoke mode, GWLB Endpoints must be placed in dedicated
   # GWLB endpoint subnets (separate from CC subnets) so that the TGW attach
   # route table's 0.0.0.0/0 → GWLB Endpoint route steers traffic correctly.
