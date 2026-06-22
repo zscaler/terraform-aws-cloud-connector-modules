@@ -17,6 +17,10 @@ BUG FIXES / ENHANCEMENTS:
     - **Default is `null`**, which falls back to the original auto-generated name (`<name_prefix>-bastion-iam-role-<resource_tag>`). Existing deployments that do not pass this variable are **not affected**.
     - Callers that explicitly set this variable to a different value than the previously auto-generated name will have the IAM role replaced (destroy + create) on next apply. Update this variable with care on existing deployments.
 * fix: add `workload_iam_role_name` variable to `terraform-zscc-workload-aws` module with the same semantics as `bastion_iam_role_name` above.
+## [1.4.3] - (June 17, 2026)
+
+BUG FIXES:
+* fix: release Lambda version 1.0.6.3 with security changes
 
 ## [1.4.2] - (April 15, 2026)
 
