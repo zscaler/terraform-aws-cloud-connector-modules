@@ -53,7 +53,9 @@ workload-${k} = ${v}
 %{endfor~} 
 
 WORKLOAD Instance IDs:
-${join("\n", try(module.workload[0].instance_id, []))}
+%{if !var.tgw_enabled~}
+${join("\n", module.workload[0].instance_id)}
+%{endif~}
 
 
 BASTION Jump Host Details/Commands:
@@ -90,7 +92,7 @@ ${module.gwlb.gwlb_arn}
 %{if var.tgw_enabled~}
 
 TRANSIT GATEWAY:
-TGW ID: ${aws_ec2_transit_gateway.tgw[0].id}
+TGW ID: ${module.tgw[0].tgw_id}
 Hub VPC: ${module.network.vpc_id}
 Spoke 1 VPC: ${aws_vpc.spoke_1[0].id}
 Spoke 2 VPC: ${aws_vpc.spoke_2[0].id}
@@ -158,7 +160,7 @@ output "testbedconfig" {
 
 output "tgw_id" {
   description = "Transit Gateway ID (populated only when tgw_enabled = true)"
-  value       = try(aws_ec2_transit_gateway.tgw[0].id, null)
+  value       = try(module.tgw[0].tgw_id, null)
 }
 
 output "hub_vpc_id" {

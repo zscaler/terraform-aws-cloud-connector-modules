@@ -227,7 +227,11 @@ module "gwlb_endpoint" {
   resource_tag              = random_string.suffix.result
   global_tags               = local.global_tags
   vpc_id                    = module.network.vpc_id
-  subnet_ids                = module.network.cc_subnet_ids
+  # In TGW Hub-and-Spoke mode, GWLB Endpoints must be placed in dedicated
+  # GWLB endpoint subnets (separate from CC subnets) so that the TGW attach
+  # route table's 0.0.0.0/0 → GWLB Endpoint route steers traffic correctly.
+  # In standard mode, endpoints are placed in the CC subnets as usual.
+  subnet_ids                = var.tgw_enabled ? var.byo_gwlb_endpoint_subnet_ids : module.network.cc_subnet_ids
   gwlb_arn                  = module.gwlb.gwlb_arn
   acceptance_required       = var.acceptance_required
   allowed_principals        = var.allowed_principals
