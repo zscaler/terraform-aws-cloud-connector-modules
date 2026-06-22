@@ -103,9 +103,9 @@ resource "aws_route" "spoke_2_workload_to_tgw" {
   count                  = var.tgw_enabled ? var.az_count : 0
   route_table_id         = aws_route_table.spoke_2_workload_rt[count.index].id
   destination_cidr_block = "0.0.0.0/0"
-  transit_gateway_id     = aws_ec2_transit_gateway.tgw[0].id
+  transit_gateway_id     = module.tgw[0].tgw_id
 
-  depends_on = [aws_ec2_transit_gateway_vpc_attachment.spoke_2]
+  depends_on = [module.tgw]
 }
 
 

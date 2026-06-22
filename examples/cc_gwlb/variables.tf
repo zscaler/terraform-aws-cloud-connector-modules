@@ -469,3 +469,9 @@ variable "spoke_vpc_cidrs" {
   description = "List of Spoke VPC CIDR blocks. A route will be added to each GWLB endpoint subnet route table for each CIDR pointing to the Transit Gateway. Required for east-west traffic return path after CC inspection. Only required if tgw_enabled is true. Example: [\"10.1.0.0/16\", \"10.2.0.0/16\"]"
   default     = []
 }
+
+variable "byo_gwlb_endpoint_subnet_ids" {
+  type        = list(string)
+  description = "Existing subnet IDs for GWLB Endpoint placement in TGW Hub-and-Spoke mode (one per AZ). When tgw_enabled = true, GWLB Endpoints must be placed in dedicated subnets separate from CC subnets so that the TGW attach route tables can steer traffic correctly via 0.0.0.0/0 → GWLB Endpoint. Only required if tgw_enabled is true."
+  default     = []
+}

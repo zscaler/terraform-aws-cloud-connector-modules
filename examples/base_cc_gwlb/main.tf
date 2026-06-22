@@ -85,7 +85,7 @@ module "bastion" {
 # 3. Create Workload Hosts to test traffic connectivity through CC
 ################################################################################
 module "workload" {
-  count          = var.tgw_enabled ? 0 : 1
+  count          = !var.tgw_enabled ? 1 : 0
   workload_count = var.workload_count
   source         = "../../modules/terraform-zscc-workload-aws"
   name_prefix    = "${var.name_prefix}-workload"

@@ -308,7 +308,21 @@ variable "resource_name_dns_a_record_enabled" {
 
 variable "tgw_enabled" {
   type        = bool
-  description = "If true, deploys a Transit Gateway Hub-and-Spoke topology: Hub VPC (CC + GWLB, no workloads) connected to two Spoke VPCs (workloads only) via TGW. All spoke traffic is forwarded to the Hub for centralized inspection. Default is false (single-VPC GWLB deployment)."
+  description = <<-EOT
+    If true, deploys a Transit Gateway Hub-and-Spoke topology: a Hub VPC (CC + GWLB, no local workloads)
+    connected to two Spoke VPCs (workloads only) via TGW. All spoke egress traffic is steered to the Hub
+    for centralized GWLB inspection before exiting to the internet.
+
+    IMPORTANT — behaviour change when tgw_enabled = true:
+      - GWLB endpoint-based route injection into workload subnet route tables is DISABLED in the hub VPC.
+        Traffic inspection is instead steered via TGW attachments → dedicated GWLB endpoint subnets in
+        the hub. The GWLB and GWLB endpoint are still deployed; only the steering mechanism changes.
+      - Hub VPC workload instances are NOT created (workloads_enabled = false).
+      - hub_vpc_cidr is used instead of vpc_cidr for the hub VPC.
+      - Two spoke VPCs are created using spoke_1_vpc_cidr and spoke_2_vpc_cidr.
+
+    Default is false (standard single-VPC GWLB deployment).
+  EOT
   default     = false
 }
 
