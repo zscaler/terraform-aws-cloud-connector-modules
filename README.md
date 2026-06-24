@@ -80,6 +80,14 @@ Use the [**Starter Deployment Template with ASG and GWLB**](examples/base_cc_gwl
 
 Use the [**Starter Deployment Template with ASG, GWLB and ZPA**](examples/base_cc_gwlb_asg_zpa) to deploy your Cloud Connectors in a new VPC and to load balance traffic across multiple Cloud Connectors. Zscaler\'s recommended deployment method is Gateway Load Balancer (GWLB). GWLB distributes traffic across multiple Cloud Connectors and achieves high availability. For added resiliency and elasticity, Cloud Connectors are deployed via a Launch Template configured Auto Scaling group. Route 53 endpoints redirect DNS resolver capability for ZPA.
 
+### **Starter Deployment Template with Gateway Load Balancer (GWLB) and Transit Gateway Hub-and-Spoke**
+
+Use the [**Starter Deployment Template with GWLB**](examples/base_cc_gwlb) (with `tgw_enabled = true`) to deploy a Transit Gateway hub-and-spoke inspection topology. This mode creates three VPCs: a **Hub VPC** hosting the Cloud Connectors and Gateway Load Balancer, and two **Spoke VPCs** containing workload instances. All spoke egress traffic is forwarded via an AWS Transit Gateway to the Hub VPC for centralized inspection by Cloud Connector before exiting to the internet.
+
+This deployment mode is part of the `base_cc_gwlb` example and is toggled via `tgw_enabled = true`. When selecting option **7** in the `zsec` guided deployment script, the TGW variables (hub CIDR, spoke CIDRs, TGW name) are prompted interactively.
+
+**Key variables:** `tgw_enabled`, `tgw_name`, `hub_vpc_cidr`, `spoke_1_vpc_cidr`, `spoke_2_vpc_cidr`. See the [base_cc_gwlb README](examples/base_cc_gwlb/README.md) for full documentation and traffic flow diagrams.
+
 ## **Brownfield Deployment**
 
 Brownfield deployment templates are most applicable for production deployments and have more customization options than a \"base\"

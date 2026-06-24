@@ -61,6 +61,7 @@ if [[ "$deployment" == "greenfield" ]]; then
         "Deploy multiple Cloud Connectors + Gateway Load Balancer in a new VPC with Route 53 rules for ZPA" 
         "Deploy Auto Scaling Cloud Connectors + Gateway Load Balancer in a new VPC" 
         "Deploy Auto Scaling Cloud Connectors + Gateway Load Balancer in a new VPC with Route 53 rules for ZPA" 
+        "Deploy multiple Cloud Connectors + Gateway Load Balancer + Transit Gateway Hub and Spoke in a new VPC" 
         "Deploy a new VPC - No Cloud Connector resources" 
     )    
     select greenfield_type in "${dtypes[@]}"
@@ -97,6 +98,12 @@ if [[ "$deployment" == "greenfield" ]]; then
             break
             ;;
             7)
+            echo "Deployment type base_cc_gwlb (TGW Hub-and-Spoke) selected..."
+            dtype=base_cc_gwlb
+            tgw_deployment=true
+            break
+            ;;
+            8)
             echo "Deployment type base selected..."
             dtype=base
             break
@@ -110,6 +117,7 @@ elif [[ "$deployment" == "brownfield" ]]; then
     dtypes=(
         "Deploy multiple Cloud Connectors + Gateway Load Balancer in a new or existing VPC"
         "Deploy Auto Scaling Cloud Connectors + Gateway Load Balancer in a new or existing VPC"
+        "Deploy multiple Cloud Connectors + Gateway Load Balancer + Transit Gateway Hub and Spoke in an existing VPC"
     )
     select brownfield_type in "${dtypes[@]}"
     do
@@ -122,6 +130,12 @@ elif [[ "$deployment" == "brownfield" ]]; then
             2)
             echo "Deployment type cc_gwlb_asg selected..."
             dtype=cc_gwlb_asg
+            break
+            ;;
+            3)
+            echo "Deployment type cc_gwlb (TGW Hub-and-Spoke) selected..."
+            dtype=cc_gwlb
+            tgw_deployment=true
             break
             ;;
             *) 
@@ -467,6 +481,29 @@ first_run="yes"
                 esac
             done
         fi
+
+    # TGW Hub-and-Spoke variable collection (base_cc_gwlb greenfield TGW mode)
+    # Auto-runs when option 7 (tgw_deployment=true) was selected
+    if [[ "$tgw_deployment" == "true" && "$dtype" == "base_cc_gwlb" ]]; then
+        echo "${GREEN}TGW Hub-and-Spoke deployment selected. New Hub and Spoke VPCs will be created.${RESET}"
+        echo "export TF_VAR_tgw_enabled=true" >> .zsecrc
+        read -r -p "${CYAN}Enter Transit Gateway name [press Enter for default 'zscc-tgw']: ${RESET}" tgw_name_input
+        if [[ -n "$tgw_name_input" ]]; then
+            echo "export TF_VAR_tgw_name='$tgw_name_input'" >> .zsecrc
+        fi
+        read -r -p "${CYAN}Enter Hub VPC CIDR for CC/GWLB [press Enter for default '10.0.0.0/16']: ${RESET}" hub_vpc_cidr_input
+        if [[ -n "$hub_vpc_cidr_input" ]]; then
+            echo "export TF_VAR_hub_vpc_cidr='$hub_vpc_cidr_input'" >> .zsecrc
+        fi
+        read -r -p "${CYAN}Enter Spoke 1 VPC CIDR for workloads [press Enter for default '10.1.0.0/16']: ${RESET}" spoke_1_cidr_input
+        if [[ -n "$spoke_1_cidr_input" ]]; then
+            echo "export TF_VAR_spoke_1_vpc_cidr='$spoke_1_cidr_input'" >> .zsecrc
+        fi
+        read -r -p "${CYAN}Enter Spoke 2 VPC CIDR for workloads [press Enter for default '10.2.0.0/16']: ${RESET}" spoke_2_cidr_input
+        if [[ -n "$spoke_2_cidr_input" ]]; then
+            echo "export TF_VAR_spoke_2_vpc_cidr='$spoke_2_cidr_input'" >> .zsecrc
+        fi
+    fi
     fi
 
     if [[ "$dtype" != "base" ]]; then
@@ -1548,6 +1585,85 @@ first_run="yes"
                 * ) echo "${RED}Invalid response. Please enter yes or no${RESET}";;
                 esac
             done
+
+            # TGW Hub-and-Spoke routing injection (cc_gwlb brownfield)
+            # Auto-enabled when option 3 (tgw_deployment=true) was selected; otherwise prompt user
+            if [[ "$dtype" == "cc_gwlb" ]]; then
+                collect_tgw_routes() {
+                    echo "${GREEN}TGW route injection enabled. Terraform will inject routes into TGW attach and GWLB endpoint subnet route tables.${RESET}"
+                    echo "export TF_VAR_tgw_enabled=true" >> .zsecrc
+                    read -r -p "${CYAN}Enter existing Transit Gateway ID (e.g. tgw-0abc1234def567890): ${RESET}" byo_tgw_id
+                    echo "You entered ${GREEN}$byo_tgw_id${RESET}"
+                    echo "export TF_VAR_byo_tgw_id=$byo_tgw_id" >> .zsecrc
+
+                    echo "$az_count TGW attach subnet route table IDs required (one per AZ)..."
+                    tgw_attach_rt_ids_list=""
+                    for ((i=1; i<=az_count; i++)); do
+                        read -r -p "${CYAN}Enter TGW attach subnet route table ID for AZ $i (e.g. rtb-111111111): ${RESET}" tgw_attach_rt_id
+                        echo "You entered ${GREEN}$tgw_attach_rt_id${RESET}"
+                        if [[ $i -eq 1 ]]; then
+                            tgw_attach_rt_ids_list="\"${tgw_attach_rt_id}\""
+                        else
+                            tgw_attach_rt_ids_list="${tgw_attach_rt_ids_list},\"${tgw_attach_rt_id}\""
+                        fi
+                    done
+                    echo "export TF_VAR_byo_tgw_attach_rt_ids='[${tgw_attach_rt_ids_list}]'" >> .zsecrc
+
+                    echo "$az_count GWLB endpoint subnet route table IDs required (one per AZ)..."
+                    gwlbe_rt_ids_list=""
+                    for ((i=1; i<=az_count; i++)); do
+                        read -r -p "${CYAN}Enter GWLB endpoint subnet route table ID for AZ $i (e.g. rtb-222222222): ${RESET}" gwlbe_rt_id
+                        echo "You entered ${GREEN}$gwlbe_rt_id${RESET}"
+                        if [[ $i -eq 1 ]]; then
+                            gwlbe_rt_ids_list="\"${gwlbe_rt_id}\""
+                        else
+                            gwlbe_rt_ids_list="${gwlbe_rt_ids_list},\"${gwlbe_rt_id}\""
+                        fi
+                    done
+                    echo "export TF_VAR_byo_gwlb_endpoint_rt_ids='[${gwlbe_rt_ids_list}]'" >> .zsecrc
+
+                    spoke_cidrs_list=""
+                    while true; do
+                        read -r -p "${CYAN}How many Spoke VPC CIDRs to add return routes for? ${RESET}" spoke_cidr_number
+                        if [[ $spoke_cidr_number =~ ^[1-9][0-9]*$ ]]; then
+                            echo "$spoke_cidr_number spoke CIDR(s) to enter..."
+                            break
+                        else
+                            echo "${RED}Invalid input. Please enter a positive whole number${RESET}"
+                        fi
+                    done
+                    for ((i=1; i<=spoke_cidr_number; i++)); do
+                        read -r -p "${CYAN}Enter Spoke VPC CIDR $i (e.g. 10.1.0.0/16): ${RESET}" spoke_cidr
+                        echo "You entered ${GREEN}$spoke_cidr${RESET}"
+                        if [[ $i -eq 1 ]]; then
+                            spoke_cidrs_list="\"${spoke_cidr}\""
+                        else
+                            spoke_cidrs_list="${spoke_cidrs_list},\"${spoke_cidr}\""
+                        fi
+                    done
+                    echo "export TF_VAR_spoke_vpc_cidrs='[${spoke_cidrs_list}]'" >> .zsecrc
+                }
+
+                if [[ "$tgw_deployment" == "true" ]]; then
+                    collect_tgw_routes
+                else
+                    while true; do
+                        read -r -p "${CYAN}Enable Transit Gateway Hub-and-Spoke route injection? (yes/no): ${RESET}" tgw_enabled_response
+                        case $tgw_enabled_response in
+                        yes|y )
+                            collect_tgw_routes
+                        break
+                        ;;
+                        no|n )
+                            echo "${GREEN}No TGW route injection. Standard cc_gwlb deployment...${RESET}"
+                            echo "export TF_VAR_tgw_enabled=false" >> .zsecrc
+                        break
+                        ;;
+                        * ) echo "${RED}Invalid response. Please enter yes or no${RESET}";;
+                        esac
+                    done
+                fi
+            fi
         fi
 
         # ZPA/Route 53 configuration

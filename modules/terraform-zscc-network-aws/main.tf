@@ -253,3 +253,78 @@ resource "aws_route_table_association" "route53_rt_asssociation" {
   subnet_id      = try(data.aws_subnet.route53_subnet_selected[count.index].id, aws_subnet.route53_subnet[count.index].id)
   route_table_id = aws_route_table.route53_rt[count.index].id
 }
+
+
+################################################################################
+# TGW Attach Subnets & Route Tables (only when tgw_enabled = true)
+#
+# One subnet per AZ where TGW ENIs will land. Route table is created empty;
+# the caller is responsible for adding the 0.0.0.0/0 → GWLB endpoint route
+# because it is a cross-module dependency (gwlb_endpoint module ID not known here).
+################################################################################
+resource "aws_subnet" "tgw_attach_subnet" {
+  count             = var.tgw_enabled ? var.az_count : 0
+  vpc_id            = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+  cidr_block        = var.tgw_attach_subnets != null ? var.tgw_attach_subnets[count.index] : cidrsubnet(try(data.aws_vpc.vpc_selected[0].cidr_block, aws_vpc.vpc[0].cidr_block), 8, count.index + 1)
+
+  tags = merge(var.global_tags,
+    { Name = "${var.name_prefix}-tgw-attach-subnet-${count.index + 1}-${var.resource_tag}" }
+  )
+}
+
+resource "aws_route_table" "tgw_attach_rt" {
+  count  = var.tgw_enabled ? var.az_count : 0
+  vpc_id = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
+
+  tags = merge(var.global_tags,
+    { Name = "${var.name_prefix}-tgw-attach-rt-${count.index + 1}-${var.resource_tag}" }
+  )
+}
+
+resource "aws_route_table_association" "tgw_attach_rt_association" {
+  count          = var.tgw_enabled ? var.az_count : 0
+  subnet_id      = aws_subnet.tgw_attach_subnet[count.index].id
+  route_table_id = aws_route_table.tgw_attach_rt[count.index].id
+}
+
+
+################################################################################
+# GWLB Endpoint Subnets & Route Tables (only when tgw_enabled = true)
+#
+# One subnet per AZ where GWLB Endpoint ENIs will live. Route table pre-populated
+# with 0.0.0.0/0 → NAT GW so inspected traffic can reach the internet.
+# The caller must add spoke-CIDR → TGW return routes (cross-module dependency).
+################################################################################
+resource "aws_subnet" "gwlb_endpoint_subnet" {
+  count             = var.tgw_enabled ? var.az_count : 0
+  vpc_id            = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+  cidr_block        = var.gwlb_endpoint_subnets != null ? var.gwlb_endpoint_subnets[count.index] : cidrsubnet(try(data.aws_vpc.vpc_selected[0].cidr_block, aws_vpc.vpc[0].cidr_block), 8, count.index + 10)
+
+  tags = merge(var.global_tags,
+    { Name = "${var.name_prefix}-gwlb-endpoint-subnet-${count.index + 1}-${var.resource_tag}" }
+  )
+}
+
+resource "aws_route_table" "gwlb_endpoint_rt" {
+  count  = var.tgw_enabled ? var.az_count : 0
+  vpc_id = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
+
+  tags = merge(var.global_tags,
+    { Name = "${var.name_prefix}-gwlb-endpoint-rt-${count.index + 1}-${var.resource_tag}" }
+  )
+}
+
+resource "aws_route" "gwlb_endpoint_to_nat" {
+  count                  = var.tgw_enabled ? var.az_count : 0
+  route_table_id         = aws_route_table.gwlb_endpoint_rt[count.index].id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = data.aws_nat_gateway.ngw_selected[count.index].id
+}
+
+resource "aws_route_table_association" "gwlb_endpoint_rt_association" {
+  count          = var.tgw_enabled ? var.az_count : 0
+  subnet_id      = aws_subnet.gwlb_endpoint_subnet[count.index].id
+  route_table_id = aws_route_table.gwlb_endpoint_rt[count.index].id
+}

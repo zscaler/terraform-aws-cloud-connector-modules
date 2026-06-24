@@ -4,13 +4,73 @@ This deployment type is intended for greenfield/pov/lab purposes. It will deploy
 
 Additionally: Creates 4 Cloud Connectors (2 per subnet/AZ) routing to NAT Gateway; Gateway Load Balancer auto registers service IPs to target group with health checks; VPC Endpoint Service; 2 GWLB Endpoints (1 in each Cloud Connector subnet); workload private subnet routes pointing to the GWLB Endpoint in their same AZ
 
+---
+
+## Deployment Modes
+
+This example supports two deployment topologies, controlled by the `tgw_enabled` variable:
+
+### Mode 1 — Standard Single-VPC GWLB (default: `tgw_enabled = false`)
+
+A single VPC hosts Cloud Connectors, the GWLB, GWLB endpoints, and workload VMs. Workload subnet route tables point directly to the GWLB endpoint in their AZ for traffic inspection.
+
+**Resources created:**
+- 1 VPC (CIDR from `vpc_cidr`, default `10.1.0.0/16`)
+- Public subnets + IGW + NAT Gateways (1 per AZ)
+- CC subnets + GWLB endpoints (1 per AZ)
+- Workload subnets with routes → GWLB endpoint
+- Bastion host (public subnet)
+- Workload VMs (private subnets)
+- 4 Cloud Connectors, GWLB, VPC Endpoint Service
+
+### Mode 2 — Transit Gateway Hub-and-Spoke (`tgw_enabled = true`)
+
+Three VPCs are created: a **Hub VPC** (CC + GWLB infrastructure only, no local workloads) and two **Spoke VPCs** (workload VMs only). All spoke egress traffic is routed via a Transit Gateway to the Hub, where it is inspected by the GWLB before exiting to the internet via NAT Gateway.
+
+**Traffic path:**
+```
+Spoke Workload → TGW → Hub TGW-Attach Subnet → GWLB Endpoint → GWLB → CC → NAT GW → Internet
+```
+
+**Resources created:**
+- Hub VPC (CIDR from `hub_vpc_cidr`, default `10.0.0.0/16`):
+  - Public subnets, IGW, NAT Gateways
+  - TGW attach subnets (1 per AZ)
+  - GWLB endpoint subnets (1 per AZ, dedicated)
+  - CC subnets
+  - Bastion host
+  - 4 Cloud Connectors, GWLB, VPC Endpoint Service, GWLB Endpoints
+- Spoke 1 VPC (CIDR from `spoke_1_vpc_cidr`, default `10.1.0.0/16`):
+  - Workload subnets, bastion host, workload VMs
+  - Workload subnet routes: `0.0.0.0/0 → TGW`
+- Spoke 2 VPC (CIDR from `spoke_2_vpc_cidr`, default `10.2.0.0/16`):
+  - Same layout as Spoke 1
+- Transit Gateway with two route tables:
+  - `spoke_rt`: associated to Spoke 1 + Spoke 2 attachments; static default route → Hub attachment
+  - `hub_rt`: associated to Hub attachment; propagates spoke CIDRs for return routing
+
+> **Note:** When `tgw_enabled = true`, GWLB endpoint-based route injection into the hub's workload subnet route tables is disabled — inspection is steered via TGW attachments instead. The GWLB and GWLB endpoints are still deployed in dedicated subnets within the Hub VPC.
+
+**Key variables for TGW mode:**
+
+| Variable | Default | Description |
+|---|---|---|
+| `tgw_enabled` | `false` | Set to `true` to enable TGW Hub-and-Spoke mode |
+| `tgw_name` | `"zscc-tgw"` | Name tag for the Transit Gateway |
+| `hub_vpc_cidr` | `"10.0.0.0/16"` | CIDR for the Hub VPC |
+| `spoke_1_vpc_cidr` | `"10.1.0.0/16"` | CIDR for Spoke 1 VPC |
+| `spoke_2_vpc_cidr` | `"10.2.0.0/16"` | CIDR for Spoke 2 VPC |
+
+---
+
 ## How to deploy:
 
 ### Option 1 (guided):
 From the examples directory, run the zsec bash script that walks to all required inputs.
 - ./zsec up
 - enter "greenfield"
-- enter "base_cc_gwlb"
+- For standard GWLB: select option **3** ("Deploy multiple Cloud Connectors + Gateway Load Balancer in a new VPC")
+- For TGW Hub-and-Spoke: select option **7** ("Deploy multiple Cloud Connectors + Gateway Load Balancer + Transit Gateway Hub and Spoke in a new VPC")
 - follow the remainder of the authentication and configuration input prompts.
 - script will detect client operating system and download/run a specific version of terraform in a temporary bin directory
 - inputs will be validated and terraform init/apply will automatically exectute.
@@ -18,6 +78,8 @@ From the examples directory, run the zsec bash script that walks to all required
 
 ### Option 2 (manual):
 Modify/populate any required variable input values in base_cc_gwlb/terraform.tfvars file and save.
+
+For TGW Hub-and-Spoke mode, set `tgw_enabled = true` in `terraform.tfvars` and optionally configure `hub_vpc_cidr`, `spoke_1_vpc_cidr`, and `spoke_2_vpc_cidr` to avoid CIDR conflicts with your existing network.
 
 From base_cc_gwlb directory execute:
 - terraform init
