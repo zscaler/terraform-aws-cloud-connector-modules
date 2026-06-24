@@ -57,3 +57,8 @@ output "gwlb_endpoint_route_table_ids" {
   description = "GWLB Endpoint Route Table IDs (populated only when tgw_enabled = true)"
   value       = aws_route_table.gwlb_endpoint_rt[*].id
 }
+
+output "cc_subnet_route_table_ids" {
+  description = "CC Subnet Route Table IDs. Used in TGW mode to add spoke CIDR → TGW routes so East-West return traffic from CC reaches spoke VPCs via TGW instead of NAT GW."
+  value       = aws_route_table.cc_rt[*].id
+}
