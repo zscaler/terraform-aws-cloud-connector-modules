@@ -1,3 +1,22 @@
+## [1.5.0] - (June 22, 2026)
+
+FEATURES:
+* feat: add new module `terraform-zscc-tgw-aws` encapsulating all Transit Gateway Hub-and-Spoke resources
+    - Transit Gateway, TGW VPC Attachments (hub + 2 spokes), route tables, associations, propagations
+    - VPC routes in Hub: TGW-attach subnets → GWLB endpoints; GWLB-endpoint subnets → TGW (return path)
+    - Reusable across `base_cc_gwlb`, `cc_gwlb`, and future examples without copy-paste
+* feat: add Transit Gateway Hub-and-Spoke inspection support to `base_cc_gwlb` and `cc_gwlb` examples
+    - New variable `tgw_enabled` (default `false`): when set to `true`, deploys a three-VPC TGW hub-and-spoke topology. The hub VPC hosts Cloud Connectors and the GWLB; two spoke VPCs contain workload instances whose traffic is forwarded to the hub for centralized inspection via the Transit Gateway.
+    - New variables: `tgw_name`, `hub_vpc_cidr`, `spoke_1_vpc_cidr`, `spoke_2_vpc_cidr`
+    - `module network` (terraform-zscc-network-aws): new variables `tgw_enabled`, `tgw_attach_subnets`, and `gwlb_endpoint_subnets` create dedicated TGW attach and GWLB endpoint subnets when TGW mode is active. All new variables default to `false`/`null` — existing callers are unaffected.
+    - `examples/base_cc_gwlb/tgw.tf` now calls `module "tgw"` (terraform-zscc-tgw-aws) instead of inline raw resources
+    - zsec interactive script updated: greenfield option 7 and brownfield option 3 deploy TGW hub-and-spoke mode with interactive CIDR prompts for hub and spoke VPCs.
+
+BUG FIXES / ENHANCEMENTS:
+* fix: add `bastion_iam_role_name` variable to `terraform-zscc-bastion-aws` module to allow callers to specify a custom IAM role name and avoid the AWS 64-character IAM role name limit.
+    - **Default is `null`**, which falls back to the original auto-generated name (`<name_prefix>-bastion-iam-role-<resource_tag>`). Existing deployments that do not pass this variable are **not affected**.
+    - Callers that explicitly set this variable to a different value than the previously auto-generated name will have the IAM role replaced (destroy + create) on next apply. Update this variable with care on existing deployments.
+* fix: add `workload_iam_role_name` variable to `terraform-zscc-workload-aws` module with the same semantics as `bastion_iam_role_name` above.
 ## [1.4.3] - (June 17, 2026)
 
 BUG FIXES:

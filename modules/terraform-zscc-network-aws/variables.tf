@@ -187,3 +187,21 @@ variable "r53_route_table_enabled" {
   description = "For brownfield environments where VPC subnets already exist, set to false to not create a new route table to associate to ZPA/Route 53 reserved subnet(s). Default is true which means module will try to create new route tables"
   default     = true
 }
+
+variable "tgw_enabled" {
+  type        = bool
+  description = "If true, creates dedicated TGW attach subnets and GWLB endpoint subnets (1 per AZ) in the VPC. TGW attach route tables are created empty — the caller must add the 0.0.0.0/0 → GWLB endpoint route (cross-module dependency). GWLB endpoint route tables are pre-populated with 0.0.0.0/0 → NAT GW; spoke-CIDR → TGW return routes must be added by the caller. Default is false."
+  default     = false
+}
+
+variable "tgw_attach_subnets" {
+  type        = list(string)
+  description = "Optional CIDR overrides for TGW attach subnets. Only used when tgw_enabled = true. If null, CIDRs are auto-derived from vpc_cidr at offset +1 per AZ (same offset as workload subnets, which are not created in TGW mode)."
+  default     = null
+}
+
+variable "gwlb_endpoint_subnets" {
+  type        = list(string)
+  description = "Optional CIDR overrides for dedicated GWLB endpoint subnets. Only used when tgw_enabled = true. If null, CIDRs are auto-derived from vpc_cidr at offset +10 per AZ."
+  default     = null
+}

@@ -305,3 +305,61 @@ variable "resource_name_dns_a_record_enabled" {
   description = "Indicates whether to respond to DNS queries for instance hostnames with DNS A records. Default is false"
   default     = false
 }
+
+variable "tgw_enabled" {
+  type        = bool
+  description = <<-EOT
+    If true, deploys a Transit Gateway Hub-and-Spoke topology: a Hub VPC (CC + GWLB, no local workloads)
+    connected to two Spoke VPCs (workloads only) via TGW. All spoke egress traffic is steered to the Hub
+    for centralized GWLB inspection before exiting to the internet.
+
+    IMPORTANT — behaviour change when tgw_enabled = true:
+      - GWLB endpoint-based route injection into workload subnet route tables is DISABLED in the hub VPC.
+        Traffic inspection is instead steered via TGW attachments → dedicated GWLB endpoint subnets in
+        the hub. The GWLB and GWLB endpoint are still deployed; only the steering mechanism changes.
+      - Hub VPC workload instances are NOT created (workloads_enabled = false).
+      - hub_vpc_cidr is used instead of vpc_cidr for the hub VPC.
+      - Two spoke VPCs are created using spoke_1_vpc_cidr and spoke_2_vpc_cidr.
+
+    Default is false (standard single-VPC GWLB deployment).
+  EOT
+  default     = false
+}
+
+variable "tgw_name" {
+  type        = string
+  description = "Name tag for the Transit Gateway resource. Only used when tgw_enabled = true."
+  default     = "zscc-tgw"
+}
+
+variable "hub_vpc_cidr" {
+  type        = string
+  description = "Hub VPC CIDR when tgw_enabled = true. All Hub subnets (public, TGW attach, GWLB endpoint, CC) are derived from this /16. Ignored when tgw_enabled = false (vpc_cidr is used instead)."
+  default     = "10.0.0.0/16"
+}
+
+variable "spokes" {
+  type = map(object({
+    cidr = string
+    name = string
+  }))
+  description = <<-EOT
+    Map of spoke VPCs to create when tgw_enabled = true. Each entry defines one
+    spoke VPC with workload subnets, bastion host, workload VMs, and TGW routing.
+    Keys are used as stable resource identifiers (for_each).
+
+    Example:
+      spokes = {
+        "spoke-1" = { cidr = "10.1.0.0/16", name = "spoke-1" }
+        "spoke-2" = { cidr = "10.2.0.0/16", name = "spoke-2" }
+      }
+
+    CIDRs must not overlap with hub_vpc_cidr or each other.
+    Workload subnets are auto-derived as /24s at offsets 1..az_count.
+    Public (bastion) subnet is auto-derived at offset 101 in AZ1.
+  EOT
+  default = {
+    "spoke-1" = { cidr = "10.1.0.0/16", name = "spoke-1" }
+    "spoke-2" = { cidr = "10.2.0.0/16", name = "spoke-2" }
+  }
+}

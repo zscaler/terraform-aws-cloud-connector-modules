@@ -222,12 +222,16 @@ module "gwlb" {
 #    per Cloud Connector subnet/availability zone.
 ################################################################################
 module "gwlb_endpoint" {
-  source                    = "../../modules/terraform-zscc-gwlbendpoint-aws"
-  name_prefix               = var.name_prefix
-  resource_tag              = random_string.suffix.result
-  global_tags               = local.global_tags
-  vpc_id                    = module.network.vpc_id
-  subnet_ids                = module.network.cc_subnet_ids
+  source       = "../../modules/terraform-zscc-gwlbendpoint-aws"
+  name_prefix  = var.name_prefix
+  resource_tag = random_string.suffix.result
+  global_tags  = local.global_tags
+  vpc_id       = module.network.vpc_id
+  # In TGW Hub-and-Spoke mode, GWLB Endpoints must be placed in dedicated
+  # GWLB endpoint subnets (separate from CC subnets) so that the TGW attach
+  # route table's 0.0.0.0/0 → GWLB Endpoint route steers traffic correctly.
+  # In standard mode, endpoints are placed in the CC subnets as usual.
+  subnet_ids                = var.tgw_enabled ? var.byo_gwlb_endpoint_subnet_ids : module.network.cc_subnet_ids
   gwlb_arn                  = module.gwlb.gwlb_arn
   acceptance_required       = var.acceptance_required
   allowed_principals        = var.allowed_principals
@@ -251,6 +255,42 @@ module "route53" {
   outbound_endpoint_security_group_ids = module.cc_sg.outbound_endpoint_security_group_id
   domain_names                         = var.domain_names
   target_address                       = var.target_address
+}
+
+
+################################################################################
+# 8. (Optional) TGW Hub-and-Spoke route injection
+#    Only created when tgw_enabled = true. Injects:
+#      - 0.0.0.0/0 → GWLB Endpoint into each TGW attach subnet route table
+#      - spoke_vpc_cidrs → TGW into each GWLB endpoint subnet route table
+#    This enables centralized CC inspection of spoke VPC traffic routed via TGW.
+################################################################################
+resource "aws_route" "tgw_attach_to_gwlbe" {
+  count                  = var.tgw_enabled ? var.az_count : 0
+  route_table_id         = var.byo_tgw_attach_rt_ids[count.index]
+  destination_cidr_block = "0.0.0.0/0"
+  vpc_endpoint_id        = module.gwlb_endpoint.gwlbe[count.index]
+
+  depends_on = [module.gwlb_endpoint]
+}
+
+locals {
+  gwlbe_rt_spoke_routes = var.tgw_enabled ? flatten([
+    for az_idx, rt_id in var.byo_gwlb_endpoint_rt_ids : [
+      for cidr in var.spoke_vpc_cidrs : {
+        key   = "${az_idx}-${cidr}"
+        rt_id = rt_id
+        cidr  = cidr
+      }
+    ]
+  ]) : []
+}
+
+resource "aws_route" "gwlbe_to_tgw" {
+  for_each               = { for r in local.gwlbe_rt_spoke_routes : r.key => r }
+  route_table_id         = each.value.rt_id
+  destination_cidr_block = each.value.cidr
+  transit_gateway_id     = var.byo_tgw_id
 }
 
 

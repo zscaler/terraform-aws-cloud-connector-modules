@@ -348,3 +348,40 @@
 ##     Uncomment, if you do NOT want to create new route tables (true or false. Default: true)
 
 #r53_route_table_enabled                    = false
+
+
+#####################################################################################################################
+##### TGW (Transit Gateway) Hub-and-Spoke variables                                                            #####
+##### Only applicable for centralized GWLB inspection model where CC/GWLB/VPCE are in a Hub VPC               #####
+##### and workloads in separate Spoke VPCs route traffic through a Transit Gateway.                            #####
+#####################################################################################################################
+
+## 45. Enable TGW Hub-and-Spoke routing. When true, Terraform will inject routes into the existing TGW attach
+##     and GWLB endpoint subnet route tables for centralized inspection. (Default: false)
+
+#tgw_enabled                                = true
+
+## 46. Existing Transit Gateway ID. Required when tgw_enabled = true.
+##     Example: byo_tgw_id = "tgw-0abc1234def567890"
+
+#byo_tgw_id                                 = "tgw-id"
+
+## 47. Existing route table IDs for the TGW attach subnets (one per AZ, ordered by AZ).
+##     Terraform will add a 0.0.0.0/0 → GWLB Endpoint route to each. Required when tgw_enabled = true.
+##     Example: byo_tgw_attach_rt_ids = ["rtb-111111111","rtb-222222222"]
+
+#byo_tgw_attach_rt_ids                      = ["rtb-id-az1", "rtb-id-az2"]
+
+## 48. Route table IDs where Terraform will inject spoke_vpc_cidrs → TGW return routes (one per AZ, ordered by AZ).
+##     Required when tgw_enabled = true.
+##     *** IMPORTANT: In cc_gwlb brownfield, GWLB endpoints are placed in CC subnets (byo_subnet_ids). ***
+##     *** Use the CC subnet route table IDs here, NOT dedicated GWLB endpoint subnet RTs.           ***
+##     Example: byo_gwlb_endpoint_rt_ids = ["rtb-333333333","rtb-444444444"]
+
+#byo_gwlb_endpoint_rt_ids                   = ["rtb-id-az1", "rtb-id-az2"]
+
+## 49. List of Spoke VPC CIDR blocks to route back via TGW after CC inspection (east-west return path).
+##     Required when tgw_enabled = true.
+##     Example: spoke_vpc_cidrs = ["10.1.0.0/16", "10.2.0.0/16"]
+
+#spoke_vpc_cidrs                            = ["10.x.y.z/16", "10.x.y.z/16"]

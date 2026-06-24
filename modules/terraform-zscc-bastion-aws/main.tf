@@ -84,7 +84,7 @@ data "aws_iam_policy_document" "bastion_instance_assume_role_policy" {
 # Create Bastion IAM Role and Host/Instance Profile
 ################################################################################
 resource "aws_iam_role" "bastion_iam_role" {
-  name               = "${var.name_prefix}-bastion-iam-role-${var.resource_tag}"
+  name               = var.bastion_iam_role_name != null ? var.bastion_iam_role_name : "${var.name_prefix}-bastion-iam-role-${var.resource_tag}"
   assume_role_policy = data.aws_iam_policy_document.bastion_instance_assume_role_policy.json
 
   tags = merge(var.global_tags)
@@ -104,7 +104,7 @@ resource "aws_iam_role_policy_attachment" "ssm_managed_instance_core" {
 # Assign IAM Role to Instance Profile for Bastion instance attachment
 ################################################################################
 resource "aws_iam_instance_profile" "bastion_host_profile" {
-  name = "${var.name_prefix}-bastion-host-profile-${var.resource_tag}"
+  name = var.bastion_iam_role_name != null ? "${var.bastion_iam_role_name}-profile" : "${var.name_prefix}-bastion-host-profile-${var.resource_tag}"
   role = aws_iam_role.bastion_iam_role.name
 
   tags = merge(var.global_tags)

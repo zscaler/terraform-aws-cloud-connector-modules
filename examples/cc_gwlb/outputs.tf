@@ -24,11 +24,20 @@ ${join("\n", module.cc_vm.forwarding_ip)}
 CLOUD CONNECTOR Forwarding/Service ENIs:
 ${join("\n", module.cc_vm.forwarding_eni)}
 
+CLOUD CONNECTOR Management IPs:
+${join("\n", module.cc_vm.management_ip)}
+
+CLOUD CONNECTOR Management ENIs:
+${join("\n", module.cc_vm.management_eni)}
+
 CLOUD CONNECTOR AZs:
 ${join("\n", distinct(module.cc_vm.availability_zone))}
 
 CLOUD CONNECTOR IAM Role ARNs:
 ${join("\n", module.cc_iam.iam_instance_profile_arn)}
+
+SSH to Cloud Connectors (via SSM Session Manager):
+${join("\n", formatlist("aws ssm start-session --target %s --region us-east-1", module.cc_vm.id))}
 
 
 VPC:         
