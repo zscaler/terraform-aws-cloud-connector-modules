@@ -11,9 +11,11 @@
 #              propagates spoke CIDRs from both spoke attachments (return path)
 #
 # VPC Route additions (Hub):
-#   tgw_attach RT    : 0.0.0.0/0 → GWLB endpoint (one per AZ, steers ingress to CC)
-#                      spoke_1_vpc_cidr → TGW  (return path Hub→Spoke 1)
-#                      spoke_2_vpc_cidr → TGW  (return path Hub→Spoke 2)
+#   tgw_attach RT    : 0.0.0.0/0 → GWLB endpoint (one per AZ, steers ALL ingress
+#                      traffic to CC — egress and East-West alike).
+#                      NOTE: per-spoke routes are intentionally omitted; adding
+#                      spoke_X_cidr routes here would cause East-West traffic to
+#                      match the more-specific route and bypass CC inspection.
 #   gwlb_endpoint RT : spoke_1_vpc_cidr → TGW  (post-inspection return to Spoke 1)
 #                      spoke_2_vpc_cidr → TGW  (post-inspection return to Spoke 2)
 #                      (0.0.0.0/0 → NAT GW is pre-wired by terraform-zscc-network-aws)
@@ -27,6 +29,12 @@ resource "aws_ec2_transit_gateway" "tgw" {
   description                     = "${var.name_prefix}-hub-spoke-tgw-${var.resource_tag}"
   default_route_table_association = "disable"
   default_route_table_propagation = "disable"
+
+  # Pin optional features explicitly for reproducibility across AWS regions.
+  # Leaving these unset causes Terraform drift when AWS changes regional defaults.
+  dns_support       = "enable"
+  vpn_ecmp_support  = "enable"
+  multicast_support = "disable"
 
   tags = merge(var.global_tags, {
     Name = "${var.tgw_name}-${var.resource_tag}"
@@ -151,32 +159,20 @@ resource "aws_ec2_transit_gateway_route_table_propagation" "spoke_2_to_hub_rt" {
 ################################################################################
 # VPC Routes — Hub TGW attach subnet RTs
 #
-# 0.0.0.0/0 → GWLB endpoint (per AZ): steers spoke ingress to CC for inspection.
-# spoke CIDRs → TGW: ensures Hub-originated return traffic reaches the spokes.
+# Only a single default route 0.0.0.0/0 → GWLB endpoint is needed here.
+# This steers ALL traffic arriving from TGW (egress and East-West) to CC for
+# inspection, regardless of destination.
+#
+# Per-spoke routes (spoke_X_cidr → TGW) are intentionally NOT added here:
+# adding them would make East-West traffic (Spoke-1→Spoke-2) match the more-
+# specific spoke-2 route and bypass the GWLBe → CC inspection path entirely.
+# The TGW return path for inspected traffic is handled in the GWLBe subnet RT.
 ################################################################################
 resource "aws_route" "hub_tgw_attach_to_gwlbe" {
   count                  = var.az_count
   route_table_id         = var.hub_tgw_attach_route_table_ids[count.index]
   destination_cidr_block = "0.0.0.0/0"
   vpc_endpoint_id        = var.gwlb_endpoint_ids[count.index]
-
-  depends_on = [aws_ec2_transit_gateway_vpc_attachment.hub]
-}
-
-resource "aws_route" "hub_tgw_attach_to_spoke_1" {
-  count                  = var.az_count
-  route_table_id         = var.hub_tgw_attach_route_table_ids[count.index]
-  destination_cidr_block = var.spoke_1_vpc_cidr
-  transit_gateway_id     = aws_ec2_transit_gateway.tgw.id
-
-  depends_on = [aws_ec2_transit_gateway_vpc_attachment.hub]
-}
-
-resource "aws_route" "hub_tgw_attach_to_spoke_2" {
-  count                  = var.az_count
-  route_table_id         = var.hub_tgw_attach_route_table_ids[count.index]
-  destination_cidr_block = var.spoke_2_vpc_cidr
-  transit_gateway_id     = aws_ec2_transit_gateway.tgw.id
 
   depends_on = [aws_ec2_transit_gateway_vpc_attachment.hub]
 }

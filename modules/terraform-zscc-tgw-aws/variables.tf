@@ -26,6 +26,10 @@ variable "az_count" {
   type        = number
   description = "Number of Availability Zones. Controls how many TGW attach and GWLB endpoint route entries are created in the hub."
   default     = 2
+  validation {
+    condition     = var.az_count >= 1 && var.az_count <= 3
+    error_message = "Input az_count must be set to a single value between 1 and 3."
+  }
 }
 
 # Hub VPC inputs (outputs from terraform-zscc-network-aws module)
@@ -37,21 +41,37 @@ variable "hub_vpc_id" {
 variable "hub_tgw_attach_subnet_ids" {
   type        = list(string)
   description = "List of TGW attach subnet IDs in the Hub VPC (one per AZ). Sourced from the network module output tgw_attach_subnet_ids."
+  validation {
+    condition     = length(var.hub_tgw_attach_subnet_ids) >= 1
+    error_message = "Input hub_tgw_attach_subnet_ids must contain at least one subnet ID."
+  }
 }
 
 variable "hub_tgw_attach_route_table_ids" {
   type        = list(string)
   description = "List of route table IDs associated with the TGW attach subnets in the Hub VPC. Sourced from the network module output tgw_attach_route_table_ids."
+  validation {
+    condition     = length(var.hub_tgw_attach_route_table_ids) >= 1
+    error_message = "Input hub_tgw_attach_route_table_ids must contain at least one route table ID."
+  }
 }
 
 variable "hub_gwlb_endpoint_route_table_ids" {
   type        = list(string)
   description = "List of route table IDs associated with the GWLB endpoint subnets in the Hub VPC. Sourced from the network module output gwlb_endpoint_route_table_ids."
+  validation {
+    condition     = length(var.hub_gwlb_endpoint_route_table_ids) >= 1
+    error_message = "Input hub_gwlb_endpoint_route_table_ids must contain at least one route table ID."
+  }
 }
 
 variable "gwlb_endpoint_ids" {
   type        = list(string)
   description = "List of GWLB Endpoint IDs (one per AZ) used to steer TGW-ingress traffic from the hub TGW attach subnets to Cloud Connector for inspection."
+  validation {
+    condition     = length(var.gwlb_endpoint_ids) >= 1
+    error_message = "Input gwlb_endpoint_ids must contain at least one GWLB Endpoint ID."
+  }
 }
 
 # Spoke 1 inputs

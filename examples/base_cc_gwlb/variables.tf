@@ -338,14 +338,28 @@ variable "hub_vpc_cidr" {
   default     = "10.0.0.0/16"
 }
 
-variable "spoke_1_vpc_cidr" {
-  type        = string
-  description = "Spoke 1 VPC CIDR. Used when tgw_enabled = true to create the first spoke VPC with workload subnets and TGW routing."
-  default     = "10.1.0.0/16"
-}
+variable "spokes" {
+  type = map(object({
+    cidr = string
+    name = string
+  }))
+  description = <<-EOT
+    Map of spoke VPCs to create when tgw_enabled = true. Each entry defines one
+    spoke VPC with workload subnets, bastion host, workload VMs, and TGW routing.
+    Keys are used as stable resource identifiers (for_each).
 
-variable "spoke_2_vpc_cidr" {
-  type        = string
-  description = "Spoke 2 VPC CIDR. Used when tgw_enabled = true to create the second spoke VPC with workload subnets and TGW routing."
-  default     = "10.2.0.0/16"
+    Example:
+      spokes = {
+        "spoke-1" = { cidr = "10.1.0.0/16", name = "spoke-1" }
+        "spoke-2" = { cidr = "10.2.0.0/16", name = "spoke-2" }
+      }
+
+    CIDRs must not overlap with hub_vpc_cidr or each other.
+    Workload subnets are auto-derived as /24s at offsets 1..az_count.
+    Public (bastion) subnet is auto-derived at offset 101 in AZ1.
+  EOT
+  default = {
+    "spoke-1" = { cidr = "10.1.0.0/16", name = "spoke-1" }
+    "spoke-2" = { cidr = "10.2.0.0/16", name = "spoke-2" }
+  }
 }

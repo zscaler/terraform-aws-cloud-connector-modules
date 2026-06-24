@@ -94,60 +94,37 @@ ${module.gwlb.gwlb_arn}
 TRANSIT GATEWAY:
 TGW ID: ${module.tgw[0].tgw_id}
 Hub VPC: ${module.network.vpc_id}
-Spoke 1 VPC: ${aws_vpc.spoke_1[0].id}
-Spoke 2 VPC: ${aws_vpc.spoke_2[0].id}
-
-
-SPOKE 1 BASTION Jump Host Details/Commands:
-1) Copy the SSH key to SPOKE 1 BASTION home directory
-scp -F ssh_config ${var.name_prefix}-key-${random_string.suffix.result}.pem spoke-1-bastion:~/.
-
-2) SSH to SPOKE 1 BASTION
-ssh -F ssh_config spoke-1-bastion
-
-SPOKE 1 BASTION Instance ID:
-${module.spoke_1_bastion[0].instance_id}
-
-
-SPOKE 1 WORKLOAD Details/Commands:
-SSH to SPOKE 1 WORKLOADS
-%{for k, v in local.spoke_1_workload_map~}
-ssh -F ssh_config spoke-1-workload-${k}
+%{for spoke_key, spoke in local.active_spokes~}
+${spoke.name} VPC: ${aws_vpc.spoke[spoke_key].id}
 %{endfor~}
 
-SPOKE 1 WORKLOAD IPs:
-%{for k, v in local.spoke_1_workload_map~}
-spoke-1-workload-${k} = ${v}
+%{for spoke_key, spoke in local.active_spokes~}
+
+${upper(spoke.name)} BASTION Jump Host Details/Commands:
+1) Copy the SSH key to ${upper(spoke.name)} BASTION home directory
+scp -F ssh_config ${var.name_prefix}-key-${random_string.suffix.result}.pem ${spoke.name}-bastion:~/.
+
+2) SSH to ${upper(spoke.name)} BASTION
+ssh -F ssh_config ${spoke.name}-bastion
+
+${upper(spoke.name)} BASTION Instance ID:
+${module.spoke_bastion[spoke_key].instance_id}
+
+
+${upper(spoke.name)} WORKLOAD Details/Commands:
+SSH to ${upper(spoke.name)} WORKLOADS
+%{for k, v in local.spoke_workload_maps[spoke_key]~}
+ssh -F ssh_config ${spoke.name}-workload-${k}
 %{endfor~}
 
-SPOKE 1 WORKLOAD Instance IDs:
-${join("\n", module.spoke_1_workload[0].instance_id)}
-
-
-SPOKE 2 BASTION Jump Host Details/Commands:
-1) Copy the SSH key to SPOKE 2 BASTION home directory
-scp -F ssh_config ${var.name_prefix}-key-${random_string.suffix.result}.pem spoke-2-bastion:~/.
-
-2) SSH to SPOKE 2 BASTION
-ssh -F ssh_config spoke-2-bastion
-
-SPOKE 2 BASTION Instance ID:
-${module.spoke_2_bastion[0].instance_id}
-
-
-SPOKE 2 WORKLOAD Details/Commands:
-SSH to SPOKE 2 WORKLOADS
-%{for k, v in local.spoke_2_workload_map~}
-ssh -F ssh_config spoke-2-workload-${k}
+${upper(spoke.name)} WORKLOAD IPs:
+%{for k, v in local.spoke_workload_maps[spoke_key]~}
+${spoke.name}-workload-${k} = ${v}
 %{endfor~}
 
-SPOKE 2 WORKLOAD IPs:
-%{for k, v in local.spoke_2_workload_map~}
-spoke-2-workload-${k} = ${v}
+${upper(spoke.name)} WORKLOAD Instance IDs:
+${join("\n", module.spoke_workload[spoke_key].instance_id)}
 %{endfor~}
-
-SPOKE 2 WORKLOAD Instance IDs:
-${join("\n", module.spoke_2_workload[0].instance_id)}
 %{endif~}
 
 TB
@@ -178,14 +155,9 @@ output "gwlb_endpoint_subnet_ids" {
   value       = module.network.gwlb_endpoint_subnet_ids
 }
 
-output "spoke_1_vpc_id" {
-  description = "Spoke 1 VPC ID (populated only when tgw_enabled = true)"
-  value       = try(aws_vpc.spoke_1[0].id, null)
-}
-
-output "spoke_2_vpc_id" {
-  description = "Spoke 2 VPC ID (populated only when tgw_enabled = true)"
-  value       = try(aws_vpc.spoke_2[0].id, null)
+output "spoke_vpc_ids" {
+  description = "Spoke VPC IDs (populated only when tgw_enabled = true)"
+  value       = { for k, v in aws_vpc.spoke : k => v.id }
 }
 
 resource "local_file" "testbed" {
@@ -203,18 +175,21 @@ locals {
     for index, ip in try(module.workload[0].private_ip, []) :
     index => ip
   }
-  spoke_1_workload_map = {
-    for index, ip in try(module.spoke_1_workload[0].private_ip, []) :
-    index => ip
+
+  # Build per-spoke workload IP maps for testbed output
+  spoke_workload_maps = {
+    for spoke_key, spoke in local.active_spokes :
+    spoke_key => {
+      for index, ip in try(module.spoke_workload[spoke_key].private_ip, []) :
+      index => ip
+    }
   }
-  spoke_2_workload_map = {
-    for index, ip in try(module.spoke_2_workload[0].private_ip, []) :
-    index => ip
-  }
+
   cc_map = {
     for index, ip in module.cc_vm.management_ip :
     index => ip
   }
+
   ssh_config_contents = <<SSH_CONFIG
     Host bastion
       HostName ${module.bastion.public_dns}
@@ -241,33 +216,22 @@ Host ccvm-${k}
     %{endfor~}
 
     %{if var.tgw_enabled~}
-Host spoke-1-bastion
-      HostName ${module.spoke_1_bastion[0].public_dns}
+%{for spoke_key, spoke in local.active_spokes~}
+Host ${spoke.name}-bastion
+      HostName ${module.spoke_bastion[spoke_key].public_dns}
       User ec2-user
       IdentityFile ${var.name_prefix}-key-${random_string.suffix.result}.pem
-    %{for k, v in local.spoke_1_workload_map~}
-Host spoke-1-workload-${k}
+    %{for k, v in local.spoke_workload_maps[spoke_key]~}
+Host ${spoke.name}-workload-${k}
       HostName ${v}
       User ec2-user
       IdentityFile ${var.name_prefix}-key-${random_string.suffix.result}.pem
       StrictHostKeyChecking no
-      ProxyJump spoke-1-bastion
-      ProxyCommand ssh spoke-1-bastion -W %h:%p
+      ProxyJump ${spoke.name}-bastion
+      ProxyCommand ssh ${spoke.name}-bastion -W %h:%p
     %{endfor~}
 
-Host spoke-2-bastion
-      HostName ${module.spoke_2_bastion[0].public_dns}
-      User ec2-user
-      IdentityFile ${var.name_prefix}-key-${random_string.suffix.result}.pem
-    %{for k, v in local.spoke_2_workload_map~}
-Host spoke-2-workload-${k}
-      HostName ${v}
-      User ec2-user
-      IdentityFile ${var.name_prefix}-key-${random_string.suffix.result}.pem
-      StrictHostKeyChecking no
-      ProxyJump spoke-2-bastion
-      ProxyCommand ssh spoke-2-bastion -W %h:%p
-    %{endfor~}
+%{endfor~}
     %{endif~}
   SSH_CONFIG
 }
