@@ -179,6 +179,35 @@ resource "aws_route" "hub_tgw_attach_to_gwlbe" {
 
 
 ################################################################################
+# VPC Routes — Hub CC subnet RTs
+#
+# CC's service interface lives in the CC subnet. When CC forwards inspected
+# East-West traffic (e.g. Spoke-1→Spoke-2), the response from the destination
+# spoke returns to CC, which then sends it back via its service interface.
+# Without these routes, the CC subnet RT's default 0.0.0.0/0 → NAT GW would
+# send that return traffic to the internet instead of back to the source spoke.
+# Adding spoke CIDR → TGW routes here ensures symmetric return routing.
+################################################################################
+resource "aws_route" "hub_cc_to_spoke_1" {
+  count                  = length(var.hub_cc_route_table_ids)
+  route_table_id         = var.hub_cc_route_table_ids[count.index]
+  destination_cidr_block = var.spoke_1_vpc_cidr
+  transit_gateway_id     = aws_ec2_transit_gateway.tgw.id
+
+  depends_on = [aws_ec2_transit_gateway_vpc_attachment.hub]
+}
+
+resource "aws_route" "hub_cc_to_spoke_2" {
+  count                  = length(var.hub_cc_route_table_ids)
+  route_table_id         = var.hub_cc_route_table_ids[count.index]
+  destination_cidr_block = var.spoke_2_vpc_cidr
+  transit_gateway_id     = aws_ec2_transit_gateway.tgw.id
+
+  depends_on = [aws_ec2_transit_gateway_vpc_attachment.hub]
+}
+
+
+################################################################################
 # VPC Routes — Hub GWLB endpoint subnet RTs
 #
 # After CC returns inspected traffic through the GWLB Endpoint, response packets

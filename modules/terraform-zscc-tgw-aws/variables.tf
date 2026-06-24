@@ -65,6 +65,15 @@ variable "hub_gwlb_endpoint_route_table_ids" {
   }
 }
 
+variable "hub_cc_route_table_ids" {
+  type        = list(string)
+  description = "List of route table IDs associated with the CC subnets in the Hub VPC. Sourced from the network module output cc_subnet_route_table_ids. Used to add spoke CIDR → TGW routes so that East-West return traffic from CC (after GWLB inspection) is routed back to spoke VPCs via TGW rather than exiting via NAT GW."
+  validation {
+    condition     = length(var.hub_cc_route_table_ids) >= 1
+    error_message = "Input hub_cc_route_table_ids must contain at least one route table ID."
+  }
+}
+
 variable "gwlb_endpoint_ids" {
   type        = list(string)
   description = "List of GWLB Endpoint IDs (one per AZ) used to steer TGW-ingress traffic from the hub TGW attach subnets to Cloud Connector for inspection."

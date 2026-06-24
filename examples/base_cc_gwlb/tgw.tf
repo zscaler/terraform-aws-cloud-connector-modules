@@ -40,15 +40,16 @@ module "tgw" {
   hub_tgw_attach_subnet_ids         = module.network.tgw_attach_subnet_ids
   hub_tgw_attach_route_table_ids    = module.network.tgw_attach_route_table_ids
   hub_gwlb_endpoint_route_table_ids = module.network.gwlb_endpoint_route_table_ids
+  hub_cc_route_table_ids            = module.network.cc_subnet_route_table_ids
   gwlb_endpoint_ids                 = module.gwlb_endpoint.gwlbe
 
   # Spoke 1 — sourced from spokes.tf for_each resources
   spoke_1_vpc_id              = aws_vpc.spoke["spoke-1"].id
   spoke_1_vpc_cidr            = var.spokes["spoke-1"].cidr
-  spoke_1_workload_subnet_ids = [for k, s in aws_subnet.spoke_workload : s.id if startswith(k, "spoke-1-")]
+  spoke_1_workload_subnet_ids = [for k, s in aws_subnet.spoke_workload : s.id if can(regex("^spoke-1-", k))]
 
   # Spoke 2 — sourced from spokes.tf for_each resources
   spoke_2_vpc_id              = aws_vpc.spoke["spoke-2"].id
   spoke_2_vpc_cidr            = var.spokes["spoke-2"].cidr
-  spoke_2_workload_subnet_ids = [for k, s in aws_subnet.spoke_workload : s.id if startswith(k, "spoke-2-")]
+  spoke_2_workload_subnet_ids = [for k, s in aws_subnet.spoke_workload : s.id if can(regex("^spoke-2-", k))]
 }
