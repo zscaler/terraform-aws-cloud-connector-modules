@@ -17,13 +17,13 @@ data "aws_availability_zones" "available" {
 #
 # The terraform-zscc-tgw-aws module encapsulates:
 #   - Transit Gateway + two route tables (spoke_rt, hub_rt)
-#   - TGW VPC Attachments (hub, spoke 1, spoke 2)
+#   - TGW VPC Attachments (hub + all spokes defined in var.spokes)
 #   - TGW route table associations and propagations
-#   - VPC routes in Hub: TGW-attach subnets → GWLB endpoints
+#   - VPC routes in Hub: TGW-attach subnets → GWLB endpoints (0.0.0.0/0 only)
 #   - VPC routes in Hub: GWLB-endpoint subnets → TGW (spoke return path)
 #
-# Spoke VPC primitives (VPC, subnets, route tables, IGW) remain in spoke-1.tf
-# and spoke-2.tf and are passed into the module as inputs.
+# Spoke VPC primitives (VPC, subnets, route tables, IGW, bastion, workloads)
+# are defined in spokes.tf using for_each over var.spokes.
 ################################################################################
 module "tgw" {
   count  = var.tgw_enabled ? 1 : 0
@@ -42,13 +42,13 @@ module "tgw" {
   hub_gwlb_endpoint_route_table_ids = module.network.gwlb_endpoint_route_table_ids
   gwlb_endpoint_ids                 = module.gwlb_endpoint.gwlbe
 
-  # Spoke 1
-  spoke_1_vpc_id              = aws_vpc.spoke_1[0].id
-  spoke_1_vpc_cidr            = var.spoke_1_vpc_cidr
-  spoke_1_workload_subnet_ids = aws_subnet.spoke_1_workload[*].id
+  # Spoke 1 — sourced from spokes.tf for_each resources
+  spoke_1_vpc_id              = aws_vpc.spoke["spoke-1"].id
+  spoke_1_vpc_cidr            = var.spokes["spoke-1"].cidr
+  spoke_1_workload_subnet_ids = [for k, s in aws_subnet.spoke_workload : s.id if startswith(k, "spoke-1-")]
 
-  # Spoke 2
-  spoke_2_vpc_id              = aws_vpc.spoke_2[0].id
-  spoke_2_vpc_cidr            = var.spoke_2_vpc_cidr
-  spoke_2_workload_subnet_ids = aws_subnet.spoke_2_workload[*].id
+  # Spoke 2 — sourced from spokes.tf for_each resources
+  spoke_2_vpc_id              = aws_vpc.spoke["spoke-2"].id
+  spoke_2_vpc_cidr            = var.spokes["spoke-2"].cidr
+  spoke_2_workload_subnet_ids = [for k, s in aws_subnet.spoke_workload : s.id if startswith(k, "spoke-2-")]
 }
