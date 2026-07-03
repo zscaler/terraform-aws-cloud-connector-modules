@@ -36,6 +36,7 @@ resource "aws_iam_policy" "iam_policy_for_cc_lambda" {
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Sid": "EC2ReadAndNetworkInterface",
       "Action": [
         "ec2:AssignPrivateIpAddresses",
         "ec2:CreateNetworkInterface",
@@ -46,7 +47,6 @@ resource "aws_iam_policy" "iam_policy_for_cc_lambda" {
         "ec2:DescribeInstanceTypes",
         "ec2:DescribeInstanceStatus",
         "ec2:DescribeRouteTables",
-        "ec2:ReplaceRoute",
         "ec2:UnassignPrivateIpAddresses",
         "lambda:InvokeFunction",
         "logs:CreateLogStream",
@@ -54,6 +54,19 @@ resource "aws_iam_policy" "iam_policy_for_cc_lambda" {
       ],
       "Effect": "Allow",
       "Resource": "*"
+    },
+    {
+      "Sid": "EC2ReplaceRouteTaggedOnly",
+      "Action": [
+        "ec2:ReplaceRoute"
+      ],
+      "Effect": "Allow",
+      "Resource": "*",
+      "Condition": {
+        "StringLike": {
+          "ec2:ResourceTag/Name": "${var.name_prefix}-*-rt-${var.resource_tag}"
+        }
+      }
     }
   ]
 }
