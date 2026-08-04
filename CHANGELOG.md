@@ -1,3 +1,8 @@
+## Unreleased
+
+ENHANCEMENTS:
+* add new `fips_enabled` variable for enabling FIPS mode via userdata in Cloud Connector examples
+
 ## [1.4.2] - (April 15, 2026)
 
 BUG FIXES:

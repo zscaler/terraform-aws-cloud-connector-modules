@@ -769,6 +769,25 @@ first_run="yes"
             exit 1
         fi
 
+        while true; do
+            read -r -p "${CYAN}Enable FIPS mode for this Cloud Connector deployment? (yes/no): ${RESET}" fips_response
+            case $fips_response in
+            yes|y )
+                echo "FIPS mode will be ${GREEN}enabled${RESET}"
+                echo "export TF_VAR_fips_enabled='True'" >> .zsecrc
+            break
+            ;;
+            no|n )
+                echo "FIPS mode will be ${GREEN}disabled${RESET}"
+                echo "export TF_VAR_fips_enabled='False'" >> .zsecrc
+            break
+            ;;
+            *)
+                echo "${RED}Invalid response. Please enter yes or no${RESET}"
+            ;;
+            esac
+        done
+
         cc_count_default=2
         if [[ "$dtype" == "base_1"* ]]; then
             echo "${GREEN}${dtype} will deploy one Cloud Connector in ${aws_region}${RESET}"  
