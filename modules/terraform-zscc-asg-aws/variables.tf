@@ -114,7 +114,7 @@ variable "min_size" {
     condition = (
       var.min_size >= 1 && var.min_size <= 16
     )
-    error_message = "min_size must be between 1 and 16."
+    error_message = "Input min_size must be set to a number between 1 and 16."
   }
 }
 
@@ -125,16 +125,9 @@ variable "max_size" {
 
   validation {
     condition = (
-      var.max_size <= 16
+      var.max_size >= 1 && var.max_size <= 16
     )
-    error_message = "max_size cannot exceed 16 (hard limit of 16 Cloud Connectors per group)."
-  }
-
-  validation {
-    condition = (
-      var.max_size >= var.min_size
-    )
-    error_message = "max_size must be greater than or equal to min_size."
+    error_message = "Input max_size cannot exceed 16 (hard limit of 16 Cloud Connectors per group)."
   }
 }
 
@@ -181,9 +174,9 @@ variable "warm_pool_min_size" {
   default     = 0
   validation {
     condition = (
-      var.warm_pool_min_size >= 0 && var.warm_pool_min_size <= var.max_size
+      var.warm_pool_min_size >= 0 && var.warm_pool_min_size <= 16
     )
-    error_message = "warm_pool_min_size cannot exceed max_size."
+    error_message = "Input warm_pool_min_size must be set to a number between 0 and 16."
   }
 }
 
