@@ -26,6 +26,11 @@ data "aws_kms_alias" "current_kms_arn" {
   name  = coalesce(var.byo_kms_key_alias, data.aws_ebs_default_kms_key.current_kms_key[0].key_arn)
 }
 
+################################################################################
+# Retrieve the default tags from provider
+################################################################################
+data "aws_default_tags" "current" {}
+
 
 ################################################################################
 # Create launch template for Cloud Connector autoscaling group instance creation. 
@@ -180,7 +185,7 @@ resource "aws_autoscaling_group" "cc_asg" {
   }
 
   dynamic "tag" {
-    for_each = var.global_tags
+    for_each = merge(var.global_tags, data.aws_default_tags.current.tags)
     content {
       key                 = tag.key
       value               = tag.value
