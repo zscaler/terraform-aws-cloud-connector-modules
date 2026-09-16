@@ -46,6 +46,8 @@
 #ccvm_instance_type                         = "m6i.large"
 #ccvm_instance_type                         = "c6i.large"
 #ccvm_instance_type                         = "c6in.large"
+#ccvm_instance_type                         = "m7i.large"
+#ccvm_instance_type                         = "m7i-flex.large"
 
 ## 7. Enable FIPS mode for new deployments only. Supported values are "False" or "True".
 ##       This setting is applied only for new deployments.
