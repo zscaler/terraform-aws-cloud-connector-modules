@@ -86,6 +86,8 @@ variable "ccvm_instance_type" {
       var.ccvm_instance_type == "m6i.large" ||
       var.ccvm_instance_type == "c6i.large" ||
       var.ccvm_instance_type == "c6in.large" ||
+      var.ccvm_instance_type == "m7i.large" ||
+      var.ccvm_instance_type == "m7i-flex.large" ||
       var.ccvm_instance_type == "m5n.4xlarge" ||
       var.ccvm_instance_type == "m6i.4xlarge" ||
       var.ccvm_instance_type == "c6i.4xlarge" ||
@@ -111,7 +113,7 @@ variable "cc_instance_size" {
 
 # Validation to ensure that ccvm_instance_type and cc_instance_size are set appropriately
 locals {
-  small_cc_instance  = ["t3.medium", "m5n.large", "c5a.large", "m6i.large", "c6i.large", "c6in.large", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge", "c6in.4xlarge"]
+  small_cc_instance  = ["t3.medium", "m5n.large", "c5a.large", "m6i.large", "c6i.large", "c6in.large", "m7i.large", "m7i-flex.large", "m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge", "c6in.4xlarge"]
   medium_cc_instance = ["m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge", "c6in.4xlarge"]
   large_cc_instance  = ["m5n.4xlarge", "m6i.4xlarge", "c6i.4xlarge", "c6in.4xlarge"]
 

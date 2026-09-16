@@ -46,6 +46,8 @@
 #ccvm_instance_type                         = "m6i.large"
 #ccvm_instance_type                         = "c6i.large"
 #ccvm_instance_type                         = "c6in.large"
+#ccvm_instance_type                         = "m7i.large"
+#ccvm_instance_type                         = "m7i-flex.large"
 
 ## 7. Cloud Connector Instance size selection. Uncomment cc_instance_size line with desired vm size to change
 ##    (Default: "small")
