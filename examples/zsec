@@ -603,6 +603,8 @@ first_run="yes"
                     "m5n.large"
                     "c6i.large"
                     "c6in.large"
+                    "m7i.large"
+                    "m7i-flex.large"
                     "t3.medium - Not recommended for production use"
                     )
                 select ccvm_instance_type in "${vm_sizes[@]}"
@@ -629,6 +631,16 @@ first_run="yes"
                         break
                         ;;
                         5)
+                            echo "CC EC2 type: ${GREEN}m7i.large${RESET}"
+                            echo "export TF_VAR_ccvm_instance_type='m7i.large'" >> .zsecrc
+                        break
+                        ;;
+                        6)
+                            echo "CC EC2 type: ${GREEN}m7i-flex.large${RESET}"
+                            echo "export TF_VAR_ccvm_instance_type='m7i-flex.large'" >> .zsecrc
+                        break
+                        ;;
+                        7)
                             echo "CC EC2 type: ${GREEN}t3.medium${RESET}"
                             echo "export TF_VAR_ccvm_instance_type='t3.medium'" >> .zsecrc
                         break

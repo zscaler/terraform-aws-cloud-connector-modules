@@ -46,6 +46,8 @@
 #ccvm_instance_type                         = "m6i.large"
 #ccvm_instance_type                         = "c6i.large"
 #ccvm_instance_type                         = "c6in.large"
+#ccvm_instance_type                         = "m7i.large"
+#ccvm_instance_type                         = "m7i-flex.large"
 #ccvm_instance_type                         = "m5n.4xlarge"
 #ccvm_instance_type                         = "m6i.4xlarge"
 #ccvm_instance_type                         = "c6i.4xlarge"
