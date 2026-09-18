@@ -9,14 +9,23 @@ resource "random_string" "suffix" {
 
 
 ################################################################################
+# Retrieve the default tags from provider
+################################################################################
+data "aws_default_tags" "current" {}
+
+
+################################################################################
 # Map default tags with values to be assigned to all tagged resources
 ################################################################################
 locals {
-  global_tags = {
-    Owner     = var.owner_tag
-    ManagedBy = "terraform"
-    Vendor    = "Zscaler"
-  }
+  global_tags = merge(
+    {
+      Owner     = var.owner_tag
+      ManagedBy = "terraform"
+      Vendor    = "Zscaler"
+    },
+    data.aws_default_tags.current.tags
+  )
 }
 
 
