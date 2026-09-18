@@ -1,3 +1,8 @@
+## [1.5.2] - (Sep 18, 2026)
+
+ENHANCEMENTS:
+* add new EC2 types for small CCs: `m7i.large` and `m7i-flex.large`
+
 ## [1.5.1] - (Aug 7, 2026)
 
 ENHANCEMENTS:
