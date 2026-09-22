@@ -65,7 +65,7 @@ module "tgw" {
 | Name | Version |
 |------|---------|
 | terraform | >= 0.13.7, < 2.0.0 |
-| aws | ~> 5.32 |
+| aws | >= 6.10.0, < 7.0.0 |
 
 ## Inputs
 

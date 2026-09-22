@@ -70,6 +70,12 @@ variable "http_probe_port" {
   }
 }
 
+variable "additional_intra_vpc_cidrs" {
+  type        = list(string)
+  description = "Optional list of additional intra-VPC CIDR blocks (e.g. secondary VPC CIDR associations) to permit in the Cloud Connector security group rules. Use this when Cloud Connector and/or the GWLB reside in a secondary VPC CIDR that is not returned by data.aws_vpc.selected.cidr_block. Value ignored if not creating a security group"
+  default     = []
+}
+
 variable "gwlb_enabled" {
   type        = bool
   description = "Default is true which creates ingress/egress rules only for GENEVE traffic. If false, these rules are replaced with an allow all ports/protocols ingress. Value ignored if not creating a security group"
