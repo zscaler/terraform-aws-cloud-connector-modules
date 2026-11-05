@@ -84,8 +84,8 @@ variable "resource_sync_schedule_expression" {
 
 variable "sync_dry_run" {
   type        = bool
-  description = "When true, resource sync only logs the stale Zscaler EC VM records it would delete. Recommended for initial rollout"
-  default     = true
+  description = "When true, resource sync only logs the stale Zscaler EC VM records it would delete."
+  default     = false
 }
 
 variable "sync_max_deletions_per_run" {
