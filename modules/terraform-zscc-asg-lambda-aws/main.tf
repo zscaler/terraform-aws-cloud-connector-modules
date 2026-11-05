@@ -182,13 +182,17 @@ resource "aws_lambda_function" "asg_lambda_function" {
 
   environment {
     variables = {
-      ASG_NAMES                    = jsonencode(var.autoscaling_group_names)
-      CC_URL                       = var.cc_vm_prov_url
-      SECRET_NAME                  = var.secret_name
-      HC_DATA_POINTS               = "10" # most recent datapoints to evaulate
-      HC_UNHEALTHY_THRESHOLD       = "7"  # unhealthy datapoints threshold 
-      HC_UNHEALTHY_CONTIGUOUS_DP   = "5"  # continuous unhealthy datapoint counts
-      MISSING_DATAPOINTS_UNHEALTHY = true # treat missing datapoints as unhealthy
+      ASG_NAMES                         = jsonencode(var.autoscaling_group_names)
+      CC_URL                            = var.cc_vm_prov_url
+      SECRET_NAME                       = var.secret_name
+      HC_DATA_POINTS                    = "10" # most recent datapoints to evaulate
+      HC_UNHEALTHY_THRESHOLD            = "7"  # unhealthy datapoints threshold 
+      HC_UNHEALTHY_CONTIGUOUS_DP        = "5"  # continuous unhealthy datapoint counts
+      MISSING_DATAPOINTS_UNHEALTHY      = true # treat missing datapoints as unhealthy
+      SYNC_DRY_RUN                      = tostring(var.sync_dry_run)
+      SYNC_MAX_DELETIONS_PER_RUN        = tostring(var.sync_max_deletions_per_run)
+      SYNC_EXCLUDED_INSTANCES           = jsonencode(var.sync_excluded_instances)
+      PLACEHOLDER_UUID_GRACE_PERIOD_MIN = tostring(var.placeholder_uuid_grace_period_min)
     }
   }
 
@@ -217,6 +221,38 @@ resource "aws_lambda_permission" "asg_cloudwatch_scheduler_event_permission" {
   function_name = aws_lambda_function.asg_lambda_function.function_name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.asg_cloudwatch_scheduler_event_rule.arn
+}
+
+
+################################################################################
+# Create Cloudwatch Event Rule and Target for Resource Sync Reconciliation
+################################################################################
+resource "aws_cloudwatch_event_rule" "asg_cloudwatch_resource_sync_event_rule" {
+  count               = var.enable_resource_sync ? 1 : 0
+  name                = "${var.name_prefix}-cc-asg-resource-sync-event-rule-${var.resource_tag}"
+  description         = "EventBridge rule to trigger Lambda resource sync reconciliation"
+  schedule_expression = var.resource_sync_schedule_expression
+}
+
+resource "aws_cloudwatch_event_target" "asg_cloudwatch_resource_sync_event_target" {
+  count     = var.enable_resource_sync ? 1 : 0
+  rule      = aws_cloudwatch_event_rule.asg_cloudwatch_resource_sync_event_rule[0].name
+  target_id = "${aws_lambda_function.asg_lambda_function.function_name}-resource-sync"
+  arn       = aws_lambda_function.asg_lambda_function.arn
+
+  input = jsonencode({
+    "detail-type" = "Resource Sync"
+    "source"      = "zscaler.cc.resource.sync"
+  })
+}
+
+resource "aws_lambda_permission" "asg_cloudwatch_resource_sync_permission" {
+  count         = var.enable_resource_sync ? 1 : 0
+  statement_id  = "lambda-permission-${aws_cloudwatch_event_rule.asg_cloudwatch_resource_sync_event_rule[0].id}"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.asg_lambda_function.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.asg_cloudwatch_resource_sync_event_rule[0].arn
 }
 
 
