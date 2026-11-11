@@ -91,7 +91,7 @@ variable "sync_dry_run" {
 variable "sync_max_deletions_per_run" {
   type        = number
   description = "Maximum Zscaler EC VM records the resource sync may delete per run across all groups"
-  default     = 2
+  default     = 4
 }
 
 variable "sync_excluded_instances" {
