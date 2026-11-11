@@ -181,19 +181,21 @@ resource "aws_lambda_function" "asg_lambda_function" {
   architectures    = [var.architecture]
 
   environment {
-    variables = {
-      ASG_NAMES                         = jsonencode(var.autoscaling_group_names)
-      CC_URL                            = var.cc_vm_prov_url
-      SECRET_NAME                       = var.secret_name
-      HC_DATA_POINTS                    = "10" # most recent datapoints to evaulate
-      HC_UNHEALTHY_THRESHOLD            = "7"  # unhealthy datapoints threshold 
-      HC_UNHEALTHY_CONTIGUOUS_DP        = "5"  # continuous unhealthy datapoint counts
-      MISSING_DATAPOINTS_UNHEALTHY      = true # treat missing datapoints as unhealthy
-      SYNC_DRY_RUN                      = tostring(var.sync_dry_run)
-      SYNC_MAX_DELETIONS_PER_RUN        = tostring(var.sync_max_deletions_per_run)
-      SYNC_EXCLUDED_INSTANCES           = jsonencode(var.sync_excluded_instances)
-      PLACEHOLDER_UUID_GRACE_PERIOD_MIN = tostring(var.placeholder_uuid_grace_period_min)
-    }
+    variables = merge(
+      {
+        ASG_NAMES                         = jsonencode(var.autoscaling_group_names)
+        CC_URL                            = var.cc_vm_prov_url
+        SECRET_NAME                       = var.secret_name
+        HC_DATA_POINTS                    = "10" # most recent datapoints to evaulate
+        HC_UNHEALTHY_THRESHOLD            = "7"  # unhealthy datapoints threshold 
+        HC_UNHEALTHY_CONTIGUOUS_DP        = "5"  # continuous unhealthy datapoint counts
+        MISSING_DATAPOINTS_UNHEALTHY      = true # treat missing datapoints as unhealthy
+        SYNC_DRY_RUN                      = tostring(var.sync_dry_run)
+        SYNC_EXCLUDED_INSTANCES           = jsonencode(var.sync_excluded_instances)
+        PLACEHOLDER_UUID_GRACE_PERIOD_MIN = tostring(var.placeholder_uuid_grace_period_min)
+      },
+      var.sync_max_deletions_per_run != null ? { SYNC_MAX_DELETIONS_PER_RUN = tostring(var.sync_max_deletions_per_run) } : {}
+    )
   }
 
   tags = merge(var.global_tags)
