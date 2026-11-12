@@ -69,3 +69,39 @@ variable "asg_arns" {
   description = "Recommended: Cloud Connector Autoscaling Group ARN(s) provided for IAM Policy Lifecycle least privilege. If no ARNs are provided, IAM Policy will default to any"
   default     = null
 }
+
+variable "enable_resource_sync" {
+  type        = bool
+  description = "Enable the EventBridge schedule that triggers resource sync reconciliation between Zscaler EC VM records and ASG membership"
+  default     = true
+}
+
+variable "resource_sync_schedule_expression" {
+  type        = string
+  description = "EventBridge schedule expression for the resource sync reconciler"
+  default     = "rate(5 minutes)"
+}
+
+variable "sync_dry_run" {
+  type        = bool
+  description = "When true, resource sync only logs the stale Zscaler EC VM records it would delete."
+  default     = false
+}
+
+variable "sync_max_deletions_per_run" {
+  type        = number
+  description = "Maximum Zscaler EC VM records the resource sync may delete per run across all groups"
+  default     = 4
+}
+
+variable "sync_excluded_instances" {
+  type        = list(string)
+  description = "EC2 instance IDs whose Zscaler EC VM records are never deleted by resource sync"
+  default     = []
+}
+
+variable "placeholder_uuid_grace_period_min" {
+  type        = number
+  description = "Minutes a Zscaler EC VM record with an unresolved (placeholder) metaConfig.uuid must exceed, per its ecInstances registerTime, before resource sync may delete it"
+  default     = 15
+}
