@@ -168,32 +168,7 @@ def validate_oneapi_credentials(vanity: str, cloud: str, client_id: str, client_
 
 
 def get_active_cloud_dir(interactive: bool = False, target_arg: str = "") -> tuple:
-    cached_cloud = "gcp"
-    if os.path.exists(CONFIG_CACHE):
-        try:
-            with open(CONFIG_CACHE, "r") as f:
-                cfg = json.load(f)
-                cached_cloud = cfg.get("cloud_platform", "gcp").lower()
-        except Exception:
-            pass
-
-    # 1. Direct command-line override (e.g. ./ztgw plan aws or ./ztgw destroy gcp)
-    target = target_arg.lower().strip()
-    if target in ("aws", "gcp"):
-        cloud_choice = target
-    elif interactive and sys.stdin.isatty():
-        def_choice = "2" if cached_cloud == "aws" else "1"
-        print(f"\n{BOLD}Select Target Cloud Platform:{RESET}")
-        print(f"  [1] Google Cloud (GCP) {GREEN + '[Configured]' + RESET if cached_cloud == 'gcp' else ''}")
-        print(f"  [2] Amazon Web Services (AWS) {GREEN + '[Configured]' + RESET if cached_cloud == 'aws' else ''}")
-        sel = prompt_input("Enter selection (1 or 2)", default=def_choice)
-        cloud_choice = "aws" if sel.strip() in ("2", "aws") else "gcp"
-    else:
-        cloud_choice = cached_cloud
-
-    if cloud_choice == "aws":
-        return "aws", os.path.join(REPO_ROOT, "examples", "aws", "end-to-end")
-    return "gcp", os.path.join(REPO_ROOT, "examples", "gcp", "end-to-end")
+    return "aws", os.path.join(REPO_ROOT, "end-to-end")
 
 
 # --- GCP Discovery -----------------------------------------------------------
@@ -1105,17 +1080,13 @@ availability_zones = {azs_formatted}
 
 def configure_wizard():
     banner()
-    print(f"{YELLOW}Interactive Configuration Wizard for ZTGW{RESET}\n")
+    print(f"{YELLOW}Interactive Configuration Wizard for AWS ZTGW{RESET}\n")
 
-    # 1. Select Cloud Platform
-    print(f"{BOLD}Select Cloud Platform:{RESET}")
-    print("  [1] Google Cloud (GCP)")
-    print("  [2] Amazon Web Services (AWS)")
-    choice = prompt_input("Enter selection (1 or 2)", default="1")
-    platform = "aws" if choice == "2" else "gcp"
+    # Platform is fixed to AWS in this repository
+    platform = "aws"
 
-    # 2. Select Deployment Mode
-    print(f"\n{BOLD}Select Deployment Mode:{RESET}")
+    # 1. Select Deployment Mode
+    print(f"{BOLD}Select Deployment Mode:{RESET}")
     print("  [1] Full Deployment   — Provision ZTGW + wire cloud consumer plumbing (Recommended)")
     print(f"      {CYAN}• Deploys managed gateway in Zscaler and attaches your customer VPC in a single step.{RESET}")
     print("  [2] ZTGW Only         — Provision ZTGW in Zscaler and output connection handle (IDG/Endpoint Service)")
@@ -1132,20 +1103,29 @@ def configure_wizard():
 
     if mode_choice in ("1", "2"):
         # Zscaler OneAPI Credentials needed
-        print(f"\n{BOLD}Zscaler OneAPI Credentials{RESET}")
-        vanity = prompt_input("Zscaler Vanity Domain (e.g. acme for acme.zslogin.net)")
-        clouds = ["zscaler", "zscalerbeta", "zscalerone", "zscalertwo", "zscalerthree"]
-        print(f"Available Clouds: {', '.join(clouds)}")
-        cloud = prompt_input("Zscaler Cloud", default="zscaler")
-        client_id = prompt_input("Zscaler Client ID")
-        client_secret = prompt_input("Zscaler Client Secret", secret=True)
+        print(f"\n{BOLD}Zscaler OneAPI Credentials (for native ZTC Provider){RESET}")
+        env_cid = os.environ.get("ZSCALER_CLIENT_ID")
+        env_sec = os.environ.get("ZSCALER_CLIENT_SECRET")
+        env_van = os.environ.get("ZSCALER_VANITY_DOMAIN")
+        env_cld = os.environ.get("ZSCALER_CLOUD", "zscaler")
 
-        _, used_insecure = validate_oneapi_credentials(vanity, cloud, client_id, client_secret)
+        if env_cid and env_sec and env_van:
+            print(f"{GREEN}✓ Detected Zscaler credentials in environment (ZSCALER_CLIENT_ID: {env_cid[:8]}...){RESET}")
+            ans = prompt_input("Use credentials from environment? (y/n)", default="y")
+            if ans.lower() in ("y", "yes"):
+                client_id, client_secret, vanity, cloud = env_cid, env_sec, env_van, env_cld
 
-    if platform == "gcp":
-        configure_gcp(client_id, client_secret, vanity, cloud, insecure_skip_verify=used_insecure, deploy_mode=mode_choice)
-    else:
-        configure_aws(client_id, client_secret, vanity, cloud, insecure_skip_verify=used_insecure, deploy_mode=mode_choice)
+        if not client_id:
+            vanity = prompt_input("Zscaler Vanity Domain (e.g. acme for acme.zslogin.net)")
+            clouds = ["zscaler", "zscalerbeta", "zscalerone", "zscalertwo", "zscalerthree"]
+            print(f"Available Clouds: {', '.join(clouds)}")
+            cloud = prompt_input("Zscaler Cloud", default="zscaler")
+            client_id = prompt_input("Zscaler Client ID")
+            client_secret = prompt_input("Zscaler Client Secret", secret=True)
+
+            _, used_insecure = validate_oneapi_credentials(vanity, cloud, client_id, client_secret)
+
+    configure_aws(client_id, client_secret, vanity, cloud, insecure_skip_verify=used_insecure, deploy_mode=mode_choice)
 
     print(f"Setup complete! You can now run:\n  {CYAN}./ztgw plan{RESET} or {CYAN}./ztgw apply{RESET}\n")
 

@@ -107,22 +107,11 @@ if [[ "$oper" == "configure" || (("$oper" == "up" || "$oper" == "plan") && ! -f 
     echo "${YELLOW}Starting Interactive Configuration Wizard...${RESET}"
     echo ""
 
-    # 1. Cloud Platform
-    echo "${BOLD}Select Cloud Platform:${RESET}"
-    echo "  [1] Google Cloud (GCP)"
-    echo "  [2] Amazon Web Services (AWS)"
-    read -r -p "Enter selection [1]: " cloud_sel
-    cloud_sel=${cloud_sel:-1}
-    if [[ "$cloud_sel" == "2" ]]; then
-        TARGET_CLOUD="aws"
-        EXAMPLE_DIR="${DIR}/examples/aws/end-to-end"
-    else
-        TARGET_CLOUD="gcp"
-        EXAMPLE_DIR="${DIR}/examples/gcp/end-to-end"
-    fi
-    echo ""
+    # Platform is fixed to AWS in this repository
+    TARGET_CLOUD="aws"
+    EXAMPLE_DIR="${DIR}/end-to-end"
 
-    # 2. Deployment Mode
+    # 1. Deployment Mode
     echo "${BOLD}Select Deployment Mode:${RESET}"
     echo "  [1] Full Deployment   — Provision ZTGW + wire cloud consumer plumbing (Recommended)"
     echo "      ${CYAN}• Deploys managed gateway in Zscaler and attaches your customer VPC in a single step.${RESET}"
@@ -151,7 +140,7 @@ if [[ "$oper" == "configure" || (("$oper" == "up" || "$oper" == "plan") && ! -f 
     esac
     echo ""
 
-    # 3. Zscaler OneAPI Credentials (if DEPLOY_ZTGW is true)
+    # 2. Zscaler OneAPI Credentials (for native ZTC Provider, if DEPLOY_ZTGW is true)
     CLIENT_ID=""
     CLIENT_SECRET=""
     VANITY=""
@@ -159,14 +148,29 @@ if [[ "$oper" == "configure" || (("$oper" == "up" || "$oper" == "plan") && ! -f 
     INSECURE_VERIFY="false"
 
     if [[ "$DEPLOY_ZTGW" == "true" ]]; then
-        echo "${BOLD}Zscaler OneAPI Credentials${RESET}"
-        read -r -p "Zscaler Vanity Domain (e.g. acme for acme.zslogin.net): " VANITY
-        echo "${CYAN}Available Clouds: zscaler, zscalerbeta, zscalerone, zscalertwo, zscalerthree${RESET}"
-        read -r -p "Zscaler Cloud [zscaler]: " CLOUD_ENV
-        CLOUD_ENV=${CLOUD_ENV:-zscaler}
-        read -r -p "Zscaler Client ID: " CLIENT_ID
-        read -r -s -p "Zscaler Client Secret: " CLIENT_SECRET
-        echo ""
+        echo "${BOLD}Zscaler OneAPI Credentials (for ZTC Provider)${RESET}"
+        # Check if credentials already exist in environment
+        if [[ -n "$ZSCALER_CLIENT_ID" && -n "$ZSCALER_CLIENT_SECRET" && -n "$ZSCALER_VANITY_DOMAIN" ]]; then
+            echo "${GREEN}✓ Found Zscaler credentials in environment (ZSCALER_CLIENT_ID: ${ZSCALER_CLIENT_ID:0:8}...)${RESET}"
+            read -r -p "Use credentials from environment? (y/n) [y]: " use_env_creds
+            use_env_creds=${use_env_creds:-y}
+            if [[ "$use_env_creds" =~ ^[Yy] ]]; then
+                CLIENT_ID="$ZSCALER_CLIENT_ID"
+                CLIENT_SECRET="$ZSCALER_CLIENT_SECRET"
+                VANITY="$ZSCALER_VANITY_DOMAIN"
+                CLOUD_ENV="${ZSCALER_CLOUD:-zscaler}"
+            fi
+        fi
+
+        if [[ -z "$CLIENT_ID" ]]; then
+            read -r -p "Zscaler Vanity Domain (e.g. acme for acme.zslogin.net): " VANITY
+            echo "${CYAN}Available Clouds: zscaler, zscalerbeta, zscalerone, zscalertwo, zscalerthree${RESET}"
+            read -r -p "Zscaler Cloud [zscaler]: " CLOUD_ENV
+            CLOUD_ENV=${CLOUD_ENV:-zscaler}
+            read -r -p "Zscaler Client ID: " CLIENT_ID
+            read -r -s -p "Zscaler Client Secret: " CLIENT_SECRET
+            echo ""
+        fi
 
         # Pre-flight check: Validating Zscaler OneAPI credentials
         echo ""
@@ -818,23 +822,14 @@ if [[ -f ./.zsecrc ]]; then
     source ./.zsecrc
 fi
 
-TARGET_CLOUD=${TARGET_CLOUD:-gcp}
-# Allow command-line platform override (e.g. ./zsec plan aws, ./zsec destroy gcp)
-if [[ "$2" == "aws" || "$2" == "gcp" ]]; then
-    TARGET_CLOUD="$2"
-fi
-
-if [[ "$TARGET_CLOUD" == "aws" ]]; then
-    EXAMPLE_DIR="${DIR}/examples/aws/end-to-end"
-    if [[ -n "$AWS_ACCESS_KEY" ]]; then
-        export AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY"
-        export AWS_SECRET_ACCESS_KEY="$AWS_SECRET_KEY"
-        [[ -n "$AWS_SESSION_TOKEN" ]] && export AWS_SESSION_TOKEN="$AWS_SESSION_TOKEN"
-    elif [[ -n "$SELECTED_AWS_PROFILE" && -z "$AWS_PROFILE" ]]; then
-        export AWS_PROFILE="$SELECTED_AWS_PROFILE"
-    fi
-else
-    EXAMPLE_DIR="${DIR}/examples/gcp/end-to-end"
+TARGET_CLOUD="aws"
+EXAMPLE_DIR="${DIR}/end-to-end"
+if [[ -n "$AWS_ACCESS_KEY" ]]; then
+    export AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY"
+    export AWS_SECRET_ACCESS_KEY="$AWS_SECRET_KEY"
+    [[ -n "$AWS_SESSION_TOKEN" ]] && export AWS_SESSION_TOKEN="$AWS_SESSION_TOKEN"
+elif [[ -n "$SELECTED_AWS_PROFILE" && -z "$AWS_PROFILE" ]]; then
+    export AWS_PROFILE="$SELECTED_AWS_PROFILE"
 fi
 
 if [[ "$INSECURE_VERIFY" == "true" ]]; then
