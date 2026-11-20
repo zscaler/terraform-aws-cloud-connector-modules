@@ -9,11 +9,18 @@ YELLOW=$(tput setaf 3)
 CYAN=$(tput setaf 6)
 RESET=$(tput sgr0)
 
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 usage()
 {
-    echo "Usage: $0 <up|destroy>"
+    echo "Usage: $0 <up|destroy|ztgw> [arguments]"
     exit 1
 }
+
+if [[ "$1" == "ztgw" ]]; then
+    shift
+    exec "${DIR}/ztgw/zsec" "${@:-up}"
+fi
 
 if [ $# -ne 1 ] ; then
     usage
@@ -30,7 +37,11 @@ fi
 
 if [[ "$oper" == "up" ]]; then
     PS3="${CYAN}Select desired deployment: ${RESET}"
-    deployments=("greenfield - Recommended for isolated test/POV deployments. Creates new network infrastructure, test workloads, and a public bastion host" "brownfield - Recommended for prod deployments. Bring-your-own existing network infrastructure customizations + no workload/bastion creation")
+    deployments=(
+        "greenfield - Recommended for isolated test/POV deployments. Creates new network infrastructure, test workloads, and a public bastion host"
+        "brownfield - Recommended for prod deployments. Bring-your-own existing network infrastructure customizations + no workload/bastion creation"
+        "ztgw - Zscaler Managed Zero Trust Gateway (GWLB Endpoints & Native ZTC Provider)"
+    )
     select deployment in "${deployments[@]}"
     do
         case $REPLY in
@@ -45,6 +56,11 @@ if [[ "$oper" == "up" ]]; then
             echo "Brownfield deployment selected..."
             deployment=brownfield
             break
+            ;;
+            3)
+            echo "Zero Trust Gateway (ZTGW) deployment selected..."
+            echo ""
+            exec "${DIR}/ztgw/zsec" "$oper"
             ;;
             *) 
             echo "${RED}Invalid response. Please enter a number selection${RESET}"
@@ -1956,6 +1972,10 @@ if [[ $first_run != "yes" ]]; then
 . ./.zsecrc
 else
     echo "Proceeding..."
+fi
+
+if [[ "$deployment" == "ztgw" ]]; then
+    exec "${DIR}/ztgw/zsec" "$oper"
 fi
 
 # Download and unpackage terraform binaries
