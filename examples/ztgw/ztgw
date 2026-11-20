@@ -1,0 +1,1402 @@
+#!/usr/bin/env python3
+"""
+ztgw — Interactive CLI and Orchestrator for Zscaler Unified ZTGW (GCP & AWS).
+
+Zero external dependencies (pure Python standard library).
+Provides a modern, delightful CLI experience for first-time users, POCs,
+and field engineers, on top of pure native Terraform.
+
+Commands:
+  ./ztgw configure   Interactive guided setup with topology selection (Dedicated, Shared, Hub-and-Spoke)
+  ./ztgw plan        Run terraform plan for the selected cloud
+  ./ztgw apply       Provision ZTGW + consumer VPC plumbing in one shot
+  ./ztgw destroy     Cleanly tear down consumer plumbing and deprovision ZTGW
+  ./ztgw output      Show Terraform outputs (Endpoint / IDG, egress IPs)
+"""
+
+import getpass
+import json
+import os
+import shutil
+import ssl
+import subprocess
+import sys
+import urllib.parse
+import urllib.request
+
+# ANSI Colors
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+CYAN = "\033[96m"
+RED = "\033[91m"
+BOLD = "\033[1m"
+RESET = "\033[0m"
+
+REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
+CONFIG_CACHE = os.path.join(REPO_ROOT, ".ztgw-config.json")
+
+
+def banner():
+    print(f"\n{GREEN}{BOLD}============================================================{RESET}")
+    print(f"{GREEN}{BOLD}      Zscaler Unified Zero Trust Gateway (ZTGW) Engine     {RESET}")
+    print(f"{GREEN}{BOLD}       Multi-Cloud (GCP & AWS) • Multi-Topology Architecture {RESET}")
+    print(f"{GREEN}{BOLD}============================================================{RESET}\n")
+
+
+def check_terraform_installed():
+    local_tf = os.path.join(REPO_ROOT, "bin", "terraform")
+    if os.path.isfile(local_tf) and os.access(local_tf, os.X_OK):
+        bin_dir = os.path.join(REPO_ROOT, "bin")
+        if bin_dir not in os.environ.get("PATH", ""):
+            os.environ["PATH"] = f"{bin_dir}:{os.environ.get('PATH', '')}"
+
+    if not shutil.which("terraform"):
+        print(f"{RED}ERROR: 'terraform' binary not found on your PATH.{RESET}")
+        print("Please install Terraform (https://developer.hashicorp.com/terraform/install):")
+        print("  Linux (Debian/Ubuntu):  sudo apt-get install terraform")
+        print("  Linux (RHEL/CentOS):    sudo dnf install terraform")
+        print("  macOS:                  brew install hashicorp/tap/terraform")
+        print("  Windows:                choco install terraform\n")
+        sys.exit(1)
+
+
+def prompt_input(prompt: str, default: str = None, secret: bool = False) -> str:
+    default_hint = f" [{CYAN}{default}{RESET}]" if default else ""
+    full_prompt = f"{BOLD}{prompt}{RESET}{default_hint}: "
+    if secret:
+        val = getpass.getpass(full_prompt).strip()
+    else:
+        val = input(full_prompt).strip()
+    return val if val else (default if default else "")
+
+
+def build_ssl_context(insecure: bool = False) -> ssl.SSLContext:
+    if insecure or os.environ.get("INSECURE_SKIP_VERIFY", "").lower() in ("true", "1", "yes"):
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        return ctx
+
+    ctx = ssl.create_default_context()
+
+    # 1. Try certifi if installed in Python environment
+    try:
+        import certifi
+        ctx.load_verify_locations(cafile=certifi.where())
+        return ctx
+    except (ImportError, Exception):
+        pass
+
+    # 2. Check standard cross-platform and Linux/Unix CA trust stores
+    ca_candidates = [
+        # Explicit user/system environment overrides
+        os.environ.get("SSL_CERT_FILE"),
+        os.environ.get("REQUESTS_CA_BUNDLE"),
+        os.environ.get("CURL_CA_BUNDLE"),
+        # Debian / Ubuntu / Alpine / Arch / Gentoo / Google Cloud Shell
+        "/etc/ssl/certs/ca-certificates.crt",
+        # RedHat / CentOS / Rocky / Alma / Amazon Linux / Fedora
+        "/etc/pki/tls/certs/ca-bundle.crt",
+        "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",
+        # openSUSE / SLES
+        "/etc/ssl/ca-bundle.pem",
+        # FreeBSD / OpenBSD / NetBSD
+        "/usr/local/share/certs/ca-root-nss.crt",
+        "/etc/ssl/cert.pem",
+        # macOS Homebrew (Intel & Apple Silicon)
+        "/opt/homebrew/etc/ca-certificates/cert.pem",
+        "/usr/local/etc/ca-certificates/cert.pem",
+        "/usr/local/etc/openssl/cert.pem",
+    ]
+    for ca_path in ca_candidates:
+        if ca_path and os.path.isfile(ca_path):
+            try:
+                ctx.load_verify_locations(cafile=ca_path)
+                return ctx
+            except Exception:
+                pass
+    return ctx
+
+
+def validate_oneapi_credentials(vanity: str, cloud: str, client_id: str, client_secret: str, login_domain_override: str = "") -> tuple:
+    print(f"\n{CYAN}--> Pre-flight check: Validating Zscaler OneAPI credentials...{RESET}")
+    cloud = cloud.lower()
+    login_domain_map = {
+        "zscalerbeta": "zsloginbeta.net",
+        "zscalerthree": "zsloginthree.net",
+        "zscalerone": "zsloginone.net",
+        "zscalertwo": "zslogintwo.net",
+    }
+    login_domain = login_domain_override or login_domain_map.get(cloud, "zslogin.net")
+    token_url = f"https://{vanity}.{login_domain}/oauth2/v1/token"
+
+    data = urllib.parse.urlencode({
+        "grant_type": "client_credentials",
+        "client_id": client_id,
+        "client_secret": client_secret,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(token_url, data=data, headers={"Content-Type": "application/x-www-form-urlencoded"}, method="POST")
+
+    # 1. Try standard SSL verification
+    ctx = build_ssl_context(insecure=False)
+    try:
+        with urllib.request.urlopen(req, context=ctx, timeout=15) as resp:
+            body = json.loads(resp.read().decode("utf-8"))
+            if "access_token" in body:
+                print(f"{GREEN}✓ Authentication successful with Zscaler OneAPI!{RESET}\n")
+                return True, False
+    except Exception as e:
+        err_str = str(e)
+        if "CERTIFICATE_VERIFY_FAILED" in err_str or "certificate verify failed" in err_str:
+            print(f"{YELLOW}⚠ Standard SSL verify failed (corporate TLS inspection / ZCC detected). Retrying in proxy mode...{RESET}")
+            insecure_ctx = build_ssl_context(insecure=True)
+            try:
+                with urllib.request.urlopen(req, context=insecure_ctx, timeout=15) as resp:
+                    body = json.loads(resp.read().decode("utf-8"))
+                    if "access_token" in body:
+                        print(f"{GREEN}✓ Authentication successful (corporate proxy mode: insecure_skip_verify = true enabled){RESET}\n")
+                        return True, True
+            except Exception as e2:
+                print(f"{RED}✗ Pre-flight validation failed: {e2}{RESET}\n")
+                return False, False
+        else:
+            print(f"{RED}✗ Pre-flight validation failed: {e}{RESET}")
+            print(f"{YELLOW}Please double-check your Client ID, Secret, and Vanity domain.{RESET}\n")
+            return False, False
+    return False, False
+
+
+def get_active_cloud_dir(interactive: bool = False, target_arg: str = "") -> tuple:
+    cached_cloud = "gcp"
+    if os.path.exists(CONFIG_CACHE):
+        try:
+            with open(CONFIG_CACHE, "r") as f:
+                cfg = json.load(f)
+                cached_cloud = cfg.get("cloud_platform", "gcp").lower()
+        except Exception:
+            pass
+
+    # 1. Direct command-line override (e.g. ./ztgw plan aws or ./ztgw destroy gcp)
+    target = target_arg.lower().strip()
+    if target in ("aws", "gcp"):
+        cloud_choice = target
+    elif interactive and sys.stdin.isatty():
+        def_choice = "2" if cached_cloud == "aws" else "1"
+        print(f"\n{BOLD}Select Target Cloud Platform:{RESET}")
+        print(f"  [1] Google Cloud (GCP) {GREEN + '[Configured]' + RESET if cached_cloud == 'gcp' else ''}")
+        print(f"  [2] Amazon Web Services (AWS) {GREEN + '[Configured]' + RESET if cached_cloud == 'aws' else ''}")
+        sel = prompt_input("Enter selection (1 or 2)", default=def_choice)
+        cloud_choice = "aws" if sel.strip() in ("2", "aws") else "gcp"
+    else:
+        cloud_choice = cached_cloud
+
+    if cloud_choice == "aws":
+        return "aws", os.path.join(REPO_ROOT, "examples", "aws", "end-to-end")
+    return "gcp", os.path.join(REPO_ROOT, "examples", "gcp", "end-to-end")
+
+
+# --- GCP Discovery -----------------------------------------------------------
+def discover_gcp_vpcs(project_id: str) -> list:
+    """Returns list of VPC dicts: [{name, autoCreateSubnetworks}, ...] or falls back to plain names."""
+    if not shutil.which("gcloud"):
+        return []
+    try:
+        cmd = ["gcloud", "compute", "networks", "list", f"--project={project_id}", "--format=json(name,autoCreateSubnetworks)"]
+        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=12)
+        if res.returncode == 0:
+            data = json.loads(res.stdout)
+            if isinstance(data, list) and data:
+                return data
+        cmd_simple = ["gcloud", "compute", "networks", "list", f"--project={project_id}", "--format=value(name)"]
+        res_simple = subprocess.run(cmd_simple, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
+        if res_simple.returncode == 0:
+            return [{"name": line.strip()} for line in res_simple.stdout.splitlines() if line.strip()]
+    except Exception:
+        pass
+    return []
+
+
+def discover_gcp_subnets(project_id: str, vpc_name: str, region: str = "") -> list:
+    """Returns list of Subnet dicts: [{name, ipCidrRange, region}, ...] in selected VPC."""
+    if not shutil.which("gcloud"):
+        return []
+    try:
+        cmd = [
+            "gcloud", "compute", "networks", "subnets", "list",
+            f"--project={project_id}",
+            f"--filter=network ~ /{vpc_name}$",
+            "--format=json(name,ipCidrRange,region.basename())"
+        ]
+        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=12)
+        if res.returncode == 0:
+            data = json.loads(res.stdout)
+            if isinstance(data, list) and data:
+                if region:
+                    return sorted(data, key=lambda s: 0 if s.get("region") == region else 1)
+                return data
+    except Exception:
+        pass
+    return []
+
+
+def discover_gcp_zones(project_id: str, region: str) -> list:
+    """Returns list of active zone names in the specified region."""
+    if not shutil.which("gcloud"):
+        return []
+    try:
+        cmd = ["gcloud", "compute", "zones", "list", f"--project={project_id}", f"--filter=region:( {region} )", "--format=value(name)"]
+        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
+        if res.returncode == 0:
+            zones = [z.strip() for z in res.stdout.splitlines() if z.strip()]
+            return sorted(zones)
+    except Exception:
+        pass
+    return []
+
+
+# --- GCP Project Resolution & Permission Checks ------------------------------
+def resolve_gcp_project() -> tuple:
+    """Auto-detects active gcloud account and project, asks for confirmation, or allows selection/manual input."""
+    active_account = ""
+    active_project = ""
+    if shutil.which("gcloud"):
+        try:
+            res_acc = subprocess.run(["gcloud", "config", "get-value", "account"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=5)
+            if res_acc.returncode == 0:
+                active_account = res_acc.stdout.strip()
+            res_prj = subprocess.run(["gcloud", "config", "get-value", "project"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=5)
+            if res_prj.returncode == 0:
+                active_project = res_prj.stdout.strip()
+        except Exception:
+            pass
+
+    if active_project:
+        acc_str = f" (Account: {active_account})" if active_account else ""
+        confirm = prompt_input(f"Detected active GCP Project '{active_project}'{acc_str}. Use this project? (y/n)", default="y")
+        if confirm.lower() in ("y", "yes"):
+            print(f"{GREEN}✓ Using GCP Project: {active_project}{RESET}\n")
+            return active_project, active_account
+
+    # List available projects if gcloud is logged in
+    projects = []
+    if shutil.which("gcloud"):
+        try:
+            res = subprocess.run(["gcloud", "projects", "list", "--format=value(projectId)", "--limit=20"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
+            if res.returncode == 0:
+                projects = [p.strip() for p in res.stdout.splitlines() if p.strip()]
+        except Exception:
+            pass
+
+    if projects:
+        print(f"\n{BOLD}Available GCP Projects on system:{RESET}")
+        for idx, prj in enumerate(projects, 1):
+            print(f"  [{idx}] {prj}")
+        choice = prompt_input("Select project number or enter Project ID", default=projects[0])
+        try:
+            selected = projects[int(choice) - 1]
+        except Exception:
+            selected = choice
+        print(f"{GREEN}✓ Using GCP Project: {selected}{RESET}\n")
+        return selected, active_account
+    else:
+        return prompt_input("Primary GCP Project ID"), active_account
+
+
+def verify_gcp_permissions(project_id: str):
+    """Performs a pre-flight IAM check for required GCP NSI roles."""
+    print(f"{CYAN}--> Checking GCP IAM permissions for project '{project_id}'...{RESET}")
+    if not shutil.which("gcloud"):
+        print(f"{YELLOW}⚠ 'gcloud' CLI not found. Skipping GCP permission pre-flight check.{RESET}")
+        print(f"  Required roles: roles/compute.networkAdmin and roles/networksecurity.admin\n")
+        return
+
+    required_perms = [
+        "compute.networks.get",
+        "compute.firewallPolicies.create",
+        "networksecurity.interceptEndpointGroups.create",
+        "networksecurity.securityProfiles.create",
+    ]
+    try:
+        cmd = ["gcloud", "projects", "test-iam-permissions", project_id, f"--permissions={','.join(required_perms)}", "--format=value(permissions)"]
+        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=15)
+        if res.returncode == 0:
+            granted = set(res.stdout.strip().split())
+            missing = [p for p in required_perms if p not in granted]
+            if not missing:
+                print(f"{GREEN}✓ GCP IAM permissions verified (Network Admin & Network Security Admin granted){RESET}\n")
+            else:
+                print(f"{YELLOW}⚠ Notice: Principal may be missing specific GCP permissions on '{project_id}':{RESET}")
+                for m in missing:
+                    print(f"  - {m}")
+                print(f"  Required roles: {BOLD}roles/compute.networkAdmin{RESET} and {BOLD}roles/networksecurity.admin{RESET}\n")
+        else:
+            print(f"{YELLOW}ℹ Could not test IAM permissions via gcloud. Proceeding with deployment...{RESET}\n")
+    except Exception:
+        print(f"{YELLOW}ℹ Permission pre-check skipped. Proceeding...{RESET}\n")
+
+
+# --- AWS Profiles & Discovery ------------------------------------------------
+def get_available_aws_profiles() -> dict:
+    """Parses ~/.aws/config to discover available AWS profiles and account associations."""
+    profiles = {}
+    config_path = os.path.expanduser("~/.aws/config")
+    if os.path.exists(config_path):
+        current = None
+        try:
+            with open(config_path, "r") as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith("[profile ") and line.endswith("]"):
+                        current = line[9:-1].strip()
+                        profiles[current] = {}
+                    elif line == "[default]":
+                        current = "default"
+                        profiles[current] = {}
+                    elif current and "=" in line:
+                        k, v = line.split("=", 1)
+                        k = k.strip()
+                        v = v.strip()
+                        if k in ("sso_account_id", "region"):
+                            profiles[current][k] = v
+        except Exception:
+            pass
+    return profiles
+
+
+def check_and_login_aws_profile(profile: str) -> bool:
+    """Checks if AWS profile session is valid. If expired, prompts and executes aws sso login."""
+    if not profile or not shutil.which("aws"):
+        return True
+    env = os.environ.copy()
+    env["AWS_PROFILE"] = profile
+    cmd = ["aws", "sts", "get-caller-identity", "--output", "json"]
+    try:
+        res = subprocess.run(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=15)
+        if res.returncode == 0:
+            return True
+    except Exception:
+        pass
+
+    # Quick retry once for transient proxy latency
+    try:
+        time.sleep(1)
+        res = subprocess.run(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=15)
+        if res.returncode == 0:
+            return True
+    except Exception:
+        pass
+
+    err = res.stderr.strip() if 'res' in locals() else "Timeout"
+    print(f"\n{YELLOW}⚠ AWS session for profile '{profile}' is expired or unauthorized: {err}{RESET}")
+    if not sys.stdin.isatty():
+        return False
+    ans = prompt_input(f"Run 'aws sso login --profile {profile}' now? (y/n)", default="y")
+    if ans.lower() in ("y", "yes"):
+        print(f"\n{CYAN}--> Running 'aws sso login --profile {profile}'...{RESET}")
+        login_res = subprocess.run(["aws", "sso", "login", f"--profile={profile}"])
+        if login_res.returncode == 0:
+            res2 = subprocess.run(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=15)
+            if res2.returncode == 0:
+                data = json.loads(res2.stdout)
+                arn = data.get("Arn", "unknown")
+                print(f"{GREEN}✓ Successfully authenticated via AWS SSO as: {arn}{RESET}\n")
+                return True
+            else:
+                print(f"{RED}✗ Authentication still failing after login: {res2.stderr.strip()}{RESET}\n")
+    return False
+
+
+def resolve_aws_profile(account_id: str = "") -> str:
+    """Auto-picks the best matching AWS profile, asks for user confirmation, or offers a switch menu."""
+    profiles = get_available_aws_profiles()
+    auto_picked = os.environ.get("AWS_PROFILE", "")
+
+    # If no env variable, match by account_id in discovered profiles
+    if not auto_picked and account_id and profiles:
+        for name, details in profiles.items():
+            if details.get("sso_account_id") == account_id:
+                auto_picked = name
+                break
+
+    if not auto_picked:
+        if "default" in profiles:
+            auto_picked = "default"
+        elif profiles:
+            auto_picked = list(profiles.keys())[0]
+
+    if auto_picked:
+        acc_info = ""
+        if auto_picked in profiles and profiles[auto_picked].get("sso_account_id"):
+            acc_info = f" (Account: {profiles[auto_picked]['sso_account_id']})"
+        confirm = prompt_input(f"Detected AWS Profile '{auto_picked}'{acc_info}. Use this profile? (y/n)", default="y")
+        if confirm.lower() in ("y", "yes"):
+            print(f"{GREEN}✓ Using AWS Profile: {auto_picked}{RESET}\n")
+            check_and_login_aws_profile(auto_picked)
+            return auto_picked
+
+    # If user declined or auto-pick failed, display list of all available profiles
+    if profiles:
+        print(f"\n{BOLD}Available AWS Profiles on system:{RESET}")
+        prof_keys = list(profiles.keys())
+        for idx, name in enumerate(prof_keys, 1):
+            info = []
+            if profiles[name].get("sso_account_id"):
+                info.append(f"Account: {profiles[name]['sso_account_id']}")
+            if profiles[name].get("region"):
+                info.append(f"Region: {profiles[name]['region']}")
+            info_str = f" ({', '.join(info)})" if info else ""
+            print(f"  [{idx}] {name}{info_str}")
+
+        choice = prompt_input("Select profile number or enter profile name", default=prof_keys[0])
+        try:
+            selected = prof_keys[int(choice) - 1]
+        except Exception:
+            selected = choice
+        print(f"{GREEN}✓ Using AWS Profile: {selected}{RESET}\n")
+        check_and_login_aws_profile(selected)
+        return selected
+    else:
+        prof = prompt_input("Enter AWS Profile name", default="default")
+        check_and_login_aws_profile(prof)
+        return prof
+
+
+def discover_aws_vpcs(region: str, profile: str = "") -> list:
+    """Returns list of VPC dicts: [{Id, Name, Cidr}, ...] or falls back gracefully."""
+    if not shutil.which("aws"):
+        return []
+    try:
+        cmd = ["aws", "ec2", "describe-vpcs", f"--region={region}", "--query", "Vpcs[*].{Id:VpcId,Cidr:CidrBlock,Name:Tags[?Key=='Name']|[0].Value}", "--output", "json"]
+        if profile:
+            cmd.append(f"--profile={profile}")
+        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=12)
+        if res.returncode == 0:
+            data = json.loads(res.stdout)
+            if isinstance(data, list) and data:
+                return data
+        # Fallback for older AWS CLI v1
+        cmd_simple = ["aws", "ec2", "describe-vpcs", f"--region={region}", "--query", "Vpcs[*].VpcId", "--output", "text"]
+        if profile:
+            cmd_simple.append(f"--profile={profile}")
+        res_simple = subprocess.run(cmd_simple, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
+        if res_simple.returncode == 0:
+            ids = res_simple.stdout.strip().split()
+            return [{"Id": i, "Name": None, "Cidr": None} for i in ids if i]
+    except Exception:
+        pass
+    return []
+
+
+def discover_aws_subnets(vpc_id: str, region: str, profile: str = "") -> list:
+    """Returns list of Subnet dicts: [{Id, AZ, Cidr, Name}, ...] or falls back gracefully."""
+    if not shutil.which("aws"):
+        return []
+    try:
+        cmd = [
+            "aws", "ec2", "describe-subnets",
+            f"--region={region}",
+            f"--filters=Name=vpc-id,Values={vpc_id}",
+            "--query", "Subnets[*].{Id:SubnetId,AZ:AvailabilityZone,AZId:AvailabilityZoneId,Cidr:CidrBlock,Name:Tags[?Key=='Name']|[0].Value}",
+            "--output", "json"
+        ]
+        if profile:
+            cmd.append(f"--profile={profile}")
+        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=12)
+        if res.returncode == 0:
+            data = json.loads(res.stdout)
+            if isinstance(data, list) and data:
+                return data
+        # Fallback for older AWS CLI v1
+        cmd_simple = ["aws", "ec2", "describe-subnets", f"--region={region}", f"--filters=Name=vpc-id,Values={vpc_id}", "--query", "Subnets[*].SubnetId", "--output", "text"]
+        if profile:
+            cmd_simple.append(f"--profile={profile}")
+        res_simple = subprocess.run(cmd_simple, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
+        if res_simple.returncode == 0:
+            ids = res_simple.stdout.strip().split()
+            return [{"Id": i, "AZ": None, "Cidr": None, "Name": None} for i in ids if i]
+    except Exception:
+        pass
+    return []
+
+
+def discover_aws_region_azs(region: str, profile: str = "") -> list:
+    """Returns all available Availability Zones in the region with their physical Zone IDs: [{ZoneName, ZoneId}, ...]."""
+    if not shutil.which("aws"):
+        return []
+    try:
+        cmd = ["aws", "ec2", "describe-availability-zones", f"--region={region}", "--output", "json"]
+        if profile:
+            cmd.append(f"--profile={profile}")
+        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
+        if res.returncode == 0:
+            data = json.loads(res.stdout)
+            azs = [
+                {"ZoneName": item["ZoneName"], "ZoneId": item["ZoneId"]}
+                for item in data.get("AvailabilityZones", [])
+                if item.get("State") == "available"
+            ]
+            return sorted(azs, key=lambda x: x["ZoneName"])
+    except Exception:
+        pass
+    return []
+
+
+def get_supported_ztgw_letter_zones(region: str, profile: str = "") -> list:
+    """Finds which letter Availability Zones in this AWS account map to Zscaler's physical deployment zones."""
+    if not shutil.which("aws"):
+        return []
+    try:
+        cmd = ["aws", "ec2", "describe-availability-zones", f"--region={region}", "--output", "json"]
+        if profile:
+            cmd.append(f"--profile={profile}")
+        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
+        if res.returncode == 0:
+            data = json.loads(res.stdout)
+            supported = []
+            for item in data.get("AvailabilityZones", []):
+                zid = item.get("ZoneId", "").lower()
+                zname = item.get("ZoneName", "")
+                if region == "us-east-1":
+                    if zid in ("use1-az1", "use1-az5", "use1-az2"):
+                        supported.append(zname)
+                else:
+                    if zid.endswith("-az1") or zid.endswith("-az2"):
+                        supported.append(zname)
+            return sorted(supported)
+    except Exception:
+        pass
+    return []
+
+
+def export_aws_profile_credentials(profile: str) -> dict:
+    """Exports active STS temporary credentials from AWS CLI so Terraform / Go SDK never fails on SSO cache mismatches."""
+    if not shutil.which("aws"):
+        return {}
+    try:
+        cmd = ["aws", "configure", "export-credentials", f"--profile={profile}"]
+        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
+        if res.returncode == 0:
+            return json.loads(res.stdout)
+    except Exception:
+        pass
+    return {}
+
+
+def discover_aws_route_tables(vpc_id: str, region: str, profile: str = "") -> list:
+    """Returns list of Route Table dicts: [{Id, Name, Main, DefaultRouteTarget}, ...] or falls back gracefully."""
+    if not shutil.which("aws"):
+        return []
+    try:
+        cmd = [
+            "aws", "ec2", "describe-route-tables",
+            f"--region={region}",
+            f"--filters=Name=vpc-id,Values={vpc_id}",
+            "--query", "RouteTables[*].{Id:RouteTableId,Name:Tags[?Key=='Name']|[0].Value,Main:Associations[?Main==`true`]|[0].Main,DefaultRouteTarget:Routes[?DestinationCidrBlock=='0.0.0.0/0']|[0].GatewayId || Routes[?DestinationCidrBlock=='0.0.0.0/0']|[0].NatGatewayId || Routes[?DestinationCidrBlock=='0.0.0.0/0']|[0].VpcEndpointId}",
+            "--output", "json"
+        ]
+        if profile:
+            cmd.append(f"--profile={profile}")
+        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=12)
+        if res.returncode == 0:
+            data = json.loads(res.stdout)
+            if isinstance(data, list) and data:
+                return data
+        # Fallback for older AWS CLI v1
+        cmd_simple = ["aws", "ec2", "describe-route-tables", f"--region={region}", f"--filters=Name=vpc-id,Values={vpc_id}", "--query", "RouteTables[*].RouteTableId", "--output", "text"]
+        if profile:
+            cmd_simple.append(f"--profile={profile}")
+        res_simple = subprocess.run(cmd_simple, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
+        if res_simple.returncode == 0:
+            ids = res_simple.stdout.strip().split()
+            return [{"Id": i, "Name": None, "Main": None, "DefaultRouteTarget": None} for i in ids if i]
+    except Exception:
+        pass
+    return []
+
+
+def check_gcp_vpc_enforcement_order(project_id: str, vpc_name: str):
+    """Checks if GCP VPC has networkFirewallPolicyEnforcementOrder = BEFORE_CLASSIC_FIREWALL."""
+    if not shutil.which("gcloud"):
+        return
+    try:
+        cmd = ["gcloud", "compute", "networks", "describe", vpc_name, f"--project={project_id}", "--format=value(networkFirewallPolicyEnforcementOrder)"]
+        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
+        if res.returncode == 0:
+            order = res.stdout.strip()
+            if order and order != "BEFORE_CLASSIC_FIREWALL":
+                print(f"\n{YELLOW}⚠ Notice: VPC '{vpc_name}' has networkFirewallPolicyEnforcementOrder = '{order}'.{RESET}")
+                print(f"  For Google Cloud NSI to evaluate firewall policy rules before classic VPC rules, run:")
+                print(f"  {CYAN}gcloud compute networks update {vpc_name} --project={project_id} --network-firewall-policy-enforcement-order=BEFORE_CLASSIC_FIREWALL{RESET}\n")
+    except Exception:
+        pass
+
+
+def verify_aws_permissions(region: str, profile: str = "", access_key: str = "", secret_key: str = "", session_token: str = ""):
+    """Performs a pre-flight STS identity and EC2 permission check for AWS."""
+    print(f"\n{CYAN}--> Checking AWS credentials and permissions in {region}...{RESET}")
+    if not shutil.which("aws"):
+        print(f"{YELLOW}⚠ 'aws' CLI not found. Skipping AWS permission pre-flight check.{RESET}\n")
+        return
+
+    env = os.environ.copy()
+    if access_key and secret_key:
+        env["AWS_ACCESS_KEY_ID"] = access_key
+        env["AWS_SECRET_ACCESS_KEY"] = secret_key
+        if session_token:
+            env["AWS_SESSION_TOKEN"] = session_token
+    elif profile:
+        env["AWS_PROFILE"] = profile
+
+    try:
+        cmd_sts = ["aws", "sts", "get-caller-identity", "--output", "json"]
+        res_sts = subprocess.run(cmd_sts, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
+        if res_sts.returncode != 0 and profile:
+            # Session expired: prompt and log in
+            if check_and_login_aws_profile(profile):
+                res_sts = subprocess.run(cmd_sts, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
+
+        if res_sts.returncode == 0:
+            data = json.loads(res_sts.stdout)
+            arn = data.get("Arn", "unknown")
+            print(f"{GREEN}✓ Authenticated as: {arn}{RESET}")
+            cmd_ec2 = ["aws", "ec2", "describe-vpcs", f"--region={region}", "--max-results=5"]
+            res_ec2 = subprocess.run(cmd_ec2, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
+            if res_ec2.returncode == 0:
+                print(f"{GREEN}✓ EC2 Network permissions verified in {region}{RESET}\n")
+            else:
+                print(f"{YELLOW}⚠ Warning: Could not describe VPCs in {region}: {res_ec2.stderr.strip()}{RESET}\n")
+        else:
+            print(f"{RED}✗ AWS Authentication check failed: {res_sts.stderr.strip()}{RESET}\n")
+    except Exception as e:
+        print(f"{YELLOW}ℹ AWS permission pre-check skipped: {e}{RESET}\n")
+
+
+def configure_gcp(client_id, client_secret, vanity, cloud, insecure_skip_verify: bool = False, deploy_mode: str = "1"):
+    target_dir = os.path.join(REPO_ROOT, "examples", "gcp", "end-to-end")
+    tfvars_file = os.path.join(target_dir, "terraform.tfvars")
+
+    deploy_ztgw = deploy_mode in ("1", "2")
+    deploy_consumer = deploy_mode in ("1", "3")
+
+    existing_idg = ""
+    if not deploy_ztgw:
+        print(f"\n{BOLD}Consumer-Only Configuration{RESET}")
+        existing_idg = prompt_input("Existing ZTGW Intercept Deployment Group URI (projects/.../locations/global/interceptDeploymentGroups/...)")
+
+    print(f"\n{BOLD}Deployment Topology Selection:{RESET}")
+    print("  [1] Dedicated (1:1)       — Protect a single workload VPC (Isolated)")
+    print(f"      {CYAN}• 1 Gateway per VPC: Zero cross-VPC blast radius, independent scaling.{RESET}")
+    print("  [2] Shared (Multi-VPC)    — Protect multiple VPCs/projects with one shared ZTGW")
+    print(f"      {CYAN}• Maximum cost efficiency: 1 gateway shared across VPCs via Google NSI without peering.{RESET}")
+    print("  [3] Hub-and-Spoke         — Protect a Central Inspection Hub VPC (Peering / NCC)")
+    print(f"      {CYAN}• Spoke VPCs route through a central inspection transit hub before reaching ZTGW.{RESET}")
+    topo_choice = prompt_input("Select Topology", default="1")
+
+    print(f"\n{BOLD}Google Cloud Environment Settings{RESET}")
+    primary_project, _ = resolve_gcp_project()
+    verify_gcp_permissions(primary_project)
+    region = prompt_input("GCP Region", default="us-central1")
+    gateway_name = prompt_input("ZTGW Name", default=f"gcp-ztgw-{region}") if deploy_ztgw else "existing-ztgw"
+
+    if topo_choice == "2":
+        extra_projs = prompt_input("Additional GCP Project IDs to authorize (comma-separated, or Enter for same)", default="")
+        all_projs = [p.strip() for p in ([primary_project] + extra_projs.split(",")) if p.strip()]
+        allowlist_str = json.dumps(all_projs)
+    else:
+        allowlist_str = json.dumps([primary_project])
+
+    vpcs_config = ""
+    if deploy_consumer:
+        discovered = discover_gcp_vpcs(primary_project)
+        if topo_choice == "2":
+            vpc_names_raw = prompt_input("Enter VPC network names to attach (comma-separated)", default=discovered[0] if discovered else "vpc-1,vpc-2")
+            vpc_names = [v.strip() for v in vpc_names_raw.split(",") if v.strip()]
+            for v in vpc_names:
+                vpcs_config += f"""  "{v}" = {{
+    network_name        = "{v}"
+    egress_destinations = ["0.0.0.0/0"]
+    egress_bypass_destinations = [
+      "10.0.0.0/16",
+      "35.235.240.0/20",
+      "35.191.0.0/16",
+    ]
+    enable_firewall_logging = false
+  }}
+"""
+        elif topo_choice == "3":
+            hub_vpc = prompt_input("Central Inspection Hub VPC network name", default=discovered[0] if discovered else "hub-vpc")
+            spoke_cidrs = prompt_input("Internal Spoke Subnet CIDR(s) to bypass Zscaler (comma-separated)", default="10.0.0.0/8")
+            spoke_list = [c.strip() for c in spoke_cidrs.split(",") if c.strip()]
+            spoke_bypass_json = json.dumps(spoke_list + ["35.235.240.0/20", "35.191.0.0/16", "130.211.0.0/22", "199.36.153.8/30"])
+
+            vpcs_config = f"""  inspection-hub-vpc = {{
+    network_name        = "{hub_vpc}"
+    egress_destinations = ["0.0.0.0/0"]
+    egress_bypass_destinations = {spoke_bypass_json}
+    enable_firewall_logging = false
+  }}
+"""
+        else:
+            if discovered:
+                print(f"\n{CYAN}Discovered existing VPC networks in {primary_project}:{RESET}")
+                for idx, vpc_entry in enumerate(discovered, 1):
+                    v_name = vpc_entry["name"] if isinstance(vpc_entry, dict) else vpc_entry
+                    mode = " (custom subnets)" if isinstance(vpc_entry, dict) and not vpc_entry.get("autoCreateSubnetworks", True) else ""
+                    print(f"  [{idx}] {v_name}{mode}")
+                first_name = discovered[0]["name"] if isinstance(discovered[0], dict) else discovered[0]
+                vpc_choice = prompt_input("Select VPC number or enter name", default=first_name)
+                try:
+                    num = int(vpc_choice)
+                    vpc_name = discovered[num - 1]["name"] if isinstance(discovered[num - 1], dict) else discovered[num - 1]
+                except Exception:
+                    vpc_name = vpc_choice
+            else:
+                print(f"{YELLOW}ℹ GCP discovery unavailable or returned no VPCs. Defaulting to manual input.{RESET}")
+                vpc_name = prompt_input("Name of existing Workload VPC network", default="default")
+
+            # Check networkFirewallPolicyEnforcementOrder
+            check_gcp_vpc_enforcement_order(primary_project, vpc_name)
+
+            # Discover Subnets in selected VPC
+            discovered_subnets = discover_gcp_subnets(primary_project, vpc_name, region)
+            default_cidr = "10.0.0.0/16"
+            if discovered_subnets:
+                print(f"\n{CYAN}Discovered subnets in VPC '{vpc_name}':{RESET}")
+                for idx, s in enumerate(discovered_subnets, 1):
+                    s_reg = f" (Region: {s.get('region')})" if s.get("region") else ""
+                    print(f"  [{idx}] {s['name']} — CIDR: {s.get('ipCidrRange')}{s_reg}")
+                default_cidr = discovered_subnets[0].get("ipCidrRange", "10.0.0.0/16")
+
+            subnet_cidr = prompt_input("Your internal VPC Subnet CIDR (to bypass Zscaler)", default=default_cidr)
+            vpcs_config = f"""  workload-vpc = {{
+    network_name        = "{vpc_name}"
+    egress_destinations = ["0.0.0.0/0"]
+    egress_bypass_destinations = [
+      "{subnet_cidr}",
+      "35.235.240.0/20",  # GCP Identity-Aware Proxy (IAP)
+      "35.191.0.0/16",    # GCP Health Checkers
+      "130.211.0.0/22",   # Legacy GCP Health Checkers
+      "199.36.153.8/30",  # private.googleapis.com
+      "199.36.153.4/30",  # restricted.googleapis.com
+    ]
+    enable_firewall_logging = false
+  }}
+"""
+
+    content = f"""# Auto-generated by ./ztgw configure for GCP (Mode: {deploy_mode}, Topology: {topo_choice})
+customer_project_id = "{primary_project}"
+region              = "{region}"
+deploy_key          = "ztgw-nsi"
+deploy_ztgw         = {"true" if deploy_ztgw else "false"}
+deploy_consumer     = {"true" if deploy_consumer else "false"}
+"""
+    if not deploy_ztgw:
+        content += f'intercept_deployment_group = "{existing_idg}"\n'
+
+    if deploy_ztgw:
+        content += f"""
+client_id     = "{client_id}"
+client_secret = "{client_secret}"
+vanity_domain = "{vanity}"
+cloud         = "{cloud}"
+
+gateway_name  = "{gateway_name}"
+location_name = "Unified-GCP-{region}"
+insecure_skip_verify = {"true" if insecure_skip_verify else "false"}
+
+availability_zones = [
+  "{region}-a",
+  "{region}-b"
+]
+"""
+    if deploy_consumer:
+        content += f"""
+vpcs = {{
+{vpcs_config}}}
+"""
+    else:
+        content += "\nvpcs = {}\n"
+
+    with open(tfvars_file, "w") as f:
+        f.write(content)
+    os.chmod(tfvars_file, 0o600)
+
+    with open(CONFIG_CACHE, "w") as f:
+        json.dump({"cloud_platform": "gcp", "topology": topo_choice, "deploy_mode": deploy_mode}, f)
+
+    print(f"\n{GREEN}✓ Generated secure configuration for Google Cloud:{RESET} {tfvars_file}")
+
+
+def configure_aws(client_id, client_secret, vanity, cloud, insecure_skip_verify: bool = False, deploy_mode: str = "1"):
+    target_dir = os.path.join(REPO_ROOT, "examples", "aws", "end-to-end")
+    tfvars_file = os.path.join(target_dir, "terraform.tfvars")
+
+    deploy_ztgw = deploy_mode in ("1", "2")
+    deploy_consumer = deploy_mode in ("1", "3")
+
+    existing_ep = ""
+    if not deploy_ztgw:
+        print(f"\n{BOLD}Consumer-Only Configuration{RESET}")
+        existing_ep = prompt_input("Existing Gateway Load Balancer Endpoint Service Name (com.amazonaws.vpce...)")
+
+    print(f"\n{BOLD}Deployment Topology Selection:{RESET}")
+    print("  [1] Dedicated (1:1)       — Protect a single workload VPC (Isolated)")
+    print(f"      {CYAN}• 1 Gateway per VPC: Zero cross-VPC blast radius, independent scaling.{RESET}")
+    print("  [2] Shared (Multi-Account) — Protect multiple AWS accounts with one shared ZTGW")
+    print(f"      {CYAN}• Maximum cost efficiency: 1 gateway shared across accounts via GWLB without peering.{RESET}")
+    print("  [3] Hub-and-Spoke         — Protect an Inspection VPC with AWS Transit Gateway (TGW)")
+    print(f"      {CYAN}• Spoke VPCs route through a central inspection transit hub before reaching ZTGW.{RESET}")
+    topo_choice = prompt_input("Select Topology", default="1")
+
+    print(f"\n{BOLD}Amazon Web Services (AWS) Environment Settings{RESET}")
+    account_id = prompt_input("Primary Customer 12-digit AWS Account ID")
+
+    profiles = get_available_aws_profiles()
+    has_env_creds = bool(os.environ.get("AWS_ACCESS_KEY_ID"))
+
+    print(f"\n{BOLD}AWS Authentication Method:{RESET}")
+    if profiles:
+        print("  [1] AWS Profile (SSO / ~/.aws/config) [Recommended for local CLI]")
+        print("  [2] Static Credentials (Access Key ID & Secret Access Key)")
+        print("  [3] IAM Role / Cloud Identity (EC2 Instance Profile, EKS IRSA, or Env Vars) [Recommended for CI/CD & EC2]")
+        auth_choice = prompt_input("Enter selection (1, 2, or 3)", default="1")
+    else:
+        print("  [1] Static Credentials (Access Key ID & Secret Access Key)")
+        print("  [2] IAM Role / Cloud Identity (EC2 Instance Profile, EKS IRSA, or Env Vars) [No profile required]")
+        auth_choice_raw = prompt_input("Enter selection (1 or 2)", default="2" if has_env_creds else "1")
+        auth_choice = "2" if auth_choice_raw == "1" else "3"
+
+    aws_profile = ""
+    access_key = ""
+    secret_key = ""
+    session_token = ""
+
+    if auth_choice == "2":
+        access_key = prompt_input("AWS Access Key ID")
+        secret_key = prompt_input("AWS Secret Access Key", secret=True)
+        session_token = prompt_input("AWS Session Token (optional, for temporary STS credentials)", secret=True)
+    elif auth_choice == "3":
+        print(f"{CYAN}--> Using default AWS credential provider chain (IAM Instance Profile, EKS IRSA, or Environment Variables){RESET}")
+    else:
+        aws_profile = resolve_aws_profile(account_id)
+
+    region = prompt_input("AWS Region", default="us-west-2")
+    verify_aws_permissions(region, profile=aws_profile, access_key=access_key, secret_key=secret_key, session_token=session_token)
+    gateway_name = prompt_input("ZTGW Name", default=f"aws-ztgw-{region}") if deploy_ztgw else "existing-ztgw"
+
+    vpc_id = ""
+    subnets_str = "[]"
+    route_table = ""
+
+    if deploy_consumer:
+        # 1. Discover VPCs with Name tags and CIDRs
+        discovered_vpcs = discover_aws_vpcs(region, profile=aws_profile)
+        if discovered_vpcs:
+            print(f"\n{CYAN}Discovered existing VPCs in {region} (Profile: {aws_profile}):{RESET}")
+            for idx, v in enumerate(discovered_vpcs, 1):
+                v_name = f" — {v['Name']}" if v.get("Name") else ""
+                v_cidr = f" (CIDR: {v['Cidr']})" if v.get("Cidr") else ""
+                print(f"  [{idx}] {v['Id']}{v_name}{v_cidr}")
+            vpc_choice = prompt_input("Select VPC number, enter ID, or Name", default=discovered_vpcs[0]["Id"])
+            vpc_id = vpc_choice
+            try:
+                num = int(vpc_choice)
+                vpc_id = discovered_vpcs[num - 1]["Id"]
+            except Exception:
+                for v in discovered_vpcs:
+                    if v.get("Name") == vpc_choice:
+                        vpc_id = v["Id"]
+                        break
+        else:
+            print(f"{YELLOW}ℹ AWS CLI discovery unavailable or returned no VPCs. Defaulting to manual input.{RESET}")
+            vpc_id = prompt_input("Customer VPC ID (e.g. vpc-0123456789abcdef0)")
+
+        # 2. Discover Subnets and check compatibility with Zscaler physical deployment zones
+        supported_ztgw_azs = get_supported_ztgw_letter_zones(region, profile=aws_profile)
+        if supported_ztgw_azs:
+            print(f"\n{CYAN}--> In this AWS account, Zscaler ZTGW in {region} operates in Availability Zones: {BOLD}{', '.join(supported_ztgw_azs)}{RESET}")
+
+        discovered_subnets = discover_aws_subnets(vpc_id, region, profile=aws_profile)
+        selected_subnets = []
+        if discovered_subnets:
+            compatible_subnets = [s for s in discovered_subnets if not supported_ztgw_azs or s.get("AZ") in supported_ztgw_azs]
+            unsupported_subnets = [s for s in discovered_subnets if supported_ztgw_azs and s.get("AZ") not in supported_ztgw_azs]
+
+            if compatible_subnets:
+                print(f"\n{CYAN}Subnets compatible to host the ZTGW Endpoint (in {', '.join(supported_ztgw_azs)}):{RESET}")
+                for idx, sub in enumerate(compatible_subnets, 1):
+                    s_name = f" — {sub['Name']}" if sub.get("Name") else ""
+                    s_az = sub.get("AZ", "")
+                    s_cidr = f", CIDR: {sub.get('Cidr')}" if sub.get("Cidr") else ""
+                    print(f"  [{idx}] {sub['Id']}{s_name} (AZ: {s_az}{s_cidr}) {GREEN}[Compatible]{RESET}")
+
+            if unsupported_subnets:
+                print(f"\n{YELLOW}ℹ NOTE: Subnets in other zones cannot host the endpoint interface because Zscaler has no physical dataplane in those AZs:{RESET}")
+                for sub in unsupported_subnets:
+                    s_name = f" — {sub['Name']}" if sub.get("Name") else ""
+                    print(f"    • {sub['Id']}{s_name} (AZ: {sub.get('AZ')})")
+                print(f"  Workloads in those zones will automatically route their outbound traffic across the VPC to this endpoint.\n")
+
+            sub_default = "1,2" if len(compatible_subnets) >= 2 else "1"
+
+            while True:
+                sub_choice = prompt_input("Select subnet number(s) to host the GWLB endpoint (comma-separated, min 1 per AZ)", default=sub_default)
+                selected_subnets = []
+                incompatible_err = []
+                for part in sub_choice.split(","):
+                    part = part.strip()
+                    matched = None
+                    try:
+                        matched = compatible_subnets[int(part) - 1]
+                    except Exception:
+                        for s in discovered_subnets:
+                            if s["Id"] == part or s.get("Name") == part:
+                                matched = s
+                                break
+                    if matched:
+                        if supported_ztgw_azs and matched.get("AZ") not in supported_ztgw_azs:
+                            incompatible_err.append(f"{matched['Id']} ({matched.get('AZ')})")
+                        else:
+                            selected_subnets.append(matched["Id"])
+                    elif part:
+                        selected_subnets.append(part)
+
+                if incompatible_err:
+                    print(f"\n{RED}✗ Incompatible subnet selected:{RESET} {', '.join(incompatible_err)}")
+                    print(f"  Zscaler ZTGW in {region} only supports Availability Zones: {BOLD}{', '.join(supported_ztgw_azs)}{RESET} in this account.")
+                    print(f"  AWS will reject GWLB endpoint creation in other AZs. Please select only compatible subnets.\n")
+                    continue
+                break
+
+            # Validate AZ uniqueness for GWLB endpoint
+            az_map = {}
+            for s_id in selected_subnets:
+                for s_obj in discovered_subnets:
+                    if s_obj["Id"] == s_id and s_obj.get("AZ"):
+                        az = s_obj["AZ"]
+                        if az in az_map:
+                            print(f"{YELLOW}⚠ Warning: Subnets '{az_map[az]}' and '{s_id}' are both in Availability Zone '{az}'.{RESET}")
+                            print(f"  AWS Gateway Load Balancer Endpoints require at most 1 subnet per AZ.")
+                        else:
+                            az_map[az] = s_id
+                        break
+
+            subnets_str = json.dumps(selected_subnets)
+        else:
+            print(f"{YELLOW}ℹ Subnet discovery unavailable. Defaulting to manual input.{RESET}")
+            subnets_str = prompt_input("Endpoint Subnet IDs (JSON list, minimum 1 per AZ)", default='["subnet-0aaa...", "subnet-0bbb..."]')
+
+        # 3. Discover Route Tables with Name tags and Main association
+        discovered_rts = discover_aws_route_tables(vpc_id, region, profile=aws_profile)
+        if discovered_rts:
+            print(f"\n{CYAN}Discovered Route Tables in {vpc_id}:{RESET}")
+            for idx, rt in enumerate(discovered_rts, 1):
+                rt_name = f" — {rt['Name']}" if rt.get("Name") else (" [Main VPC Route Table]" if rt.get("Main") else "")
+                warn_rt = ""
+                if rt.get("DefaultRouteTarget"):
+                    warn_rt = f" {YELLOW}(Has existing 0.0.0.0/0 route -> {rt['DefaultRouteTarget']}){RESET}"
+                print(f"  [{idx}] {rt['Id']}{rt_name}{warn_rt}")
+
+            rt_choice = prompt_input("Select route table number(s) to steer to ZTGW (comma-separated)", default="1")
+            selected_rts = []
+            for part in rt_choice.split(","):
+                part = part.strip()
+                try:
+                    selected_rts.append(discovered_rts[int(part) - 1]["Id"])
+                except Exception:
+                    for rt in discovered_rts:
+                        if rt["Id"] == part or rt.get("Name") == part:
+                            selected_rts.append(rt["Id"])
+                            break
+                    else:
+                        if part:
+                            selected_rts.append(part)
+
+            overwrite_confirmed = True
+            for r_id in selected_rts:
+                for rt in discovered_rts:
+                    if rt["Id"] == r_id and rt.get("DefaultRouteTarget"):
+                        target = rt["DefaultRouteTarget"]
+                        print(f"\n{YELLOW}⚠ Notice: Route table '{r_id}' already has a 0.0.0.0/0 route pointing to '{target}'.{RESET}")
+                        ans = prompt_input(f"Overwrite/replace the existing 0.0.0.0/0 route in '{r_id}' to steer traffic through ZTGW? (y/n)", default="y")
+                        if ans.lower() not in ("y", "yes"):
+                            overwrite_confirmed = False
+                            print(f"{YELLOW}Skipping route overwrite. Note: AWS will reject duplicate default routes unless replaced.{RESET}")
+
+            route_table_ids_json = json.dumps(selected_rts)
+        else:
+            print(f"{YELLOW}ℹ Route table discovery unavailable. Defaulting to manual input.{RESET}")
+            rt_input = prompt_input("Workload Route Table ID to steer to ZTGW (e.g. rtb-0123456789abcdef0)")
+            route_table_ids_json = json.dumps([rt_input] if rt_input else [])
+            overwrite_confirmed = True
+
+    content = f"""# Auto-generated by ./ztgw configure for AWS (Mode: {deploy_mode}, Topology: {topo_choice})
+aws_region              = "{region}"
+customer_aws_account_id = "{account_id}"
+deploy_ztgw             = {"true" if deploy_ztgw else "false"}
+deploy_consumer         = {"true" if deploy_consumer else "false"}
+"""
+    if not deploy_ztgw:
+        content += f'endpoint_service_name = "{existing_ep}"\n'
+
+    if deploy_consumer:
+        content += f"""customer_vpc_id         = "{vpc_id}"
+endpoint_subnet_ids     = {subnets_str}
+workload_route_table_ids = {route_table_ids_json}
+overwrite_existing_routes = {"true" if overwrite_confirmed else "false"}
+"""
+
+    # Set physical Availability Zones for ZTGW deployment (minimum 2 physical zones for HA)
+    all_azs = discover_aws_region_azs(region, profile=aws_profile)
+    target_azs = []
+    for a in all_azs:
+        zid = a.get("ZoneId", "").lower()
+        if zid.endswith("-az1") or zid.endswith("-az2"):
+            if zid not in target_azs:
+                target_azs.append(zid)
+    if len(target_azs) < 2 and all_azs:
+        for a in all_azs:
+            zid = a.get("ZoneId", "").lower()
+            if zid not in target_azs:
+                target_azs.append(zid)
+            if len(target_azs) >= 2:
+                break
+    if len(target_azs) < 2:
+        target_azs = ["use1-az1", "use1-az2"]
+
+    azs_formatted = "[\n  " + ",\n  ".join([f'"{z}"' for z in target_azs]) + "\n]"
+
+    if deploy_ztgw:
+        content += f"""
+client_id     = "{client_id}"
+client_secret = "{client_secret}"
+vanity_domain = "{vanity}"
+cloud         = "{cloud}"
+
+gateway_name  = "{gateway_name}"
+location_name = "Unified-AWS-{region}"
+insecure_skip_verify = {"true" if insecure_skip_verify else "false"}
+
+availability_zones = {azs_formatted}
+"""
+    with open(tfvars_file, "w") as f:
+        f.write(content)
+    os.chmod(tfvars_file, 0o600)
+
+    cache_data = {
+        "cloud_platform": "aws",
+        "topology": topo_choice,
+        "deploy_mode": deploy_mode,
+        "aws_profile": aws_profile,
+    }
+    if access_key and secret_key:
+        cache_data["aws_access_key_id"] = access_key
+        cache_data["aws_secret_access_key"] = secret_key
+        if session_token:
+            cache_data["aws_session_token"] = session_token
+
+    with open(CONFIG_CACHE, "w") as f:
+        json.dump(cache_data, f)
+    os.chmod(CONFIG_CACHE, 0o600)
+
+    print(f"\n{GREEN}✓ Generated secure configuration for AWS:{RESET} {tfvars_file}")
+
+
+def configure_wizard():
+    banner()
+    print(f"{YELLOW}Interactive Configuration Wizard for ZTGW{RESET}\n")
+
+    # 1. Select Cloud Platform
+    print(f"{BOLD}Select Cloud Platform:{RESET}")
+    print("  [1] Google Cloud (GCP)")
+    print("  [2] Amazon Web Services (AWS)")
+    choice = prompt_input("Enter selection (1 or 2)", default="1")
+    platform = "aws" if choice == "2" else "gcp"
+
+    # 2. Select Deployment Mode
+    print(f"\n{BOLD}Select Deployment Mode:{RESET}")
+    print("  [1] Full Deployment   — Provision ZTGW + wire cloud consumer plumbing (Recommended)")
+    print(f"      {CYAN}• Deploys managed gateway in Zscaler and attaches your customer VPC in a single step.{RESET}")
+    print("  [2] ZTGW Only         — Provision ZTGW in Zscaler and output connection handle (IDG/Endpoint Service)")
+    print(f"      {CYAN}• Best for InfoSec teams creating central gateways without managing customer VPCs.{RESET}")
+    print("  [3] Consumer Only     — Connect an existing ZTGW to customer VPC(s)")
+    print(f"      {CYAN}• Best for App/Cloud teams connecting VPCs using an existing IDG or Endpoint Service.{RESET}")
+    mode_choice = prompt_input("Enter selection (1, 2, or 3)", default="1")
+
+    client_id = ""
+    client_secret = ""
+    vanity = ""
+    cloud = ""
+    used_insecure = False
+
+    if mode_choice in ("1", "2"):
+        # Zscaler OneAPI Credentials needed
+        print(f"\n{BOLD}Zscaler OneAPI Credentials{RESET}")
+        vanity = prompt_input("Zscaler Vanity Domain (e.g. acme for acme.zslogin.net)")
+        clouds = ["zscaler", "zscalerbeta", "zscalerone", "zscalertwo", "zscalerthree"]
+        print(f"Available Clouds: {', '.join(clouds)}")
+        cloud = prompt_input("Zscaler Cloud", default="zscaler")
+        client_id = prompt_input("Zscaler Client ID")
+        client_secret = prompt_input("Zscaler Client Secret", secret=True)
+
+        _, used_insecure = validate_oneapi_credentials(vanity, cloud, client_id, client_secret)
+
+    if platform == "gcp":
+        configure_gcp(client_id, client_secret, vanity, cloud, insecure_skip_verify=used_insecure, deploy_mode=mode_choice)
+    else:
+        configure_aws(client_id, client_secret, vanity, cloud, insecure_skip_verify=used_insecure, deploy_mode=mode_choice)
+
+    print(f"Setup complete! You can now run:\n  {CYAN}./ztgw plan{RESET} or {CYAN}./ztgw apply{RESET}\n")
+
+
+def get_cloud_urls(cloud: str, vanity: str, login_domain_override: str = "") -> tuple:
+    cloud = cloud.lower()
+    login_domain_map = {
+        "zscalerbeta": "zsloginbeta.net",
+        "zscalerthree": "zsloginthree.net",
+        "zscalerone": "zsloginone.net",
+        "zscalertwo": "zslogintwo.net",
+    }
+    login_domain = login_domain_override or login_domain_map.get(cloud, "zslogin.net")
+    token_url = f"https://{vanity}.{login_domain}/oauth2/v1/token"
+    base_url = f"https://connector.{cloud}.net/api/v1"
+    return token_url, base_url
+
+
+def fetch_oneapi_token(vanity: str, cloud: str, client_id: str, client_secret: str, insecure: bool = True) -> str:
+    token_url, _ = get_cloud_urls(cloud, vanity)
+    data = urllib.parse.urlencode({
+        "grant_type": "client_credentials",
+        "client_id": client_id,
+        "client_secret": client_secret,
+    }).encode("utf-8")
+    req = urllib.request.Request(token_url, data=data, headers={"Content-Type": "application/x-www-form-urlencoded"}, method="POST")
+    ctx = build_ssl_context(insecure=insecure)
+    try:
+        with urllib.request.urlopen(req, context=ctx, timeout=15) as resp:
+            body = json.loads(resp.read().decode("utf-8"))
+            return body.get("access_token", "")
+    except Exception:
+        if not insecure:
+            ctx_fb = build_ssl_context(insecure=True)
+            try:
+                with urllib.request.urlopen(req, context=ctx_fb, timeout=15) as resp:
+                    body = json.loads(resp.read().decode("utf-8"))
+                    return body.get("access_token", "")
+            except Exception:
+                pass
+    return ""
+
+
+def check_tenant_pending_activation(tfvars_file: str) -> bool:
+    """Checks Zscaler tenant for pending edits and prompts user before apply.
+    Returns True to proceed, False if user chose not to activate."""
+    if not os.path.exists(tfvars_file):
+        return True
+
+    c_id, c_secret, vanity, cloud = "", "", "", "zscaler"
+    try:
+        with open(tfvars_file, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("client_id") and "=" in line:
+                    c_id = line.split("=", 1)[1].strip().strip('"')
+                elif line.startswith("client_secret") and "=" in line:
+                    c_secret = line.split("=", 1)[1].strip().strip('"')
+                elif line.startswith("vanity_domain") and "=" in line:
+                    vanity = line.split("=", 1)[1].strip().strip('"')
+                elif line.startswith("cloud") and "=" in line:
+                    cloud = line.split("=", 1)[1].strip().strip('"')
+    except Exception:
+        return True
+
+    if not (c_id and c_secret and vanity):
+        return True
+
+    token_url, base_url = get_cloud_urls(cloud, vanity)
+    token = fetch_oneapi_token(vanity, cloud, c_id, c_secret, insecure=True)
+    if not token:
+        return True
+
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+
+    try:
+        req = urllib.request.Request(
+            f"{base_url}/ecAdminActivateStatus",
+            headers={"Authorization": f"Bearer {token}", "User-Agent": "Zscaler-ZTGW-CLI/2.0"}
+        )
+        with urllib.request.urlopen(req, context=ctx, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            if data.get("orgEditStatus") == "EDITS_PRESENT":
+                admin_map = data.get("adminStatusMap", {})
+                print("\n" + "=" * 70)
+                print(f"{YELLOW}⚠ NOTICE: Pending unactivated draft changes detected in Zscaler tenant!{RESET}")
+                if admin_map:
+                    print("  Active administrator sessions with draft edits:")
+                    for adm, st in admin_map.items():
+                        print(f"    • {adm} ({st})")
+                print("=" * 70)
+                ans = prompt_input("Do you want to activate all pending tenant changes now? (y/n)", default="n")
+                if ans.lower() in ("y", "yes"):
+                    req_act = urllib.request.Request(
+                        f"{base_url}/ecAdminActivateStatus/forcedActivate",
+                        data=b"{}",
+                        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json", "User-Agent": "Zscaler-ZTGW-CLI/2.0"},
+                        method="PUT"
+                    )
+                    try:
+                        with urllib.request.urlopen(req_act, context=ctx, timeout=10):
+                            print(f"{GREEN}✓ Cloud tenant changes activated successfully.{RESET}\n")
+                            time.sleep(3)
+                            return True
+                    except Exception as e:
+                        print(f"{YELLOW}Warning: Activation call failed: {e}{RESET}")
+                        return True
+                else:
+                    print(f"\n{RED}Apply cancelled.{RESET} Please review and activate (or discard) pending changes in the Zscaler Admin Portal before proceeding.\n")
+                    return False
+    except Exception:
+        pass
+    return True
+
+
+def run_terraform(action: str, target_cloud: str = ""):
+    check_terraform_installed()
+    banner()
+
+    platform_name, active_dir = get_active_cloud_dir(interactive=True, target_arg=target_cloud)
+    tfvars_file = os.path.join(active_dir, "terraform.tfvars")
+
+    if not os.path.exists(tfvars_file) and action != "configure":
+        print(f"\n{YELLOW}Warning: {tfvars_file} not found.{RESET}")
+        print(f"Run {CYAN}./ztgw configure{RESET} first to set up {platform_name.upper()}.\n")
+        sys.exit(1)
+
+    print(f"\n{CYAN}Target Platform:{RESET} {BOLD}{platform_name.upper()}{RESET} ({active_dir})\n")
+
+    # 1. Initialize if needed
+    if not os.path.exists(os.path.join(active_dir, ".terraform")):
+        print(f"--> Initializing Terraform modules and providers...")
+        subprocess.run(["terraform", f"-chdir={active_dir}", "init"], check=True)
+
+    # 2. Run action
+    cmd = ["terraform", f"-chdir={active_dir}", action]
+    if action == "apply":
+        should_proceed = check_tenant_pending_activation(tfvars_file)
+        if not should_proceed:
+            sys.exit(0)
+        cmd.append("-auto-approve")
+    elif action == "destroy":
+        print(f"{BOLD}Teardown Scope for {platform_name.upper()}:{RESET}")
+        print("  [1] Full Teardown — Destroy cloud consumer VPC plumbing AND deprovision ZTGW in Zscaler")
+        print("  [2] Consumer Only — Disconnect cloud VPC endpoints/routes (keep ZTGW active in Zscaler)")
+        print("  [3] Cancel")
+        scope = prompt_input("Enter selection (1, 2, or 3)", default="1")
+        if scope in ("3", "c", "cancel"):
+            print("Teardown cancelled.")
+            sys.exit(0)
+        elif scope == "2":
+            consumer_module = "module.gwlb_consumer" if platform_name == "aws" else "module.nsi_consumer"
+            print(f"\n{CYAN}--> Tearing down consumer plumbing only ({consumer_module})...{RESET}")
+            cmd.extend(["-target", consumer_module, "-auto-approve"])
+        else:
+            confirm = input(f"\n{RED}{BOLD}Are you sure you want to completely destroy all {platform_name.upper()} ZTGW and cloud resources? (yes/no): {RESET}")
+            if confirm.lower() not in ("yes", "y"):
+                print("Teardown cancelled.")
+                sys.exit(0)
+            cmd.append("-auto-approve")
+
+    env = os.environ.copy()
+    # Force Go binaries (Terraform and AWS provider) to use OS resolver (cgo) instead of buggy/dead IPv6 DNS nameservers
+    env["GODEBUG"] = "netdns=cgo"
+    if os.path.exists(tfvars_file):
+        try:
+            with open(tfvars_file, "r") as f:
+                if "insecure_skip_verify = true" in f.read().lower():
+                    env["INSECURE_SKIP_VERIFY"] = "true"
+        except Exception:
+            pass
+
+    if platform_name == "aws":
+        if os.path.exists(CONFIG_CACHE):
+            try:
+                with open(CONFIG_CACHE) as f:
+                    cdata = json.load(f)
+                    if cdata.get("aws_access_key_id"):
+                        env["AWS_ACCESS_KEY_ID"] = cdata["aws_access_key_id"]
+                        env["AWS_SECRET_ACCESS_KEY"] = cdata["aws_secret_access_key"]
+                        if cdata.get("aws_session_token"):
+                            env["AWS_SESSION_TOKEN"] = cdata["aws_session_token"]
+                    elif cdata.get("aws_profile") and "AWS_PROFILE" not in env and "AWS_ACCESS_KEY_ID" not in env:
+                        env["AWS_PROFILE"] = cdata["aws_profile"]
+            except Exception:
+                pass
+
+        # PREFLIGHT AUTH CHECK: Ensure AWS SSO session is active before launching Terraform
+        if "AWS_ACCESS_KEY_ID" not in env:
+            active_profile = env.get("AWS_PROFILE", "")
+            if not active_profile and os.path.exists(CONFIG_CACHE):
+                try:
+                    with open(CONFIG_CACHE) as f:
+                        active_profile = json.load(f).get("aws_profile", "")
+                except Exception:
+                    pass
+
+            # Only verify profile SSO if a profile was explicitly configured.
+            # If active_profile is empty, user relies on IAM Instance Profile, EKS IRSA, or cloud identity.
+            if active_profile:
+                if not check_and_login_aws_profile(active_profile):
+                    print(f"\n{RED}✗ Authentication Error: Cannot proceed with expired AWS SSO session for profile '{active_profile}'.{RESET}", flush=True)
+                    print(f"  Please run: {CYAN}aws sso login --profile {active_profile}{RESET} and retry.\n", flush=True)
+                    sys.exit(1)
+
+                # Export live STS credentials so Terraform's AWS provider NEVER fails on Go SDK SSO cache bugs!
+                creds = export_aws_profile_credentials(active_profile)
+                if creds.get("AccessKeyId"):
+                    env["AWS_ACCESS_KEY_ID"] = creds["AccessKeyId"]
+                    env["AWS_SECRET_ACCESS_KEY"] = creds["SecretAccessKey"]
+                    if creds.get("SessionToken"):
+                        env["AWS_SESSION_TOKEN"] = creds["SessionToken"]
+                    # CRITICAL: Remove AWS_PROFILE from env so Terraform's AWS provider doesn't override STS credentials!
+                    env.pop("AWS_PROFILE", None)
+                else:
+                    print(f"\n{RED}✗ Authentication Error: Failed to export active STS credentials for profile '{active_profile}'.{RESET}", flush=True)
+                    print(f"  Please run: {CYAN}aws sso login --profile {active_profile}{RESET} and retry.\n", flush=True)
+                    sys.exit(1)
+
+    try:
+        subprocess.run(cmd, env=env, check=True)
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
+
+
+def main():
+    if len(sys.argv) < 2 or sys.argv[1] in ("-h", "--help", "help"):
+        banner()
+        platform_name, _ = get_active_cloud_dir(interactive=False)
+        print(f"Active Platform: {CYAN}{platform_name.upper()}{RESET} (change via './ztgw configure')\n")
+        print("Usage: ./ztgw <command> [aws|gcp]\n")
+        print("Commands:")
+        print("  configure   Interactive setup wizard (Topology selection: Dedicated, Shared, Hub-and-Spoke)")
+        print("  plan        Run terraform plan [optional: aws|gcp]")
+        print("  apply       Provision ZTGW + consumer cloud plumbing in one shot [optional: aws|gcp]")
+        print("  destroy     Tear down consumer plumbing and deprovision ZTGW [optional: aws|gcp]")
+        print("  output      Show Terraform outputs [optional: aws|gcp]\n")
+        sys.exit(0)
+
+    cmd = sys.argv[1]
+    target_cloud = sys.argv[2] if len(sys.argv) > 2 else ""
+    if cmd == "configure":
+        configure_wizard()
+    elif cmd in ("plan", "apply", "destroy", "output"):
+        run_terraform(cmd, target_cloud=target_cloud)
+    else:
+        print(f"{RED}Unknown command: {cmd}. Run './ztgw help' for usage.{RESET}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
