@@ -1,0 +1,19 @@
+# ==============================================================================
+# Zscaler ZTGW on AWS — Consumer-Brownfield Reference Configuration
+# ==============================================================================
+
+aws_region            = "us-east-1"
+customer_vpc_id       = "vpc-0123456789abcdef0"
+endpoint_service_name = "com.amazonaws.vpce.us-east-1.vpce-svc-0xxxxxxxxxxxxxxxxx"
+
+# Subnet ID to place the GWLB endpoint interface (in a supported AZ, e.g. us-east-1b)
+endpoint_subnet_ids = [
+  "subnet-0123456789abcdef0"
+]
+
+# Workload route tables to steer default traffic (0.0.0.0/0) to ZTGW
+workload_route_table_ids = [
+  "rtb-0123456789abcdef0"
+]
+
+overwrite_existing_routes = true

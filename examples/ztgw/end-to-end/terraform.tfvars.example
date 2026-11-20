@@ -1,0 +1,70 @@
+# ==============================================================================
+# Zscaler Zero Trust Gateway (ZTGW) on AWS — End-to-End Reference Configuration
+#
+# Instructions:
+#   1. Copy this file to terraform.tfvars:
+#        cp terraform.tfvars.example terraform.tfvars
+#   2. Fill in your environment-specific values below.
+#   3. Run:
+#        terraform init
+#        terraform apply
+# ==============================================================================
+
+# --- 1. Customer AWS Environment ----------------------------------------------
+# Target AWS region
+aws_region = "us-west-2"
+
+# Customer 12-digit AWS Account ID (whitelisted on the ZTGW Endpoint Service)
+customer_aws_account_id = "123456789012"
+
+# Existing Customer VPC ID to attach to ZTGW
+customer_vpc_id = "vpc-0123456789abcdef0"
+
+# Dedicated Endpoint Subnet IDs in your VPC (minimum 1 per AZ, matching availability_zones)
+endpoint_subnet_ids = [
+  "subnet-0aaa1111222233334",
+  "subnet-0bbb1111222233334"
+]
+
+# Route table IDs associated with your workload subnets (will route egress to ZTGW)
+workload_route_table_ids = [
+  "rtb-0123456789abcdef0"
+]
+
+# Traffic steering: 0.0.0.0/0 sends all internet egress through Zscaler
+intercept_cidr_block = "0.0.0.0/0"
+
+# Tagging prefix
+deploy_key = "ztgw-aws"
+
+
+# --- 2. Zscaler OneAPI / Zidentity Credentials -------------------------------
+# Your Zscaler OneAPI Client ID & Secret
+client_id     = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+client_secret = "your_zscaler_oneapi_client_secret_here"
+
+# Your organization's Zscaler tenant vanity domain (e.g. acme for acme.zslogin.net)
+vanity_domain = "acme"
+
+# Zscaler Cloud name: zscaler, zscalerbeta, zscalerone, zscalertwo, zscalerthree
+cloud = "zscaler"
+
+# Optional: Custom login domain override if different from cloud default.
+# login_domain = "zslogin.net"
+
+# Optional: Set to true if deploying from an environment with corporate TLS inspection (e.g. ZCC or firewall proxy).
+# insecure_skip_verify = false
+
+
+# --- 3. Gateway Configuration ------------------------------------------------
+# Name for your ZTGW instance in the Zscaler portal
+gateway_name = "aws-ztgw-us-west-2"
+
+# Descriptive location name in Zscaler cloud (must start with 'Unified' for AWS)
+location_name = "Unified-AWS-us-west-2"
+
+# Availability zones in the target region (minimum 2 zones required for HA)
+availability_zones = [
+  "us-west-2a",
+  "us-west-2b"
+]

@@ -100,3 +100,27 @@ Use the [**Custom Deployment template with GWLB**](examples/cc_gwlb) to deploy y
 ### **Custom Deployment Template with Auto Scaling and Gateway Load Balancer (GWLB)**
 
 Use the [**Custom Deployment template with GWLB**](examples/cc_gwlb_asg) to deploy your Cloud Connector in a new or existing VPC and load balance traffic across multiple Cloud Connectors. Zscaler\'s recommended deployment method is Gateway Load Balancer (GWLB). GWLB distributes traffic across multiple Cloud Connectors and achieves high availability. For added resiliency and elasticity, Cloud Connectors are deployed via a Launch Template configured Auto Scaling group. Optional ZPA/Route 53 add-on capabilities.
+
+---
+
+## **Zero Trust Gateway (ZTGW) Deployments**
+
+Zscaler Managed Zero Trust Gateway (ZTGW) delivers cloud-managed outbound security directly through native AWS Gateway Load Balancer Endpoints without managing EC2 virtual appliances, launch templates, or auto-scaling groups.
+
+### **ZTGW Architecture**
+* **Fully Managed:** The Cloud Connector cluster and GWLB are provisioned and operated by Zscaler inside Zscaler's Dataplane infrastructure.
+* **Native Terraform Provider:** Powered by the official `zscaler/ztc` provider (`resource "ztc_zero_trust_gateway"`).
+* **Consumer VPC Integration:** Customer VPCs connect via local Gateway Load Balancer VPC Endpoints with automated route table steerage (`0.0.0.0/0`).
+
+### **ZTGW Modules**
+| Module | Path | Purpose |
+| :--- | :--- | :--- |
+| **`gateway-aws`** | [`modules/terraform-ztgw-gateway-aws`](modules/terraform-ztgw-gateway-aws) | Provisions ZTGW via native ZTC provider and outputs the Endpoint Service name. |
+| **`gwlb-consumer-aws`** | [`modules/terraform-ztgw-gwlb-consumer-aws`](modules/terraform-ztgw-gwlb-consumer-aws) | Wires customer VPC GWLB Endpoints across physical AZs and steers default routes. |
+
+### **ZTGW Examples**
+| Directory | Mode | Description |
+| :--- | :--- | :--- |
+| [`examples/ztgw/end-to-end`](examples/ztgw/end-to-end) | **Full (3-in-1)** | Complete automated deployment of ZTGW + customer VPC endpoints in a single apply. |
+| [`examples/ztgw/gateway-only`](examples/ztgw/gateway-only) | **ZTGW Only** | Dedicated reference for InfoSec teams creating central gateways. |
+| [`examples/ztgw/consumer-brownfield`](examples/ztgw/consumer-brownfield) | **Consumer Only** | For Application teams connecting existing VPCs (**Zero Zscaler keys required**). |

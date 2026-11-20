@@ -1,0 +1,25 @@
+# ==============================================================================
+# Zscaler ZTGW on AWS — Gateway-Only Reference Configuration
+# ==============================================================================
+
+aws_region   = "us-east-1"
+gateway_name = "aws-ztgw-central-gateway"
+
+# Zscaler OneAPI Credentials
+client_id     = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+client_secret = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+vanity_domain = "acme"
+cloud         = "zscaler"
+
+# High Availability Physical Zones
+availability_zones = [
+  "use1-az1",
+  "use1-az2"
+]
+
+# Customer AWS Account IDs authorized to attach to this gateway
+customer_aws_account_ids = [
+  "123456789012"
+]
+
+auto_activate_pending = true
