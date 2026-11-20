@@ -28,10 +28,10 @@ export GODEBUG="netdns=cgo"
 
 usage() {
     echo ""
-    echo "Usage: $0 <configure|apply|up|plan|destroy|output> [aws|gcp]"
+    echo "Usage: $0 <configure|apply|up|plan|destroy|output>"
     echo ""
-    echo "  configure  Interactive setup wizard (discover VPCs, subnets, and OneAPI)"
-    echo "  apply/up   Deploy ZTGW + cloud consumer plumbing"
+    echo "  configure  Interactive setup wizard (discover VPCs, subnets, and physical AZs)"
+    echo "  apply/up   Deploy ZTGW + AWS consumer plumbing"
     echo "  plan       Show Terraform plan preview for active configuration"
     echo "  output     Show Terraform outputs"
     echo "  destroy    Tear down all cloud resources and deprovision ZTGW"
@@ -43,7 +43,7 @@ banner() {
     echo ""
     echo "${GREEN}${BOLD}============================================================${RESET}"
     echo "${GREEN}${BOLD}      Zscaler Unified Zero Trust Gateway (ZTGW) Engine     ${RESET}"
-    echo "${GREEN}${BOLD}       Pure-Bash Interactive Deployer (GCP & AWS)           ${RESET}"
+    echo "${GREEN}${BOLD}              Pure-Bash Deployer (AWS)                      ${RESET}"
     echo "${GREEN}${BOLD}============================================================${RESET}"
     echo ""
 }
@@ -149,78 +149,95 @@ if [[ "$oper" == "configure" || (("$oper" == "up" || "$oper" == "plan") && ! -f 
 
     if [[ "$DEPLOY_ZTGW" == "true" ]]; then
         echo "${BOLD}Zscaler OneAPI Credentials (for ZTC Provider)${RESET}"
-        # Check if credentials already exist in environment
-        if [[ -n "$ZSCALER_CLIENT_ID" && -n "$ZSCALER_CLIENT_SECRET" && -n "$ZSCALER_VANITY_DOMAIN" ]]; then
-            echo "${GREEN}✓ Found Zscaler credentials in environment (ZSCALER_CLIENT_ID: ${ZSCALER_CLIENT_ID:0:8}...)${RESET}"
+        z_cid="${ZSCALER_CLIENT_ID:-${zscaler_client_id:-}}"
+        z_sec="${ZSCALER_CLIENT_SECRET:-${zscaler_client_secret:-}}"
+        z_van="${ZSCALER_VANITY_DOMAIN:-${zscaler_vanity_domain:-}}"
+        z_cld="${ZSCALER_CLOUD:-${zscaler_cloud:-zscaler}}"
+
+        if [[ -n "$z_cid" && -n "$z_sec" && -n "$z_van" ]]; then
+            echo "${GREEN}✓ Found Zscaler credentials in environment (ZSCALER_CLIENT_ID: ${z_cid:0:8}...)${RESET}"
             read -r -p "Use credentials from environment? (y/n) [y]: " use_env_creds
             use_env_creds=${use_env_creds:-y}
             if [[ "$use_env_creds" =~ ^[Yy] ]]; then
-                CLIENT_ID="$ZSCALER_CLIENT_ID"
-                CLIENT_SECRET="$ZSCALER_CLIENT_SECRET"
-                VANITY="$ZSCALER_VANITY_DOMAIN"
-                CLOUD_ENV="${ZSCALER_CLOUD:-zscaler}"
+                CLIENT_ID="$z_cid"
+                CLIENT_SECRET="$z_sec"
+                VANITY="$z_van"
+                CLOUD_ENV="$z_cld"
             fi
         fi
 
         if [[ -z "$CLIENT_ID" ]]; then
-            read -r -p "Zscaler Vanity Domain (e.g. acme for acme.zslogin.net): " VANITY
+            echo "${CYAN}Tip: Set ZSCALER_CLIENT_ID, ZSCALER_CLIENT_SECRET, and ZSCALER_VANITY_DOMAIN in your shell to authenticate automatically.${RESET}"
+            read -r -p "Zscaler Vanity Domain [${z_van:-acme}]: " in_vanity
+            VANITY="${in_vanity:-${z_van:-acme}}"
+
             echo "${CYAN}Available Clouds: zscaler, zscalerbeta, zscalerone, zscalertwo, zscalerthree${RESET}"
-            read -r -p "Zscaler Cloud [zscaler]: " CLOUD_ENV
-            CLOUD_ENV=${CLOUD_ENV:-zscaler}
-            read -r -p "Zscaler Client ID: " CLIENT_ID
-            read -r -s -p "Zscaler Client Secret: " CLIENT_SECRET
-            echo ""
+            read -r -p "Zscaler Cloud [${z_cld}]: " in_cld
+            CLOUD_ENV="${in_cld:-$z_cld}"
+
+            read -r -p "Zscaler Client ID (or press Enter if using \$ZSCALER_CLIENT_ID): " in_cid
+            CLIENT_ID="${in_cid:-$z_cid}"
+
+            if [[ -n "$CLIENT_ID" ]]; then
+                read -r -s -p "Zscaler Client Secret: " in_sec
+                echo ""
+                CLIENT_SECRET="${in_sec:-$z_sec}"
+            fi
         fi
 
         # Pre-flight check: Validating Zscaler OneAPI credentials
-        echo ""
-        echo "${CYAN}--> Pre-flight check: Validating Zscaler OneAPI credentials...${RESET}"
-        login_domain="zslogin.net"
-        clean_cloud=$(echo "$CLOUD_ENV" | tr '[:upper:]' '[:lower:]')
-        case "$clean_cloud" in
-            zscalerbeta) login_domain="zsloginbeta.net" ;;
-            zscalerthree) login_domain="zsloginthree.net" ;;
-            zscalerone) login_domain="zsloginone.net" ;;
-            zscalertwo) login_domain="zslogintwo.net" ;;
-        esac
-        token_url="https://${VANITY}.${login_domain}/oauth2/v1/token"
+        if [[ -n "$CLIENT_ID" && -n "$CLIENT_SECRET" ]]; then
+            echo ""
+            echo "${CYAN}--> Pre-flight check: Validating Zscaler OneAPI credentials...${RESET}"
+            login_domain="zslogin.net"
+            clean_cloud=$(echo "$CLOUD_ENV" | tr '[:upper:]' '[:lower:]')
+            case "$clean_cloud" in
+                zscalerbeta) login_domain="zsloginbeta.net" ;;
+                zscalerthree) login_domain="zsloginthree.net" ;;
+                zscalerone) login_domain="zsloginone.net" ;;
+                zscalertwo) login_domain="zslogintwo.net" ;;
+            esac
+            token_url="https://${VANITY}.${login_domain}/oauth2/v1/token"
 
-        auth_success=false
-        insecure_needed=false
+            auth_success=false
+            insecure_needed=false
 
-        if command -v curl &>/dev/null; then
-            token_resp=$(curl -s -X POST "$token_url" \
-                -H "Content-Type: application/x-www-form-urlencoded" \
-                -d "grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}" 2>/dev/null || true)
-            if [[ "$token_resp" == *"access_token"* ]]; then
-                auth_success=true
-            else
-                # Try with -k / insecure in case corporate TLS proxy / ZCC is active
-                token_resp_k=$(curl -s -k -X POST "$token_url" \
+            if command -v curl &>/dev/null; then
+                token_resp=$(curl -s -X POST "$token_url" \
                     -H "Content-Type: application/x-www-form-urlencoded" \
                     -d "grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}" 2>/dev/null || true)
-                if [[ "$token_resp_k" == *"access_token"* ]]; then
+                if [[ "$token_resp" == *"access_token"* ]]; then
                     auth_success=true
-                    insecure_needed=true
+                else
+                    token_resp_k=$(curl -s -k -X POST "$token_url" \
+                        -H "Content-Type: application/x-www-form-urlencoded" \
+                        -d "grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}" 2>/dev/null || true)
+                    if [[ "$token_resp_k" == *"access_token"* ]]; then
+                        auth_success=true
+                        insecure_needed=true
+                    fi
                 fi
             fi
-        fi
 
-        if [[ "$auth_success" == "true" ]]; then
-            if [[ "$insecure_needed" == "true" ]]; then
-                echo "${GREEN}✓ Authentication successful with Zscaler OneAPI (corporate proxy mode: insecure_skip_verify = true enabled)${RESET}"
-                INSECURE_VERIFY="true"
+            if [[ "$auth_success" == "true" ]]; then
+                if [[ "$insecure_needed" == "true" ]]; then
+                    echo "${GREEN}✓ Authentication successful with Zscaler OneAPI (corporate proxy mode: insecure_skip_verify = true enabled)${RESET}"
+                    INSECURE_VERIFY="true"
+                else
+                    echo "${GREEN}✓ Authentication successful with Zscaler OneAPI!${RESET}"
+                fi
             else
-                echo "${GREEN}✓ Authentication successful with Zscaler OneAPI!${RESET}"
+                echo "${YELLOW}⚠ Warning: Could not verify Zscaler OneAPI credentials automatically.${RESET}"
+                read -r -p "Skip SSL verification for TLS proxies / ZCC? (y/n) [n]: " skip_ssl
+                if [[ "$skip_ssl" =~ ^[Yy] ]]; then
+                    INSECURE_VERIFY="true"
+                fi
             fi
+            echo ""
         else
-            echo "${YELLOW}⚠ Warning: Could not verify Zscaler OneAPI credentials automatically.${RESET}"
-            read -r -p "Skip SSL verification for TLS proxies / ZCC? (y/n) [n]: " skip_ssl
-            if [[ "$skip_ssl" =~ ^[Yy] ]]; then
-                INSECURE_VERIFY="true"
-            fi
+            echo "${YELLOW}ℹ OneAPI credentials not entered interactively. Provider will read ZSCALER_CLIENT_ID and ZSCALER_CLIENT_SECRET from environment at runtime.${RESET}"
+            echo ""
         fi
-        echo ""
     fi
 
     # 4. Topology Selection
