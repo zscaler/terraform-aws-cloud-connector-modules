@@ -1,3 +1,8 @@
+## [1.5.3] - (Dec 11, 2026)
+
+ENHANCEMENTS:
+* add new EC2 type for small CCs: `m6idn.large`
+
 ## [1.5.2] - (Sep 18, 2026)
 
 ENHANCEMENTS:
