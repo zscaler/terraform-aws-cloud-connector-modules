@@ -7,7 +7,7 @@
 
 locals {
   platform      = upper(var.platform)
-  location_name = var.location_name != null ? var.location_name : "Unified-${local.platform}-${var.region}"
+  location_name = var.location_name != null && var.location_name != "" ? var.location_name : "Unified-${var.gateway_name}"
 }
 
 resource "ztc_zero_trust_gateway" "this" {

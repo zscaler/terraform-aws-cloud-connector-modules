@@ -795,7 +795,7 @@ deploy_consumer         = ${DEPLOY_CONSUMER}
 insecure_skip_verify    = ${INSECURE_VERIFY}
 
 gateway_name            = "${ZTGW_NAME}"
-location_name           = "Unified-AWS-${AWS_REGION}"
+location_name           = "Unified-${ZTGW_NAME}"
 availability_zones      = ${TARGET_TF_AZS}
 
 client_id               = "${CLIENT_ID}"
