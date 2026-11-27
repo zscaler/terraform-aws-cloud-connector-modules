@@ -36,7 +36,7 @@ resource "aws_instance" "cc_vm" {
   instance_type        = var.ccvm_instance_type
   iam_instance_profile = element(var.iam_instance_profile, count.index)
   key_name             = var.instance_key
-  user_data            = base64encode(var.user_data)
+  user_data_base64     = base64encode(base64encode(var.user_data))
   ebs_optimized        = true
 
   metadata_options {
@@ -44,8 +44,7 @@ resource "aws_instance" "cc_vm" {
     http_tokens   = var.imdsv2_enabled ? "required" : "optional"
   }
 
-  network_interface {
-    device_index         = 0
+  primary_network_interface {
     network_interface_id = aws_network_interface.cc_vm_nic_index_0[count.index].id
   }
 

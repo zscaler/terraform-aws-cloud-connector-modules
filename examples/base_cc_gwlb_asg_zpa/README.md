@@ -39,7 +39,7 @@ From base_cc_gwlb_asg_zpa directory execute:
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.32.0, <= 5.49.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.10.0, < 7.0.0 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.5.0 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.2.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.6.0 |
@@ -49,7 +49,7 @@ From base_cc_gwlb_asg_zpa directory execute:
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.32.0, <= 5.49.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.10.0, < 7.0.0 |
 | <a name="provider_local"></a> [local](#provider\_local) | ~> 2.5.0 |
 | <a name="provider_null"></a> [null](#provider\_null) | ~> 3.2.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | ~> 3.6.0 |
@@ -89,6 +89,7 @@ From base_cc_gwlb_asg_zpa directory execute:
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_acceptance_required"></a> [acceptance\_required](#input\_acceptance\_required) | Whether to require manual acceptance of any VPC Endpoint registration attempts to the Endpoint Service or not. Default is false | `bool` | `false` | no |
+| <a name="input_additional_intra_vpc_cidrs"></a> [additional\_intra\_vpc\_cidrs](#input\_additional\_intra\_vpc\_cidrs) | Optional list of additional intra-VPC CIDR blocks (e.g. secondary VPC CIDR associations) to permit in the Cloud Connector security group rules. Use this when Cloud Connector and/or the GWLB reside in a secondary VPC CIDR that is not returned by data.aws\_vpc.selected.cidr\_block. Value ignored if not creating a security group | `list(string)` | `[]` | no |
 | <a name="input_all_ports_egress_enabled"></a> [all\_ports\_egress\_enabled](#input\_all\_ports\_egress\_enabled) | Default is true which creates an egress rule permitting the CC service interface to forward direct traffic on all ports and protocols. If false, the rule is not created. Value ignored if not creating a security group | `bool` | `true` | no |
 | <a name="input_allowed_principals"></a> [allowed\_principals](#input\_allowed\_principals) | List of AWS Principal ARNs who are allowed access to the GWLB Endpoint Service. E.g. ["arn:aws:iam::1234567890:root"]`. See https://docs.aws.amazon.com/vpc/latest/privatelink/configure-endpoint-service.html#accept-reject-connection-requests` | `list(string)` | `[]` | no |
 | <a name="input_ami_id"></a> [ami\_id](#input\_ami\_id) | AMI ID(s) to be used for deploying Cloud Connector appliances. Ideally all VMs should be on the same AMI ID as templates always pull the latest from AWS Marketplace. This variable is provided if a customer desires to override/retain an old ami for existing deployments rather than upgrading and forcing a launch template change. | `list(string)` | <pre>[<br/>  ""<br/>]</pre> | no |

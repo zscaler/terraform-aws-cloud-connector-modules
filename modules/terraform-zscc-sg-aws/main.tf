@@ -5,6 +5,21 @@ data "aws_vpc" "selected" {
   id = var.vpc_id
 }
 
+locals {
+  # Cartesian product of each security group (by sg_count index) and every
+  # additional intra-VPC CIDR provided via var.additional_intra_vpc_cidrs.
+  # Used to create supplementary security group rules when Cloud Connector
+  # and/or the GWLB reside in a secondary VPC CIDR that is not returned by
+  # data.aws_vpc.selected.cidr_block. Empty when bringing your own security group.
+  additional_intra_vpc_cidrs = var.byo_security_group == false ? {
+    for pair in setproduct(range(var.sg_count), var.additional_intra_vpc_cidrs) :
+    "${pair[0]}-${pair[1]}" => {
+      sg_index = pair[0]
+      cidr     = pair[1]
+    }
+  } : {}
+}
+
 
 ################################################################################
 # Create Security Group and Rules for Cloud Connector Management Interfaces
@@ -32,6 +47,17 @@ resource "aws_vpc_security_group_ingress_rule" "cc_mgmt_ingress_ssh" {
   description       = "Recommended: SSH to CC management"
   security_group_id = aws_security_group.cc_mgmt_sg[count.index].id
   cidr_ipv4         = data.aws_vpc.selected.cidr_block
+  from_port         = 22
+  ip_protocol       = "tcp"
+  to_port           = 22
+}
+
+# Additional intra-VPC CIDRs (e.g. secondary VPC CIDR associations) for SSH to CC management
+resource "aws_vpc_security_group_ingress_rule" "cc_mgmt_ingress_ssh_additional" {
+  for_each          = var.mgmt_ssh_enabled ? local.additional_intra_vpc_cidrs : {}
+  description       = "Recommended: SSH to CC management from additional intra-VPC CIDR"
+  security_group_id = aws_security_group.cc_mgmt_sg[each.value.sg_index].id
+  cidr_ipv4         = each.value.cidr
   from_port         = 22
   ip_protocol       = "tcp"
   to_port           = 22
@@ -132,11 +158,33 @@ resource "aws_vpc_security_group_ingress_rule" "ingress_cc_service_health_check"
   to_port           = var.http_probe_port
 }
 
+# Additional intra-VPC CIDRs (e.g. secondary VPC CIDR associations) for CC Service TCP health probe
+resource "aws_vpc_security_group_ingress_rule" "ingress_cc_service_health_check_additional" {
+  for_each          = local.additional_intra_vpc_cidrs
+  description       = "Required: CC Service TCP health probe from additional intra-VPC CIDR"
+  security_group_id = aws_security_group.cc_service_sg[each.value.sg_index].id
+  cidr_ipv4         = each.value.cidr
+  from_port         = var.http_probe_port
+  ip_protocol       = "tcp"
+  to_port           = var.http_probe_port
+}
+
 resource "aws_vpc_security_group_ingress_rule" "ingress_cc_service_https_local" {
   count             = var.byo_security_group == false ? var.sg_count : 0
   description       = "Required: CC inbound internal VPC cluster TCP 443 communication"
   security_group_id = aws_security_group.cc_service_sg[count.index].id
   cidr_ipv4         = data.aws_vpc.selected.cidr_block
+  from_port         = 443
+  ip_protocol       = "tcp"
+  to_port           = 443
+}
+
+# Additional intra-VPC CIDRs (e.g. secondary VPC CIDR associations) for internal VPC cluster TCP 443
+resource "aws_vpc_security_group_ingress_rule" "ingress_cc_service_https_local_additional" {
+  for_each          = local.additional_intra_vpc_cidrs
+  description       = "Required: CC inbound internal VPC cluster TCP 443 communication from additional intra-VPC CIDR"
+  security_group_id = aws_security_group.cc_service_sg[each.value.sg_index].id
+  cidr_ipv4         = each.value.cidr
   from_port         = 443
   ip_protocol       = "tcp"
   to_port           = 443
@@ -194,11 +242,33 @@ resource "aws_vpc_security_group_ingress_rule" "ingress_cc_service_geneve" {
   to_port           = 6081
 }
 
+# Additional intra-VPC CIDRs (e.g. secondary VPC CIDR associations) for GENEVE ingress from GWLB
+resource "aws_vpc_security_group_ingress_rule" "ingress_cc_service_geneve_additional" {
+  for_each          = var.gwlb_enabled ? local.additional_intra_vpc_cidrs : {}
+  description       = "Required: CC GENEVE encapsulation traffic to CC Service from GWLB in additional intra-VPC CIDR"
+  security_group_id = aws_security_group.cc_service_sg[each.value.sg_index].id
+  cidr_ipv4         = each.value.cidr
+  from_port         = 6081
+  ip_protocol       = "udp"
+  to_port           = 6081
+}
+
 resource "aws_vpc_security_group_egress_rule" "egress_cc_service_geneve" {
   count             = var.byo_security_group == false && var.gwlb_enabled ? var.sg_count : 0
   description       = "Required: CC GENEVE encapsulation traffic to GWLB from CC Service"
   security_group_id = aws_security_group.cc_service_sg[count.index].id
   cidr_ipv4         = data.aws_vpc.selected.cidr_block
+  from_port         = 6081
+  ip_protocol       = "udp"
+  to_port           = 6081
+}
+
+# Additional intra-VPC CIDRs (e.g. secondary VPC CIDR associations) for GENEVE egress to GWLB
+resource "aws_vpc_security_group_egress_rule" "egress_cc_service_geneve_additional" {
+  for_each          = var.gwlb_enabled ? local.additional_intra_vpc_cidrs : {}
+  description       = "Required: CC GENEVE encapsulation traffic to GWLB from CC Service in additional intra-VPC CIDR"
+  security_group_id = aws_security_group.cc_service_sg[each.value.sg_index].id
+  cidr_ipv4         = each.value.cidr
   from_port         = 6081
   ip_protocol       = "udp"
   to_port           = 6081
@@ -211,6 +281,15 @@ resource "aws_vpc_security_group_ingress_rule" "ingress_cc_service_all" {
   description       = "Optional: Permit All Intra-VPC Traffic / Ensure CC Service Interfaces are able to communicate with each other freely"
   security_group_id = aws_security_group.cc_service_sg[count.index].id
   cidr_ipv4         = data.aws_vpc.selected.cidr_block
+  ip_protocol       = "-1"
+}
+
+# Additional intra-VPC CIDRs (e.g. secondary VPC CIDR associations) for all intra-VPC traffic
+resource "aws_vpc_security_group_ingress_rule" "ingress_cc_service_all_additional" {
+  for_each          = local.additional_intra_vpc_cidrs
+  description       = "Optional: Permit All Traffic from additional intra-VPC CIDR / Ensure CC Service Interfaces can communicate freely"
+  security_group_id = aws_security_group.cc_service_sg[each.value.sg_index].id
+  cidr_ipv4         = each.value.cidr
   ip_protocol       = "-1"
 }
 
